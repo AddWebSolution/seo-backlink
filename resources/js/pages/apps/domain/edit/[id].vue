@@ -1,6 +1,5 @@
 <script setup>
-import { useApi } from '@/composables/api.js'
-import { useDomainShow } from '@/composables/domainApi.js'
+import { useDomainShow ,useDomainUpdate } from '@/composables/domainApi.js'
 import DomainEditDrawer from '@/views/apps/domain/DomainEditDrawer.vue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -23,10 +22,7 @@ onMounted(async () => {
 const saveDomain = async (updatedDomain) => {
   if (!updatedDomain?.id) return
 
-  await useApi(`api/clientdomain/${updatedDomain.id}`, {
-    method: 'PUT',
-    body: updatedDomain,
-  })()
+  const domainData = useDomainUpdate(updatedDomain.id)
   domainData.value = { ...updatedDomain }
   isEditDrawerActive.value = false
 }
