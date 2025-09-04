@@ -22,7 +22,7 @@ import { VerticalNavLayout } from '@layouts'
         </IconBtn>
 
         <!-- <NavSearchBar class="ms-lg-n3" /> -->
-
+        <UserProfile />
         <VSpacer />
 
         <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
@@ -30,7 +30,6 @@ import { VerticalNavLayout } from '@layouts'
         <NavbarThemeSwitcher />
         <!-- <NavbarShortcuts /> -->
         <!-- <NavBarNotifications class="me-1" /> -->
-        <UserProfile />
       </div>
     </template>
 
