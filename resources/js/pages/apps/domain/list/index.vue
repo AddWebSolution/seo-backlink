@@ -67,20 +67,28 @@ const deleteDomain = async id => {
     <!-- Filters -->
     <VCardText>
       <VRow>
-        <VCol cols="12" sm="4">
+        <VCol cols="12" md="3">
           <AppSelect v-model="selectedStatus" placeholder="Status" :items="[
             { title: 'Available', value: 1 },
             { title: 'Unavailable', value: 2 }
           ]" clearable clear-icon="tabler-x" />
         </VCol>
 
-        <VCol cols="12" sm="4">
+        <VCol cols="12" md="3">
           <AppTextField v-model="selectedCountry" placeholder="Country" clearable />
         </VCol>
 
-        <VCol cols="12" sm="4">
+        <VCol cols="12" md="3">
           <AppTextField v-model="searchQuery" placeholder="Search Domains" style="inline-size: 200px;" />
         </VCol>
+
+        <VCol cols="12" md="3" class="d-flex justify-end">
+               <VBtn color="primary" variant="outlined" class="text-primary"
+              :to="{ name: 'apps-domain-add' }">
+              <VIcon icon="tabler-arrow-left" class="me-2" />
+              Create Domain
+            </VBtn>
+          </VCol>
       </VRow>
     </VCardText>
 

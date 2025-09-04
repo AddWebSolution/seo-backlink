@@ -425,7 +425,6 @@ const scrollToSection = (sectionId) => {
                       v-model="form.client_id"
                       label="Client ID"
                       placeholder="e.g., CLT-2024-001"
-                      prepend-inner-icon="mdi-account-badge"
                       variant="outlined"
                       hint="Unique identifier for the client"
                       persistent-hint
@@ -439,7 +438,6 @@ const scrollToSection = (sectionId) => {
                       label="Domain Title *"
                       placeholder="Enter a descriptive title"
                       :rules="[rules.required, rules.minLength(3), rules.maxLength(100)]"
-                      prepend-inner-icon="mdi-format-title"
                       variant="outlined"
                       hint="Primary identifier for this domain"
                       persistent-hint
@@ -467,7 +465,6 @@ const scrollToSection = (sectionId) => {
                       v-model="form.turnaround_time"
                       label="Turnaround Time"
                       placeholder="e.g., 5-7 business days"
-                      prepend-inner-icon="mdi-clock-fast"
                       variant="outlined"
                       hint="Expected delivery timeframe"
                       persistent-hint
@@ -639,7 +636,6 @@ const scrollToSection = (sectionId) => {
                       label="Source URL"
                       placeholder="https://example.com/source-page"
                       :rules="[rules.url]"
-                      prepend-inner-icon="mdi-web"
                       variant="outlined"
                       hint="The URL where the link will be placed"
                       persistent-hint
@@ -662,7 +658,6 @@ const scrollToSection = (sectionId) => {
                       label="Target URL*"
                       placeholder="https://target.com/destination-page"
                       :rules="[rules.url,rules.required]"
-                      prepend-inner-icon="mdi-target"
                       variant="outlined"
                       required
                       hint="The destination URL for the link"
@@ -965,7 +960,6 @@ const scrollToSection = (sectionId) => {
                             step="0.01"
                             min="0"
                             :rules="[rules.number, rules.positiveNumber]"
-                            prepend-inner-icon="mdi-currency-usd"
                             variant="solo-filled"
                             placeholder="0.00"
                             @input="markFormTouched"
@@ -984,7 +978,6 @@ const scrollToSection = (sectionId) => {
                             step="0.01"
                             min="0"
                             :rules="[rules.number, rules.positiveNumber]"
-                            prepend-inner-icon="mdi-currency-usd"
                             variant="solo-filled"
                             placeholder="0.00"
                             @input="markFormTouched"
@@ -1003,7 +996,6 @@ const scrollToSection = (sectionId) => {
                             step="0.01"
                             min="0"
                             :rules="[rules.number, rules.positiveNumber]"
-                            prepend-inner-icon="mdi-currency-usd"
                             variant="solo-filled"
                             placeholder="0.00"
                             @input="markFormTouched"
@@ -1042,7 +1034,6 @@ const scrollToSection = (sectionId) => {
                         label="Anchor Text"
                         placeholder="Enter the anchor text for the link"
                         :rules="[rules.maxLength(200)]"
-                        prepend-inner-icon="mdi-link-variant"
                         variant="outlined"
                         hint="The clickable text for the hyperlink"
                         persistent-hint
