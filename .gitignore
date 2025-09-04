@@ -1,0 +1,34 @@
+# Laravel
+/vendor/
+/node_modules/
+/public/storage
+/storage/*.key
+.env
+.env.*
+/.idea
+/.vscode
+/.phpunit.result.cache
+Homestead.yaml
+Homestead.json
+.phpunit.cache
+.phpstorm.meta.php
+
+# Logs
+/storage/logs/*
+/*.log
+
+# Compiled files
+/bootstrap/cache/*
+/public/hot
+/public/storage
+/public/mix-manifest.json
+/public/build
+
+# NPM/Yarn
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Mac / OS
+.DS_Store
+Thumbs.db
