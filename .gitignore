@@ -24,7 +24,15 @@ Homestead.json
 /public/mix-manifest.json
 /public/build
 
-# NPM/Yarn
+# NPM/Yarn/Pnpm lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Composer lock file
+composer.lock
+
+# Debug logs
 npm-debug.log
 yarn-error.log
 pnpm-debug.log
