@@ -20,7 +20,7 @@ export const db = {
       fullName: 'John Doe',
       username: 'johndoe',
       password: 'admin',
-      avatar: `${import.meta.env.BASE_URL.replace(/build\/$/g, '') ?? '/'}images/avatars/avatar-1.png`,
+      avatar: `${import.meta.env.BASE_URL.replace(/\/$/g, '') ?? '/'}images/avatars/avatar-1.png`,
       email: 'admin@demo.com',
       role: 'admin',
       abilityRules: [
@@ -35,7 +35,7 @@ export const db = {
       fullName: 'Jane Doe',
       username: 'janedoe',
       password: 'client',
-      avatar: `${import.meta.env.BASE_URL.replace(/build\/$/g, '') ?? '/'}images/avatars/avatar-2.png`,
+      avatar: `${import.meta.env.BASE_URL.replace(/\/$/g, '') ?? '/'}images/avatars/avatar-2.png`,
       email: 'client@demo.com',
       role: 'client',
       abilityRules: [
