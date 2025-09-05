@@ -29,25 +29,26 @@ class AuthService
     }
 
     /**
-     * Login user and return token
+     * Attempt login with given credentials and return token.
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function login(array $credentials): array
     {
         if (!Auth::attempt($credentials)) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid credentials provided.'],
+                'auth' => ['Invalid credentials provided.'],
             ]);
         }
 
         /** @var User $user */
         $user = Auth::user();
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         event(new UserLoggedInEvent($user));
 
-        return [
-            'token' => $token,
-        ];
+        return ['token' => $token];
     }
 
     /**

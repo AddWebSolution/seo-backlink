@@ -2,12 +2,13 @@
 
 namespace App\Modules\Report\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Addweb\Base\Controller\BaseController;
 use App\Modules\Report\Services\ReportService;
+
 use App\Modules\Report\Http\Resources\ReportResource;
 use App\Modules\Report\Http\Requests\StoreReportRequest;
 use App\Modules\Report\Http\Requests\UpdateReportRequest;
-
-use Addweb\Base\Controller\BaseController;
 
 class ReportController extends BaseController
 {
@@ -22,11 +23,17 @@ class ReportController extends BaseController
         ];
     }
 
-    public function backlinkshow($id)
+    public function backlinkshow(Request $request, $id)
     {
-        $perPage = request()->get('per_page', 10);
+        $perPage = $request->get('per_page', 10);
 
-        $result = $this->service->getReportWithBacklinks($id, $perPage);
+        $filters = [
+            'search'          => $request->get('search'),
+            'domain'          => $request->get('domain'),
+            'status'          => $request->get('status'),
+        ];
+
+        $result = $this->service->getReportWithBacklinks($id, $perPage, $filters);
 
         return response()->json([
             'success'   => true,

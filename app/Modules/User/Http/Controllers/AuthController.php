@@ -22,15 +22,27 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(LoginUserRequest $request)
-    {
+   public function login(LoginUserRequest $request)
+{
+    try {
         $result = $this->service->login($request->validated());
 
         return response()->json([
-            'message' => 'Login successful',
+            'message' => 'Login successful.',
             'token'   => $result['token'],
-        ]);
+        ], 200);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'message' => 'Invalid credentials provided.',
+            'errors'  => $e->errors(),
+        ], 500);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'message' => 'Something went wrong while attempting login.',
+        ], 500);
     }
+}
 
     public function logout()
     {

@@ -85,14 +85,14 @@ export default [
     title: 'Domain',
     icon: { icon: 'tabler-file-invoice' },
     children: [
-      { title: 'List', to: 'apps-domain-list' },
-      { title: 'Add', to: 'apps-domain-add' },
+      { title: 'Domain', to: 'apps-domain-list' },
+      { title: 'Add Domain', to: 'apps-domain-add' },
     ],
   },
   {
     title: 'Report',
     children: [
-      { title: 'List', to: 'apps-report-list' },
+      { title: 'Report List', to: 'apps-report-list' },
     ],
   },
   // {

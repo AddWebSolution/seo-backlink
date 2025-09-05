@@ -1,6 +1,7 @@
 <script setup>
 import { useDomainStore } from '@/composables/domainApi.js'
 import { useRouter } from 'vue-router'
+import { IconWorldWww,IconDevicesCog,IconWorldMinus,IconUnlink,IconSeo,IconTag } from '@tabler/icons-vue';
 
 const router = useRouter()
 
@@ -85,14 +86,14 @@ const statusOptions = [
     title: 'Available', 
     value: 1, 
     color: 'success', 
-    icon: 'mdi-check-circle',
+    icon: 'tabler-circle-check',
     description: 'Domain is active and ready for use'
   },
   { 
     title: 'Unavailable', 
     value: 2, 
     color: 'error', 
-    icon: 'mdi-close-circle',
+    icon: 'tabler-circle-x',
     description: 'Domain is currently not available'
   },
 ]
@@ -102,24 +103,25 @@ const approvalStatusOptions = [
     title: 'Pending', 
     value: 1, 
     color: 'warning', 
-    icon: 'mdi-clock-outline',
+    icon: 'tabler-clock-hour-3', 
     description: 'Awaiting review from administrator'
   },
   { 
     title: 'Rejected', 
     value: 2, 
     color: 'error', 
-    icon: 'mdi-close-circle-outline',
+    icon: 'tabler-circle-x', 
     description: 'Domain has been rejected'
   },
   { 
     title: 'Approved', 
     value: 3, 
     color: 'success', 
-    icon: 'mdi-check-decagram',
+    icon: 'tabler-circle-check',
     description: 'Domain has been approved'
   },
 ]
+
 
 // Country options
 const countryOptions = [
@@ -287,7 +289,7 @@ const scrollToSection = (sectionId) => {
     </VSlideYTransition>
 
     <!-- Page Header -->
-    <div class="page-header mb-6">
+     <VCard class="mb-10 pa-8 overflow-hidden" elevation="2">
       <VContainer fluid>
         <VRow align="center">
           <VCol cols="12" md="8">
@@ -298,7 +300,7 @@ const scrollToSection = (sectionId) => {
                 variant="elevated"
                 class="me-4"
               >
-                <VIcon icon="mdi-domain-plus" size="32" />
+                <IconWorldWww stroke={2} />
               </VAvatar>
               <div>
                 <h1 class="text-h3 font-weight-bold mb-1">Create New Domain</h1>
@@ -312,20 +314,19 @@ const scrollToSection = (sectionId) => {
             <div class="d-flex gap-2 justify-md-end">
               <VBtn
                 color="primary"
-                variant="tonal"
+                variant="outlined"
                 @click="resetForm"
                 :disabled="state.submitting"
               >
-                <VIcon icon="mdi-refresh" class="me-2" />
+                <VIcon icon="tabler-refresh" class="me-2" />
                 Reset
               </VBtn>
               <VBtn
-                color="default"
                 variant="outlined"
                 @click="router.push({ name: 'apps-domain-list' })"
                 :disabled="state.submitting"
               >
-                <VIcon icon="mdi-arrow-left" class="me-2" />
+                 <VIcon icon="tabler-arrow-left" class="me-2" />
                 Back to List
               </VBtn>
             </div>
@@ -352,7 +353,7 @@ const scrollToSection = (sectionId) => {
           </VCardText>
         </VCard> -->
       </VContainer>
-    </div>
+    </VCard>
 
     <!-- Main Form Container -->
     <VContainer  fluid >
@@ -397,7 +398,7 @@ const scrollToSection = (sectionId) => {
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
                 <VAvatar color="primary" variant="tonal" size="40" class="me-3">
-                  <VIcon icon="mdi-information-outline" />
+                  <IconWorldMinus stroke={2} />
                 </VAvatar>
                 <div>
                   <h2 class="text-h5 font-weight-bold">Basic Information</h2>
@@ -483,7 +484,7 @@ const scrollToSection = (sectionId) => {
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
                 <VAvatar color="success" variant="tonal" size="40" class="me-3">
-                  <VIcon icon="mdi-shield-check-outline" />
+                <IconDevicesCog stroke={2} />
                 </VAvatar>
                 <div>
                   <h2 class="text-h5 font-weight-bold">Status Configuration</h2>
@@ -532,10 +533,10 @@ const scrollToSection = (sectionId) => {
                                   <VIcon :icon="status.icon" size="20" />
                                 </VAvatar>
                                 <div class="flex-grow-1">
-                                  <p class="text-body-1 font-weight-medium mb-0">
+                                  <p class=" font-weight-medium mb-0">
                                     {{ status.title }}
                                   </p>
-                                  <p class="text-caption text-medium-emphasis mb-0">
+                                  <p class=" font-weight-medium mb-0">
                                     {{ status.description }}
                                   </p>
                                 </div>
@@ -577,10 +578,10 @@ const scrollToSection = (sectionId) => {
                                   <VIcon :icon="status.icon" size="20" />
                                 </VAvatar>
                                 <div class="flex-grow-1">
-                                  <p class="text-body-1 font-weight-medium mb-0">
+                                 <p class=" font-weight-medium mb-0">
                                     {{ status.title }}
                                   </p>
-                                  <p class="text-caption text-medium-emphasis mb-0">
+                                  <p class=" font-weight-medium mb-0">
                                     {{ status.description }}
                                   </p>
                                 </div>
@@ -607,7 +608,7 @@ const scrollToSection = (sectionId) => {
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
                 <VAvatar color="info" variant="tonal" size="40" class="me-3">
-                  <VIcon icon="mdi-link-variant" />
+                  <IconUnlink stroke={2} />
                 </VAvatar>
                 <div>
                   <h2 class="text-h5 font-weight-bold">URL Management</h2>
@@ -726,7 +727,7 @@ const scrollToSection = (sectionId) => {
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
                 <VAvatar color="warning" variant="tonal" size="40" class="me-3">
-                  <VIcon icon="mdi-chart-line-variant" />
+                 <IconSeo stroke={2} />
                 </VAvatar>
                 <div>
                   <h2 class="text-h5 font-weight-bold">SEO Metrics</h2>
@@ -754,7 +755,7 @@ const scrollToSection = (sectionId) => {
                       <VCardText>
                         <div class="d-flex align-center mb-3">
                           <VAvatar color="primary" variant="tonal" size="36" class="me-3">
-                            <VIcon icon="mdi-shield-check" size="20" />
+                            <VIcon icon="tabler-award" size="32" />
                           </VAvatar>
                           <div>
                             <p class="text-body-2 font-weight-medium mb-0">Domain Authority</p>
@@ -792,7 +793,7 @@ const scrollToSection = (sectionId) => {
                       <VCardText>
                         <div class="d-flex align-center mb-3">
                           <VAvatar color="success" variant="tonal" size="36" class="me-3">
-                            <VIcon icon="mdi-star" size="20" />
+                             <VIcon icon="tabler-trending-up" size="32" />
                           </VAvatar>
                           <div>
                             <p class="text-body-2 font-weight-medium mb-0">Domain Rating</p>
@@ -830,7 +831,7 @@ const scrollToSection = (sectionId) => {
                       <VCardText>
                         <div class="d-flex align-center mb-3">
                           <VAvatar color="info" variant="tonal" size="36" class="me-3">
-                            <VIcon icon="mdi-trending-up" size="20" />
+                            <VIcon icon="tabler-users" size="32" />
                           </VAvatar>
                           <div>
                             <p class="text-body-2 font-weight-medium mb-0">Organic Traffic</p>
@@ -912,7 +913,7 @@ const scrollToSection = (sectionId) => {
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
                 <VAvatar color="error" variant="tonal" size="40" class="me-3">
-                  <VIcon icon="mdi-cash-multiple" />
+                  <IconTag stroke={2} />
                 </VAvatar>
                 <div>
                   <h2 class="text-h5 font-weight-bold">Pricing & Additional Details</h2>
@@ -1081,7 +1082,6 @@ const scrollToSection = (sectionId) => {
                   @click="resetForm"
                   :disabled="state.submitting"
                 >
-                  <VIcon icon="mdi-refresh" class="me-2" />
                   Reset Form
                 </VBtn>
                 
@@ -1104,7 +1104,6 @@ const scrollToSection = (sectionId) => {
                   :loading="state.submitting"
                   :disabled="state.showSuccessAlert"
                 >
-                  <VIcon icon="mdi-check-bold" class="me-2" />
                   Create Domain
                 </VBtn>
               </div>
@@ -1133,7 +1132,8 @@ const scrollToSection = (sectionId) => {
   
   .page-header {
     background: white;
-    padding: 2rem 0;
+    padding: 1rem 0;
+    border-radius:12px;
     margin-bottom: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }

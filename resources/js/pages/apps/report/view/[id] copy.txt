@@ -1,97 +1,93 @@
 <script setup>
 import { useReportShow } from "@/composables/reportApi";
-import { useDomainList } from "@/composables/domainApi";
-import { reactive, computed, ref, watch, unref } from "vue"
 import { IconCheck, IconClock, IconX } from "@tabler/icons-vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 const reportId = computed(() => route.params.id);
 
-// Search and filters
-const searchQuery = ref("");
-const statusFilter = ref("");
-const selectedDomain = ref("");
+// Pagination
+const page = ref(1);
+const itemsPerPage = ref(10);
 
-const uiState = reactive({
+// View toggles
+const viewMode = ref("domains"); // 'all' or 'domains'
+const activeTab = ref("");
+
+const requestBody = reactive({
   page: 1,
-  itemsPerPage: 10,
+  per_page: 10,
+  search: "",
+  status: "",
+})
+
+// API
+const {
+  data: reportData,
+  isLoading,
+} = await useReportShow(reportId.value,requestBody);
+
+// Watch for pagination changes
+watch([requestBody], () => {
+  refresh({
+    params: {
+      page: page.value,
+      per_page: itemsPerPage.value,
+    },
+  });
 });
-
-// request body
-const requestBody = computed(() => ({
-  page: uiState.page,
-  per_page: uiState.itemsPerPage,
-  search: searchQuery.value,
-  status: statusFilter.value,
-  domain: selectedDomain.value,
-}));
-
-console.log('before request body',unref(requestBody));
-
-watch(requestBody, () => {
-  refresh();
-  console.log('after request body',unref(requestBody));
-}, { deep: true });
-
-watch([searchQuery, statusFilter, selectedDomain], () => {
-  uiState.page = 1;
-});
-
-const { data: reportData, isLoading, refresh } = useReportShow(reportId.value, requestBody);
-
-const { data: domainResponse, isFetching: isDomainLoading } = useDomainList()
-
 
 const report = computed(() => reportData.value?.report ?? {});
-const backlinksData = computed(() => reportData.value?.backlinks ?? {
-  data: [],
-  current_page: 1,
-  last_page: 1,
-  per_page: requestBody.per_page,
-  total: 0,
-  from: 0,
-  to: 0,
-});
-
-watch(() => backlinksData.value.current_page, (newPage) => {
-  if (newPage && newPage !== uiState.page) {
-    uiState.page = newPage;
-  }
-});
+const backlinksData = computed(
+  () =>
+    reportData.value?.backlinks ?? {
+      data: [],
+      current_page: 1,
+      last_page: 1,
+      per_page: itemsPerPage.value,
+      total: 0,
+    }
+);
 
 const allBacklinks = computed(() => backlinksData.value.data ?? []);
 
-const availableDomains = computed(() => {
-  const domains = new Set();
+// Group backlinks by domain
+const backlinksByDomain = computed(() => {
+  const grouped = {};
   allBacklinks.value.forEach((backlink) => {
-    const domain = backlink.domain || backlink.from_domain || "Unknown Domain";
-    domains.add(domain);
+    const domain = backlink.domain || "Unknown Domain";
+    if (!grouped[domain]) {
+      grouped[domain] = [];
+    }
+    grouped[domain].push(backlink);
   });
-  return Array.from(domains).sort();
+  return grouped;
 });
 
-const domainOptions = computed(() => {
-  const options = [{ title: "All Domains", value: "" }]
-  if (domainResponse.value?.domains) {
-    domainResponse.value.domains.forEach(d => {
-      options.push({
-        title: d.title,
-        value: d.target_url,
-      })
-    })
-  }
-  return options
-})
+// Get domain names for tabs
+const domainNames = computed(() => Object.keys(backlinksByDomain.value));
 
-watch([availableDomains, searchQuery], ([domains, search]) => {
-  if (search && domains.length === 1 && domains[0] !== selectedDomain.value) {
-    selectedDomain.value = domains[0];
+// Set first domain as active tab when domains are loaded
+watch(
+  domainNames,
+  (newDomains) => {
+    if (newDomains.length > 0 && !activeTab.value) {
+      activeTab.value = newDomains[0];
+    }
+  },
+  { immediate: true }
+);
+
+// Current backlinks to display
+const currentBacklinks = computed(() => {
+  if (viewMode.value === "all") {
+    return allBacklinks.value;
   }
+  return backlinksByDomain.value[activeTab.value] || [];
 });
 
-const currentBacklinks = computed(() => allBacklinks.value);
-
+// Status config
 const getStatusConfig = (status) => {
   if (status === "accepted")
     return { color: "success", icon: IconCheck, text: "Accepted" };
@@ -138,70 +134,6 @@ const formatDate = (dateString) => {
     day: "numeric",
   });
 };
-
-// Status options
-const statusOptions = [
-  { title: "All Status", value: "" },
-  { title: "Accepted", value: "accepted" },
-  { title: "Rejected", value: "rejected" },
-  { title: "Pending", value: "pending" },
-];
-
-// Clear all filters
-const clearFilters = () => {
-  searchQuery.value = "";
-  statusFilter.value = "";
-  selectedDomain.value = "";
-  uiState.page = 1;
-};
-
-// Search scope options
-const searchScope = ref("global"); // 'global' or 'domain'
-
-// Update search scope based on domain selection
-watch(selectedDomain, (newDomain) => {
-  if (newDomain) {
-    searchScope.value = "domain";
-  } else {
-    searchScope.value = "global";
-  }
-  selectedDomain.value = newDomain;
-  console.log("searchScope changed:", newDomain);
-  console.log("searchScope:", selectedDomain);
-
-});
-
-// Handle search scope change
-watch(searchScope, (newScope) => {
-  if (newScope === "global") {
-    selectedDomain.value = "";
-  }
-});
-console.log('searchScope',searchScope);
-
-const handleSearch = () => {
-  if (searchScope.value === "domain" && !selectedDomain.value && availableDomains.value.length > 0) {
-    selectedDomain.value = availableDomains.value[0];
-  }
-};
-
-// Pagination info
-const paginationInfo = computed(() => {
-  const current = backlinksData.value.current_page || 1;
-  const total = backlinksData.value.last_page || 1;
-  const from = backlinksData.value.from || 0;
-  const to = backlinksData.value.to || 0;
-  const totalItems = backlinksData.value.total || 0;
-  
-  return {
-    current,
-    total,
-    from,
-    to,
-    totalItems,
-    showing: `${from}-${to} of ${totalItems}`
-  };
-});
 </script>
 
 <template>
@@ -360,192 +292,97 @@ const paginationInfo = computed(() => {
         </VCol>
       </VRow>
 
-      <!-- Enhanced Filters Card -->
+      <!-- View Controls -->
       <VCard elevation="2" class="mb-6">
         <VCardTitle class="d-flex align-center pa-6">
-          <VAvatar color="primary" variant="tonal" class="me-3">
-            <VIcon icon="tabler-filter" />
-          </VAvatar>
-          <div>
-            <h5 class="text-h5">Search & Filters</h5>
-            <p class="text-body-2 text-medium-emphasis">
-              Filter and search through backlinks
-            </p>
-          </div>
-        </VCardTitle>
-
-        <VCardText class="pa-6">
-          <!-- Search Scope Toggle -->
-          <VRow class="mb-4">
-            <VCol cols="12">
-              <VBtnToggle 
-                v-model="searchScope" 
-                color="primary" 
-                variant="outlined" 
-                mandatory
-                class="w-100"
-              >
-                <VBtn value="global" class="flex-grow-1">
-                  <VIcon icon="tabler-world" class="me-2" />
-                  Search All Backlinks
+          <div
+            class="d-flex align-center justify-space-between w-100 flex-wrap"
+          >
+            <div class="d-flex align-center">
+              <VAvatar color="primary" variant="tonal" class="me-3">
+                <VIcon icon="tabler-link" />
+              </VAvatar>
+              <div>
+                <h5 class="text-h5">Backlinks Overview</h5>
+                <p class="text-body-2 text-medium-emphasis">
+                  Showing {{ backlinksData.from || 0 }} to
+                  {{ backlinksData.to || 0 }} of {{ backlinksData.total || 0 }}
+                  results
+                </p>
+              </div>
+            </div>
+            <!-- Enhanced View Mode Toggle -->
+            <!-- <VCard variant="outlined" class="pa-1">
+              <VBtnToggle v-model="viewMode" color="primary" variant="elevated" divided mandatory>
+                <VBtn value="all" size="large" class="px-6">
+                  <VIcon icon="tabler-list" class="me-2" />
+                  All Backlinks
+                  <VChip size="x-small" color="primary" variant="elevated" class="ml-2">
+                    {{ allBacklinks.length }}
+                  </VChip>
                 </VBtn>
-                <VBtn value="domain" class="flex-grow-1" :disabled="domainOptions.length === 0">
+                <VBtn value="domains" size="large" class="px-6">
                   <VIcon icon="tabler-sitemap" class="me-2" />
-                  Search in Domain
+                  By Domain
+                  <VChip size="x-small" color="primary" variant="elevated" class="ml-2">
+                    {{ domainNames.length }}
+                  </VChip>
                 </VBtn>
               </VBtnToggle>
-            </VCol>
-          </VRow>
-
-          <VRow>
-            <!-- Domain Filter -->
-            <VCol cols="12" md="3">
-              <VSelect
-                v-model="selectedDomain"
-                :items="domainOptions"
-                item-title="title"
-                item-value="value"
-                variant="outlined"
-                label="Select Domain"
-                hide-details
-                clearable
-                :disabled="searchScope === 'global'"
-              >
-                <template #selection="{ item }">
-                  <div class="d-flex align-center">
-                    <VIcon icon="tabler-world" class="me-2" size="16" />
-                    <span>{{ item.title }}</span>
-                  </div>
-                </template>
-              </VSelect>
-            </VCol>
-
-            <!-- Search Field -->
-            <VCol cols="12" md="4">
-              <VTextField
-                v-model="searchQuery"
-                variant="outlined"
-                label="Search backlinks..."
-                :placeholder="searchScope === 'domain' && selectedDomain 
-                  ? `Search in ${selectedDomain}...` 
-                  : 'Search by domain, URL, or anchor text'"
-                hide-details
-                clearable
-                prepend-inner-icon="tabler-search"
-                @keyup.enter="handleSearch"
-              />
-            </VCol>
-
-            <!-- Status Filter -->
-            <VCol cols="12" md="2">
-              <VSelect
-                v-model="statusFilter"
-                :items="statusOptions"
-                item-title="title"
-                item-value="value"
-                variant="outlined"
-                label="Status"
-                hide-details
-                clearable
-                prepend-inner-icon="tabler-flag"
-              />
-            </VCol>
-
-            <!-- Items per page -->
-            <VCol cols="12" md="2">
-              <VSelect
-                v-model="uiState.itemsPerPage"
-                :items="[5,10, 25, 50,100,500]"
-                variant="outlined"
-                label="Per page"
-                hide-details
-                prepend-inner-icon="tabler-list"
-              />
-            </VCol>
-
-            <!-- Actions -->
-            <VCol cols="12" md="1" class="d-flex align-center">
-              <VBtn
-                variant="outlined"
-                color="secondary"
-                @click="clearFilters"
-                :disabled="!searchQuery && !statusFilter && !selectedDomain"
-                icon="tabler-filter-x"
-                class="w-100"
-              />
-            </VCol>
-          </VRow>
-
-          <!-- Active Filters Display -->
-          <div v-if="searchQuery || statusFilter || selectedDomain" class="mt-4">
-            <div class="d-flex align-center gap-2 flex-wrap">
-              <span class="text-body-2 text-medium-emphasis">Active filters:</span>
-              
-              <VChip 
-                v-if="selectedDomain" 
-                size="small" 
-                color="primary" 
-                variant="tonal"
-                closable
-                @click:close="selectedDomain = ''"
-              >
-                <VIcon icon="tabler-world" class="me-1" size="14" />
-                Domain: {{ selectedDomain }}
-              </VChip>
-              
-              <VChip 
-                v-if="searchQuery" 
-                size="small" 
-                color="info" 
-                variant="tonal"
-                closable
-                @click:close="searchQuery = ''"
-              >
-                <VIcon icon="tabler-search" class="me-1" size="14" />
-                Search: {{ searchQuery }}
-              </VChip>
-              
-              <VChip 
-                v-if="statusFilter" 
-                size="small" 
-                color="warning" 
-                variant="tonal"
-                closable
-                @click:close="statusFilter = ''"
-              >
-                <VIcon icon="tabler-flag" class="me-1" size="14" />
-                Status: {{ statusOptions.find(s => s.value === statusFilter)?.title }}
-              </VChip>
-            </div>
-          </div>
-        </VCardText>
-      </VCard>
-
-      <!-- Results Card -->
-      <VCard elevation="2" class="mb-6">
-        <VCardTitle class="d-flex align-center justify-space-between pa-6">
-          <div class="d-flex align-center">
-            <VAvatar color="primary" variant="tonal" class="me-3">
-              <VIcon icon="tabler-link" />
-            </VAvatar>
-            <div>
-              <h5 class="text-h5">Backlinks Results</h5>
-              <p class="text-body-2 text-medium-emphasis">
-                Showing {{ paginationInfo.showing }} results
-                <template v-if="selectedDomain">
-                  in {{ selectedDomain }}
-                </template>
-              </p>
-            </div>
-          </div>
-
-          <!-- Results Summary -->
-          <div class="text-end">
-            <VChip color="primary" variant="outlined" size="small">
-              Page {{ paginationInfo.current }} of {{ paginationInfo.total }}
-            </VChip>
+            </VCard> -->
           </div>
         </VCardTitle>
+
+        <!-- Domain Dropdown (only show when in domain view) -->
+        <VCardText
+          v-if="viewMode === 'domains' && domainNames.length > 0"
+          class="px-6 pt-0 pb-4"
+        >
+          <VSelect
+            v-model="activeTab"
+            :items="domainNames"
+            label="Select Domain"
+            variant="outlined"
+            class="domain-dropdown"
+            :menu-props="{ maxHeight: 300 }"
+            item-title="title"
+            item-value="title"
+            clearable
+            persistent-clear
+            autocomplete
+            style="width: 250px"
+          >
+            <template #selection="{ item }">
+              <div class="d-flex align-center">
+                <VAvatar size="28" color="primary" variant="tonal" class="me-2">
+                  <VIcon icon="tabler-world" size="16" />
+                </VAvatar>
+                <span class="text-capitalize">{{ item.title }}</span>
+              </div>
+            </template>
+
+            <template #item="{ props, item }">
+              <VListItem v-bind="props">
+                <template #prepend>
+                  <VAvatar
+                    size="28"
+                    color="primary"
+                    variant="tonal"
+                    class="me-2"
+                  >
+                    <VIcon icon="tabler-world" size="16" />
+                  </VAvatar>
+                </template>
+                <VListItemTitle class="text-capitalize">{{
+                  item.title
+                }}</VListItemTitle>
+                <VListItemSubtitle>
+                  {{ backlinksByDomain[item.title].length }} backlinks
+                </VListItemSubtitle>
+              </VListItem>
+            </template>
+          </VSelect>
+        </VCardText>
 
         <!-- Backlinks Display -->
         <VCardText class="pa-6">
@@ -556,24 +393,14 @@ const paginationInfo = computed(() => {
             <h5 class="text-h5 mb-2">No Backlinks Found</h5>
             <p class="text-body-2 text-medium-emphasis">
               {{
-                searchQuery || statusFilter || selectedDomain
-                  ? "No backlinks match your current filters."
-                  : "No backlinks available for this report."
+                viewMode === "domains"
+                  ? "This domain has no backlinks yet."
+                  : "No backlinks available for thisreport."
               }}
             </p>
-            <VBtn
-              v-if="searchQuery || statusFilter || selectedDomain"
-              variant="outlined"
-              color="primary"
-              @click="clearFilters"
-              class="mt-4"
-            >
-              <VIcon icon="tabler-filter-x" class="me-2" />
-              Clear Filters
-            </VBtn>
           </div>
 
-          <!-- Backlinks Cards -->
+          <!-- Full-width Horizontal Cards -->
           <div v-else class="backlinks-container">
             <VCard
               v-for="backlink in currentBacklinks"
@@ -584,7 +411,7 @@ const paginationInfo = computed(() => {
             >
               <VCardText class="pa-6">
                 <VRow align="center">
-                  <!-- Domain Section -->
+                  <!-- Domain Section - Most Prominent -->
                   <VCol cols="12" md="3" class="domain-section">
                     <div class="d-flex align-center">
                       <VAvatar
@@ -598,7 +425,7 @@ const paginationInfo = computed(() => {
                       <div>
                         <div class="text-h5 font-weight-bold text-primary mb-1">
                           {{
-                            backlink.target_url || backlink.from_domain || "Unknown"
+                            backlink.domain || backlink.from_domain || "Unknown"
                           }}
                         </div>
                         <div class="text-body-2 text-medium-emphasis">
@@ -797,43 +624,36 @@ const paginationInfo = computed(() => {
           </div>
         </VCardText>
 
-        <!-- Enhanced Pagination -->
-        <div>
+        <!-- Pagination (only show when in 'all' mode) -->
+        <!-- <div>
           <VDivider />
-          <VCardActions class="justify-space-between pa-6">
-            <div class="d-flex align-center gap-4">
-              <span class="text-body-2 text-medium-emphasis">
-                Page {{ paginationInfo.current }} of {{ paginationInfo.total }}
-              </span>
-              <span class="text-body-2 text-medium-emphasis">
-                {{ paginationInfo.showing }} results
-              </span>
-            </div>
-
+          <VCardActions class="justify-center pa-6">
             <VPagination
-              v-model="uiState.page"
-              :length="paginationInfo.total"
+              v-model="page"
+              :length="backlinksData.last_page || 1"
               :total-visible="7"
               color="primary"
-              active-color="primary"
-              variant="outlined"
+              variant="elevated"
               size="large"
-              :disabled="isLoading"
             />
 
+            <VDivider vertical class="mx-6" />
+
             <div class="d-flex align-center gap-3">
-              <span class="text-body-2 text-medium-emphasis">Items per page:</span>
+              <span class="text-body-2 text-medium-emphasis"
+                >Items per page:</span
+              >
               <VSelect
-                v-model="uiState.itemsPerPage"
-                :items="[5, 10, 25, 50,100,500]"
+                v-model="itemsPerPage"
+                :items="[10, 25, 50, 100, 200, 500, 1000]"
                 variant="outlined"
                 density="compact"
                 hide-details
-                style="width: 80px;"
+                class="items-per-page-select"
               />
             </div>
           </VCardActions>
-        </div>
+        </div> -->
       </VCard>
     </template>
 
@@ -885,8 +705,35 @@ const paginationInfo = computed(() => {
   gap: 4px;
 }
 
+.domain-tabs .v-tab {
+  min-height: 80px !important;
+  padding: 16px 24px !important;
+  text-transform: none !important;
+  font-weight: 500;
+  border-radius: 12px;
+  margin: 0 8px;
+  transition: all 0.3s ease;
+}
+
+.domain-tabs .v-tab--selected {
+  background: rgba(var(--v-theme-primary), 0.1) !important;
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+.domain-tabs .v-tab:hover {
+  background: rgba(var(--v-theme-primary), 0.05) !important;
+}
+
 .max-width-400 {
   max-width: 400px;
+}
+
+.bg-gradient-to-r {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--v-theme-primary)) 0%,
+    rgb(var(--v-theme-secondary)) 100%
+  );
 }
 
 .v-card {
@@ -903,6 +750,10 @@ const paginationInfo = computed(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.items-per-page-select {
+  max-width: 100px;
 }
 
 .backlinks-container {
@@ -928,9 +779,16 @@ const paginationInfo = computed(() => {
 
   .action-chip {
     min-height: 32px;
+    /* makes all chips same height */
     padding: 0 8px;
+    /* keeps spacing consistent */
     display: flex;
     align-items: center;
+  }
+
+  .domain-tabs .v-tab {
+    min-height: 60px !important;
+    padding: 12px 16px !important;
   }
 }
 </style>

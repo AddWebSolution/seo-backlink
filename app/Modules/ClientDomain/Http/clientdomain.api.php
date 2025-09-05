@@ -13,6 +13,8 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::post('get/{id}', [ClientDomainController::class, 'show'])->name('show');
 			//});
 
+			Route::post('domain/list', [ClientDomainController::class, 'domainList'])->name('domainList');
+
 			//Route::group(['middleware' => ['can:Create ClientDomain']], function () {
 			Route::post('store', [ClientDomainController::class, 'store'])->name('store');
 			//});

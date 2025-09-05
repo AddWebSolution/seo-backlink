@@ -85,7 +85,7 @@ const deleteDomain = async id => {
         <VCol cols="12" md="3" class="d-flex justify-end">
                <VBtn color="primary" variant="outlined" class="text-primary"
               :to="{ name: 'apps-domain-add' }">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
+              <VIcon icon="tabler-arrow-right" class="me-2" />
               Create Domain
             </VBtn>
           </VCol>

@@ -20,11 +20,37 @@ class ReportService extends BaseService
         $this->object = new Report();
     }
 
-    public function getReportWithBacklinks(int $id, int $perPage = 10)
+    public function getReportWithBacklinks(int $id, int $perPage = 10, array $filters = [])
     {
         $report = Report::findOrFail($id);
 
-        $backlinks = $report->backlinks()->paginate($perPage);
+        $query = $report->backlinks();
+
+        // Search
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('url', 'like', "%{$search}%")
+                    ->orWhere('from_url', 'like', "%{$search}%")
+                    ->orWhere('domain', 'like',"%{$search}%")
+                    ->orWhere('target_url','like',"%{$search}%")
+                    ->orWhere('anchor', 'like', "%{$search}%")
+                    ->orWhere('page_title', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['domain'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->orwhere('target_url', $filters['domain'])
+                    ->orWhere('domain', $filters['domain']);
+            });
+        }
+
+        $backlinks = $query->paginate($perPage);
 
         return [
             'report'    => $report,
