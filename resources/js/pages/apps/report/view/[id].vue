@@ -2,7 +2,6 @@
 import { useReportShow } from "@/composables/reportApi";
 import { useDomainList } from "@/composables/domainApi";
 import { reactive, computed, ref, watch, unref } from "vue";
-import { IconRosetteDiscountCheckFilled, IconClock, IconX } from "@tabler/icons-vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -107,10 +106,10 @@ const currentBacklinks = computed(() => allBacklinks.value);
 
 const getStatusConfig = (status) => {
   if (status === "accepted")
-    return { color: "success", icon: IconRosetteDiscountCheckFilled, text: "Accepted" };
+    return { color: "success", icon: "tabler-progress-check", text: "Accepted" };
   if (status === "rejected")
-    return { color: "error", icon: IconX, text: "Rejected" };
-  return { color: "warning", icon: IconClock, text: "Pending" };
+    return { color: "error", icon: "tabler-progress-x", text: "Rejected" };
+  return { color: "warning", icon: "tabler-clock", text: "Pending" };
 };
 
 // Get tier color
@@ -228,12 +227,7 @@ const paginationInfo = computed(() => {
         <VRow align="start" justify="space-between">
           <VCol cols="12" md="8">
             <!-- Back button -->
-            <VBtn
-              variant="outlined"
-              color="primary"
-              class="mb-6"
-              :to="{ name: 'apps-report-list' }"
-            >
+            <VBtn variant="outlined" color="primary" class="mb-6" :to="{ name: 'apps-report-list' }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Reports
             </VBtn>
@@ -269,12 +263,7 @@ const paginationInfo = computed(() => {
     <template v-if="isLoading">
       <VCard class="mb-6" elevation="2">
         <VCardText class="text-center py-16">
-          <VProgressCircular
-            indeterminate
-            color="primary"
-            size="64"
-            width="6"
-          />
+          <VProgressCircular indeterminate color="primary" size="64" width="6" />
           <h6 class="text-h6 mt-6 mb-2">Loading report...</h6>
           <p class="text-body-2 text-medium-emphasis">
             Fetching backlink data, please wait.
@@ -394,22 +383,12 @@ const paginationInfo = computed(() => {
           <!-- Search Scope Toggle -->
           <VRow class="mb-4">
             <VCol cols="12">
-              <VBtnToggle
-                v-model="searchScope"
-                color="primary"
-                variant="outlined"
-                mandatory
-                class="w-100"
-              >
+              <VBtnToggle v-model="searchScope" color="primary" variant="outlined" mandatory class="w-100">
                 <VBtn value="global" class="flex-grow-1">
                   <VIcon icon="tabler-world" class="me-2" />
                   Search All Backlinks
                 </VBtn>
-                <VBtn
-                  value="domain"
-                  class="flex-grow-1"
-                  :disabled="domainOptions.length === 0"
-                >
+                <VBtn value="domain" class="flex-grow-1" :disabled="domainOptions.length === 0">
                   <VIcon icon="tabler-sitemap" class="me-2" />
                   Search in Domain
                 </VBtn>
@@ -420,17 +399,8 @@ const paginationInfo = computed(() => {
           <VRow>
             <!-- Domain Filter -->
             <VCol cols="12" md="3">
-              <VSelect
-                v-model="selectedDomain"
-                :items="domainOptions"
-                item-title="title"
-                item-value="value"
-                variant="outlined"
-                label="Select Domain"
-                hide-details
-                clearable
-                :disabled="searchScope === 'global'"
-              >
+              <VSelect v-model="selectedDomain" :items="domainOptions" item-title="title" item-value="value"
+                variant="outlined" label="Select Domain" hide-details clearable :disabled="searchScope === 'global'">
                 <template #selection="{ item }">
                   <div class="d-flex align-center">
                     <VIcon icon="tabler-world" class="me-2" size="16" />
@@ -442,107 +412,53 @@ const paginationInfo = computed(() => {
 
             <!-- Search Field -->
             <VCol cols="12" md="4">
-              <VTextField
-                v-model="searchQuery"
-                variant="outlined"
-                label="Search backlinks..."
-                :placeholder="
-                  searchScope === 'domain' && selectedDomain
-                    ? `Search in ${selectedDomain}...`
-                    : 'Search by domain, URL, or anchor text'
-                "
-                hide-details
-                clearable
-                prepend-inner-icon="tabler-search"
-                @keyup.enter="handleSearch"
-              />
+              <VTextField v-model="searchQuery" variant="outlined" label="Search backlinks..." :placeholder="searchScope === 'domain' && selectedDomain
+                  ? `Search in ${selectedDomain}...`
+                  : 'Search by domain, URL, or anchor text'
+                " hide-details clearable prepend-inner-icon="tabler-search" @keyup.enter="handleSearch" />
             </VCol>
 
             <!-- Status Filter -->
             <VCol cols="12" md="2">
-              <VSelect
-                v-model="statusFilter"
-                :items="statusOptions"
-                item-title="title"
-                item-value="value"
-                variant="outlined"
-                label="Status"
-                hide-details
-                clearable
-                prepend-inner-icon="tabler-flag"
-              />
+              <VSelect v-model="statusFilter" :items="statusOptions" item-title="title" item-value="value"
+                variant="outlined" label="Status" hide-details clearable prepend-inner-icon="tabler-flag" />
             </VCol>
 
             <!-- Items per page -->
             <VCol cols="12" md="2">
-              <VSelect
-                v-model="uiState.itemsPerPage"
-                :items="[5, 10, 25, 50, 100, 500]"
-                variant="outlined"
-                label="Per page"
-                hide-details
-                prepend-inner-icon="tabler-list"
-              />
+              <VSelect v-model="uiState.itemsPerPage" :items="[5, 10, 25, 50, 100, 500]" variant="outlined"
+                label="Per page" hide-details prepend-inner-icon="tabler-list" />
             </VCol>
 
             <!-- Actions -->
             <VCol cols="12" md="1" class="d-flex align-center">
-              <VBtn
-                variant="outlined"
-                color="secondary"
-                @click="clearFilters"
-                :disabled="!searchQuery && !statusFilter && !selectedDomain"
-                icon="tabler-filter-x"
-                class="w-100"
-              />
+              <VBtn variant="outlined" color="secondary" @click="clearFilters"
+                :disabled="!searchQuery && !statusFilter && !selectedDomain" icon="tabler-filter-x" class="w-100" />
             </VCol>
           </VRow>
 
           <!-- Active Filters Display -->
-          <div
-            v-if="searchQuery || statusFilter || selectedDomain"
-            class="mt-4"
-          >
+          <div v-if="searchQuery || statusFilter || selectedDomain" class="mt-4">
             <div class="d-flex align-center gap-2 flex-wrap">
-              <span class="text-body-2 text-medium-emphasis"
-                >Active filters:</span
-              >
+              <span class="text-body-2 text-medium-emphasis">Active filters:</span>
 
-              <VChip
-                v-if="selectedDomain"
-                size="small"
-                color="primary"
-                variant="tonal"
-                closable
-                @click:close="selectedDomain = ''"
-              >
+              <VChip v-if="selectedDomain" size="small" color="primary" variant="tonal" closable
+                @click:close="selectedDomain = ''">
                 <VIcon icon="tabler-world" class="me-1" size="14" />
                 Domain: {{ selectedDomain }}
               </VChip>
 
-              <VChip
-                v-if="searchQuery"
-                size="small"
-                color="info"
-                variant="tonal"
-                closable
-                @click:close="searchQuery = ''"
-              >
+              <VChip v-if="searchQuery" size="small" color="info" variant="tonal" closable
+                @click:close="searchQuery = ''">
                 <VIcon icon="tabler-search" class="me-1" size="14" />
                 Search: {{ searchQuery }}
               </VChip>
 
-              <VChip
-                v-if="statusFilter"
-                size="small"
-                color="warning"
-                variant="tonal"
-                closable
-                @click:close="statusFilter = ''"
-              >
+              <VChip v-if="statusFilter" size="small" color="warning" variant="tonal" closable
+                @click:close="statusFilter = ''">
                 <VIcon icon="tabler-flag" class="me-1" size="14" />
                 Status:
-                {{ statusOptions.find((s) => s.value === statusFilter)?.title }}
+                {{statusOptions.find((s) => s.value === statusFilter)?.title}}
               </VChip>
             </div>
           </div>
@@ -589,13 +505,8 @@ const paginationInfo = computed(() => {
                   : "No backlinks available for this report."
               }}
             </p>
-            <VBtn
-              v-if="searchQuery || statusFilter || selectedDomain"
-              variant="outlined"
-              color="primary"
-              @click="clearFilters"
-              class="mt-4"
-            >
+            <VBtn v-if="searchQuery || statusFilter || selectedDomain" variant="outlined" color="primary"
+              @click="clearFilters" class="mt-4">
               <VIcon icon="tabler-filter-x" class="me-2" />
               Clear Filters
             </VBtn>
@@ -603,31 +514,18 @@ const paginationInfo = computed(() => {
 
           <!-- Backlinks Cards -->
           <div v-else class="backlinks-container">
-            <VCard
-              v-for="backlink in currentBacklinks"
-              :key="backlink.id"
-              elevation="1"
-              compact
-              class="backlink-card mb-2"
-              border
-            >
+            <VCard v-for="backlink in currentBacklinks" :key="backlink.id" elevation="1" compact
+              class="backlink-card mb-2" border>
               <VCardText class="pa-3">
                 <VRow align="center" no-gutters class="g-2">
                   <!-- Domain & URL Section - Combined -->
                   <VCol cols="12" md="5" class="domain-url-section">
                     <div class="d-flex align-center mb-2">
-                      <VAvatar
-                        size="32"
-                        color="primary"
-                        variant="tonal"
-                        class="me-3 flex-shrink-0"
-                      >
+                      <VAvatar size="32" color="primary" variant="tonal" class="me-3 flex-shrink-0">
                         <VIcon icon="tabler-world" size="16" />
                       </VAvatar>
                       <div class="flex-grow-1 min-width-0">
-                        <div
-                          class="text-xl pa-2 font-weight-bold text-primary mb-0 text-truncate"
-                        >
+                        <div class="text-lg pa-2 font-weight-bold text-primary mb-0 text-truncate">
                           {{
                             backlink.domain ||
                             backlink.target_url ||
@@ -639,176 +537,118 @@ const paginationInfo = computed(() => {
 
                     <!-- Target URL -->
                     <div class="mb-1 pa-4">
-                      <a
-                        :href="backlink.target_url"
-                        target="_blank"
+                      <a :href="backlink.target_url" target="_blank"
                         class="text-success text-decoration-none d-flex align-center text-body-1"
-                        style="max-width: 100%"
-                        :title="backlink.target_url"
-                      >
-                        <VIcon
-                          icon="tabler-target"
-                          class="me-1 flex-shrink-0"
-                          size="26"
-                        />
+                        style="max-width: 100%" :title="backlink.target_url">
+                        <VIcon icon="tabler-target" class="me-1 flex-shrink-0" size="26" />
                         <span class="text-truncate me-1">{{
                           backlink.target_url
                         }}</span>
-                        <VIcon
-                          icon="tabler-external-link"
-                          size="10"
-                          class="flex-shrink-0"
-                        />
+                        <VIcon icon="tabler-external-link" size="10" class="flex-shrink-0" />
                       </a>
                     </div>
 
+                    <!-- Page title if exists -->
+
+                    <div v-if="backlink.page_title" class="d-flex mt-2 pa-2">
+                      <VTooltip :text="backlink.page_title">
+                        <template #activator="{ props }">
+                          <VIcon v-bind="props" icon="tabler-brand-pagekit" class="me-1 text-secondary" size="22"
+                            style="cursor: pointer;" />
+                        </template>
+                      </VTooltip>
+                    </div>
+
                     <!-- Anchor if exists -->
-                    <div v-if="backlink.anchor" class="d-flex mt-2 pa-2 justify-start">
-                      <VIcon
-                        icon="tabler-anchor"
-                        class="me-1 text-secondary"
-                        size="12"
-                      />
-                      <VChip
-                        size="x-small"
-                        color="default"
-                        variant="elevated"
-                        class="text-caption"
-                      >
-                        {{ backlink.anchor }}
-                      </VChip>
+                    <div v-if="backlink.anchor" class="mt-2 pa-2 justify-space-between">
+                      <VTooltip :text="backlink.anchor">
+                        <template #activator="{ props }">
+                          <VIcon v-bind="props" icon="tabler-anchor" class="me-1 text-secondary" size="22"
+                            style="cursor: pointer;" />
+                        </template>
+                      </VTooltip>
                     </div>
                   </VCol>
 
                   <!-- Metrics Section - Compact -->
-                  <VCol cols="12" md="4" class="metrics-section">
-                    <VRow no-gutters class="text-center g-1">
-                      <VCol cols="3">
+                  <VCol cols="12" md="6" class="metrics-section">
+                    <VRow no-gutters class="text-center g-2">
+
+                      <!-- Tier -->
+                      <VCol cols="2">
                         <div class="metric-item-compact">
-                          <VAvatar
-                            size="30"
-                            :color="getTierColor(backlink.tier)"
-                            variant="elevated"
-                            class="mb-1"
-                          >
-                            <VIcon icon="tabler-star" size="12" />
-                          </VAvatar>
-                          <div class="text-caption text-medium-emphasis">
-                            Tier
-                          </div>
-                          <div class="text-body-2 font-weight-bold">
-                            {{ backlink.tier || 0 }}
-                          </div>
+                            <VIcon icon="tabler-star" color="error" size="22" />
+                          <div class="text-caption text-medium-emphasis">Tier</div>
+                          <div class="text-body-2 font-weight-bold">{{ backlink.tier || 0 }}</div>
                         </div>
                       </VCol>
-                      <VCol cols="3">
+
+                      <!-- Score -->
+                      <VCol cols="2">
                         <div class="metric-item-compact">
-                          <VAvatar
-                            size="30"
-                            :color="getScoreColor(backlink.score)"
-                            variant="elevated"
-                            class="mb-1"
-                          >
-                            <VIcon icon="tabler-chart-line" size="12" />
-                          </VAvatar>
-                          <div class="text-caption text-medium-emphasis">
-                            Score
-                          </div>
-                          <div class="text-body-2 font-weight-bold">
-                            {{ backlink.score || 0 }}
-                          </div>
+                            <VIcon icon="tabler-chart-line" color="info" size="22" />
+                          <div class="text-caption text-medium-emphasis">Score</div>
+                          <div class="text-body-2 font-weight-bold">{{ backlink.score || 0 }}</div>
                         </div>
                       </VCol>
-                      <VCol cols="3">
+
+                      <!-- Type -->
+                      <VCol cols="2">
                         <div class="metric-item-compact">
-                          <VAvatar
-                            size="30"
-                            :color="backlink.do_follow ? 'success' : 'warning'"
-                            variant="elevated"
-                            class="mb-1"
-                          >
-                            <VIcon
-                              :icon="
-                                backlink.do_follow
-                                  ? 'tabler-link'
-                                  : 'tabler-link-off'
-                              "
-                              size="12"
-                            />
-                          </VAvatar>
-                          <div class="text-caption text-medium-emphasis">
-                            Type
-                          </div>
+                            <VIcon :icon="backlink.do_follow ? 'tabler-link' : 'tabler-link-off'" size="22" color="success" />
+                          <div class="text-caption text-medium-emphasis">Type</div>
                           <div class="text-caption font-weight-bold">
                             {{ backlink.do_follow ? "DoFollow" : "NoFollow" }}
                           </div>
                         </div>
                       </VCol>
-                      <VCol cols="3">
+
+                      <!-- Spam -->
+                      <VCol cols="2">
                         <div class="metric-item-compact">
-                          <VAvatar
-                            size="30"
-                            color="warning"
-                            variant="elevated"
-                            class="mb-1"
-                          >
-                            <VIcon icon="tabler-flag" size="12" />
-                          </VAvatar>
-                          <div class="text-caption text-medium-emphasis">
-                            Spam
-                          </div>
-                          <div class="text-caption font-weight-bold">
-                            {{ backlink.spam_score || 0 }}%
-                          </div>
+                            <VIcon icon="tabler-flag" size="22" color="error" />
+                          <div class="text-caption text-medium-emphasis">Spam</div>
+                          <div class="text-caption font-weight-bold">{{ backlink.spam_score || 0 }}%</div>
                         </div>
                       </VCol>
+
+                      <!-- Page Rank -->
+                      <VCol cols="2">
+                        <div class="metric-item-compact">
+                            <VIcon icon="tabler-arrow-badge-up" color="warning" size="32" />
+                          <div class="text-caption text-medium-emphasis">Page Rank</div>
+                          <div class="text-caption font-weight-bold">{{ backlink.rank || 0 }}</div>
+                        </div>
+                      </VCol>
+
+                      <!-- Domain Rank -->
+                      <VCol cols="2">
+                        <div class="metric-item-compact">
+                            <VIcon icon="tabler-network" size="26" color="default" />
+                          <div class="text-caption text-medium-emphasis">Domain Rank</div>
+                          <div class="text-caption font-weight-bold">{{ backlink.domain_rank || 0 }}</div>
+                        </div>
+                      </VCol>
+
                     </VRow>
                   </VCol>
 
                   <!-- Actions & Status Section - Compact -->
-                  <VCol
-                    cols="12"
-                    md="3"
-                    class="d-flex flex-wrap align-center justify-space-between gap-1"
-                  >
+                  <VCol cols="12" md="1" class="d-flex flex-wrap align-center justify-center gap-1">
                     <!-- Status -->
-                    <VChip
-                      :color="getStatusConfig(backlink.status).color"
-                      size="large"
-                      variant="elevated"
-                      class="text-caption ml-5"
-                    >
-                      <VIcon
-                        :icon="getStatusConfig(backlink.status).icon"
-                        size="34"
-                        class="me-1"
-                      />
-                    </VChip>
-
+                      <VIcon :icon="getStatusConfig(backlink.status).icon" color="success" size="34" class="me-1" />
+                      
                     <!-- Broken link indicator -->
-                    <VChip
-                      v-if="backlink.is_broken"
-                      size="x-small"
-                      color="error"
-                      variant="elevated"
-                    >
+                    <VChip v-if="backlink.is_broken" size="x-small" color="error" variant="elevated">
                       <VIcon icon="tabler-link-off" size="12" />
                     </VChip>
 
                     <!-- Details button -->
-                    <router-link
-                      :to="{
-                        name: 'apps-report-backlink-view',
-                        params: { id: backlink.id },
-                      }"
-                    >
-                      <VBtn
-                        color="primary"
-                        variant="elevated"
-                        icon
-                      >
-                        <VIcon icon="tabler-eye" size="24" />
-                      </VBtn>
+                    <router-link :to="{
+                      name: 'apps-report-backlink-view',
+                      params: { id: backlink.id },
+                    }">
+                        <VIcon icon="tabler-eye" size="34" />
                     </router-link>
                   </VCol>
                 </VRow>
@@ -830,29 +670,13 @@ const paginationInfo = computed(() => {
               </span>
             </div>
 
-            <VPagination
-              v-model="uiState.page"
-              :length="paginationInfo.total"
-              :total-visible="7"
-              color="primary"
-              active-color="primary"
-              variant="outlined"
-              size="large"
-              :disabled="isLoading"
-            />
+            <VPagination v-model="uiState.page" :length="paginationInfo.total" :total-visible="7" color="primary"
+              active-color="primary" variant="outlined" size="large" :disabled="isLoading" />
 
             <div class="d-flex align-center gap-3">
-              <span class="text-body-2 text-medium-emphasis"
-                >Items per page:</span
-              >
-              <VSelect
-                v-model="uiState.itemsPerPage"
-                :items="[5, 10, 25, 50, 100, 500]"
-                variant="outlined"
-                density="compact"
-                hide-details
-                style="width: 80px"
-              />
+              <span class="text-body-2 text-medium-emphasis">Items per page:</span>
+              <VSelect v-model="uiState.itemsPerPage" :items="[5, 10, 25, 50, 100, 500]" variant="outlined"
+                density="compact" hide-details style="width: 80px" />
             </div>
           </VCardActions>
         </div>
@@ -892,12 +716,14 @@ const paginationInfo = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .domain-url-section {
-  min-width: 0; /* Allow text truncation */
+  min-width: 0;
+  /* Allow text truncation */
   display: inline-flex;
+  justify-content: space-around;
 }
 
 .metrics-section {
@@ -965,12 +791,12 @@ const paginationInfo = computed(() => {
 }
 
 @media (max-width: 960px) {
+
   .domain-section,
   .url-section,
   .metrics-section {
     border-right: none !important;
-    border-bottom: 1px solid
-      rgba(var(--v-border-color), var(--v-border-opacity));
+    border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
     padding-bottom: 16px !important;
     margin-bottom: 16px !important;
   }
