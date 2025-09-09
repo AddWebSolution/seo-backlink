@@ -96,11 +96,19 @@ const domainOptions = computed(() => {
   return options;
 });
 
-watch([availableDomains, searchQuery], ([domains, search]) => {
-  if (search && domains.length === 1 && domains[0] !== selectedDomain.value) {
-    selectedDomain.value = domains[0];
-  }
-});
+// watch([domainOptions, searchQuery], ([domains, search]) => {
+//   if (search) {
+//     const match = domains.find(
+//       (d) =>
+//         d.title.toLowerCase().includes(search.toLowerCase()) ||
+//         d.value.toLowerCase().includes(search.toLowerCase())
+//     );
+//     if (match && match.value !== selectedDomain.value) {
+//       selectedDomain.value = match.value;
+//     }
+//   }
+// });
+
 
 const currentBacklinks = computed(() => allBacklinks.value);
 
