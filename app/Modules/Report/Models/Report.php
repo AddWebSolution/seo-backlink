@@ -8,6 +8,8 @@ use App\Modules\Report\Observers\ReportObserver;
 use App\Modules\Backlinkreport\Models\Backlinkreport;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
 
 #[ObservedBy([ReportObserver::class])]
 class Report extends BaseModel
@@ -22,5 +24,11 @@ class Report extends BaseModel
     public function backlinks()
     {
         return $this->hasMany(Backlinkreport::class, 'report_id', 'id');
+    }
+
+            protected static function newFactory(): Factory
+    {
+        $factoryClass = "\\Database\\Factories\\" . class_basename(static::class) . "Factory";
+        return $factoryClass::new();
     }
 }

@@ -11,6 +11,8 @@ const reportId = computed(() => route.params.id);
 const searchQuery = ref("");
 const statusFilter = ref("");
 const selectedDomain = ref("");
+const allSeenDomains = ref(new Set());
+
 
 const uiState = reactive({
   page: 1,
@@ -26,7 +28,6 @@ const requestBody = computed(() => ({
   domain: selectedDomain.value,
 }));
 
-console.log("before request body", unref(requestBody));
 
 watch(
   requestBody,
@@ -50,6 +51,12 @@ const {
 const { data: domainResponse, isFetching: isDomainLoading } = useDomainList();
 
 const report = computed(() => reportData.value?.report ?? {});
+const backlinksDomains = computed(() => reportData.value?.domains ?? {});
+
+const accepted_backlinks = computed(() => reportData.value?.accepted_count ?? {});
+const rejected_backlinks = computed(() => reportData.value?.rejected_count ?? {});
+
+console.log('reports',report);  
 const backlinksData = computed(
   () =>
     reportData.value?.backlinks ?? {
@@ -75,24 +82,32 @@ watch(
 const allBacklinks = computed(() => backlinksData.value.data ?? []);
 
 const availableDomains = computed(() => {
-  const domains = new Set();
-  allBacklinks.value.forEach((backlink) => {
-    const domain = backlink.domain || backlink.from_domain || "Unknown Domain";
-    domains.add(domain);
-  });
-  return Array.from(domains).sort();
+  return Array.from(allSeenDomains.value).sort();
 });
+
+
+watch(
+  () => allBacklinks.value,
+  (newBacklinks) => {
+    if (newBacklinks && newBacklinks.length > 0) {
+      newBacklinks.forEach((backlink) => {
+        const domain = backlink.domain || backlink.from_domain || "Unknown Domain";
+        allSeenDomains.value.add(domain);
+      });
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 const domainOptions = computed(() => {
   const options = [{ title: "All Domains", value: "" }];
-  if (domainResponse.value?.domains) {
-    domainResponse.value.domains.forEach((d) => {
-      options.push({
-        title: d.title,
-        value: d.target_url,
-      });
+  Object.entries(backlinksDomains.value).forEach(([title, targetUrl]) => {
+    options.push({
+      title,
+      value: targetUrl,
     });
-  }
+  });
+
   return options;
 });
 
@@ -139,15 +154,16 @@ const getScoreColor = (score) => {
 const stats = computed(() => {
   return {
     total: report.value.total_backlink || 0,
-    accepted: report.value.accepted_backlinks || 0,
-    rejected: report.value.rejected_backlinks || 0,
+    accepted: report.value.accepted_backlinks || accepted_backlinks,
+    rejected: report.value.rejected_backlinks || rejected_backlinks,
     pending:
       (report.value.total_backlink || 0) -
-      (report.value.accepted_backlinks || 0) -
-      (report.value.rejected_backlinks || 0),
+      (report.value.accepted_backlinks || accepted_backlinks) -
+      (report.value.rejected_backlinks || rejected_backlinks),
     domains: report.value.domain_count || 0,
   };
 });
+
 
 // Format date
 const formatDate = (dateString) => {
@@ -364,7 +380,7 @@ const paginationInfo = computed(() => {
               <h4 class="text-h4 font-weight-bold text-secondary">
                 {{
                   stats.total
-                    ? Math.round((stats.accepted / stats.total) * 100)
+                    ? Math.round((accepted_backlinks / stats.total) * 100)
                     : 0
                 }}%
               </h4>
@@ -637,18 +653,21 @@ const paginationInfo = computed(() => {
                           <div class="text-caption font-weight-bold">{{ backlink.domain_rank || 0 }}</div>
                         </div>
                       </VCol>
-
                     </VRow>
                   </VCol>
 
                   <!-- Actions & Status Section - Compact -->
-                  <VCol cols="12" md="1" class="d-flex flex-wrap align-center justify-center gap-1">
+                  <VCol cols="12" md="1" class="d-flex flex-wrap align-center justify-center gap-3">
                     <!-- Status -->
-                      <VIcon :icon="getStatusConfig(backlink.status).icon" color="success" size="34" class="me-1" />
+                      <VIcon :icon="getStatusConfig(backlink.status).icon" :color="getStatusConfig(backlink.status).color" size="34" class="me-1" />
                       
                     <!-- Broken link indicator -->
                     <VChip v-if="backlink.is_broken" size="x-small" color="error" variant="elevated">
                       <VIcon icon="tabler-link-off" size="12" />
+                    </VChip>
+
+                    <VChip v-if="!backlink.is_broken"  size="x-small" color="success" variant="elevated">
+                      <VIcon icon="tabler-link" size="12" />
                     </VChip>
 
                     <!-- Details button -->

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Modules\Backlinkreport\Observers\BacklinkreportObserver;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
 
 #[ObservedBy([BacklinkreportObserver::class])]
 class Backlinkreport extends BaseModel
@@ -20,4 +22,12 @@ class Backlinkreport extends BaseModel
     {
         return $this->belongsTo(Report::class, 'report_id');
     }
+        protected static function newFactory(): Factory
+    {
+        $factoryClass = "\\Database\\Factories\\" . class_basename(static::class) . "Factory";
+        return $factoryClass::new();
+    }
+
+
+      protected $guarded = [];
 }
