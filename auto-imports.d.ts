@@ -216,6 +216,7 @@ declare global {
   const useDocumentVisibility: typeof import('@vueuse/core')['useDocumentVisibility']
   const useDomainDelete: typeof import('./resources/js/composables/domainApi.js')['useDomainDelete']
   const useDomainIndex: typeof import('./resources/js/composables/domainApi.js')['useDomainIndex']
+  const useDomainList: typeof import('./resources/js/composables/domainApi.js')['useDomainList']
   const useDomainShow: typeof import('./resources/js/composables/domainApi.js')['useDomainShow']
   const useDomainStore: typeof import('./resources/js/composables/domainApi.js')['useDomainStore']
   const useDomainUpdate: typeof import('./resources/js/composables/domainApi.js')['useDomainUpdate']
@@ -592,6 +593,7 @@ declare module 'vue' {
     readonly useDocumentVisibility: UnwrapRef<typeof import('@vueuse/core')['useDocumentVisibility']>
     readonly useDomainDelete: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainDelete']>
     readonly useDomainIndex: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainIndex']>
+    readonly useDomainList: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainList']>
     readonly useDomainShow: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainShow']>
     readonly useDomainStore: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainStore']>
     readonly useDomainUpdate: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainUpdate']>

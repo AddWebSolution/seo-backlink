@@ -7,6 +7,13 @@ export function useDomainIndex() {
     })
 }
 
+// 👉 List domains names list
+export function useDomainList() {
+    return useApi('api/clientdomain/domain/list', {
+        method: 'POST',
+    })
+}
+
 // 👉 Show single domain by ID
 export function useDomainShow(id) {
     return useApi(`api/clientdomain/get/${id}`, { method: 'POST' })

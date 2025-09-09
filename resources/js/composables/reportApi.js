@@ -8,8 +8,16 @@ export function useReportIndex() {
 }
 
 // 👉 Show single domain by ID
-export function useReportShow(id) {
-    return useApi(`api/report/backlinks/${id}`, { method: 'GET' })
+export function useReportShow(id, body) {
+  const state = useApi(
+    computed(() => `api/report/backlinks/${id}`),
+    { method: "POST", body }
+  );
+
+  return {
+    ...state,
+    refresh: () => state.execute(),
+  };
 }
 
 

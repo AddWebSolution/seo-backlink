@@ -14,7 +14,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::post('get/{id}', [ReportController::class, 'show'])->name('show');
 			//});
 
-			Route::get('backlinks/{id}', [ReportController::class, 'backlinkshow']);
+			Route::post('backlinks/{id}', [ReportController::class, 'backlinkshow']);
 
 			//Route::group(['middleware' => ['can:Create Report']], function () {
 			Route::post('store', [ReportController::class, 'store'])->name('store');

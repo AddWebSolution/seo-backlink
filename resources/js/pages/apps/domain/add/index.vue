@@ -1,6 +1,7 @@
 <script setup>
 import { useDomainStore } from '@/composables/domainApi.js'
 import { useRouter } from 'vue-router'
+import { IconWorldWww,IconDevicesCog,IconWorldMinus,IconUnlink,IconSeo,IconTag } from '@tabler/icons-vue';
 
 const router = useRouter()
 
@@ -25,100 +26,144 @@ const form = ref({
   price: null,
 })
 
-// Form state
-const submitting = ref(false)
+// State management
+const state = reactive({
+  submitting: false,
+  showSuccessAlert: false,
+  errorMessage: '',
+  formTouched: false,
+  expandedSections: [true, true, true, true, true], // All sections expanded by default
+})
+
+// Refs
 const formRef = ref()
-const currentStep = ref(1)
-const totalSteps = 5
-const showSuccessAlert = ref(false)
-const errorMessage = ref('')
 
-// Computed
-const progressPercentage = computed(() => (currentStep.value / totalSteps) * 100)
+// Auto-save draft
+const draftSaved = ref(false)
+const lastSavedTime = ref(null)
 
-// Status options
+// Watch for form changes to enable auto-save
+watch(form, debounce(() => {
+  if (state.formTouched) {
+    saveDraft()
+  }
+}, 2000), { deep: true })
+
+// Save draft function
+const saveDraft = () => {
+  localStorage.setItem('domain_draft', JSON.stringify(form.value))
+  draftSaved.value = true
+  lastSavedTime.value = new Date().toLocaleTimeString()
+  setTimeout(() => {
+    draftSaved.value = false
+  }, 2000)
+}
+
+// Load draft on mount
+onMounted(() => {
+  const draft = localStorage.getItem('domain_draft')
+  if (draft) {
+    const shouldLoad = confirm('A draft was found. Would you like to restore it?')
+    if (shouldLoad) {
+      Object.assign(form.value, JSON.parse(draft))
+    }
+  }
+})
+
+// Form touched handler
+const markFormTouched = () => {
+  state.formTouched = true
+}
+
+// Toggle section expansion
+const toggleSection = (index) => {
+  state.expandedSections[index] = !state.expandedSections[index]
+}
+
+// Enhanced status options
 const statusOptions = [
-  { title: 'Available', value: 1, color: 'success', icon: 'mdi-check-circle' },
-  { title: 'Unavailable', value: 2, color: 'error', icon: 'mdi-close-circle' },
+  { 
+    title: 'Available', 
+    value: 1, 
+    color: 'success', 
+    icon: 'tabler-circle-check',
+    description: 'Domain is active and ready for use'
+  },
+  { 
+    title: 'Unavailable', 
+    value: 2, 
+    color: 'error', 
+    icon: 'tabler-circle-x',
+    description: 'Domain is currently not available'
+  },
 ]
 
 const approvalStatusOptions = [
-  { title: 'Pending', value: 1, color: 'warning', icon: 'mdi-clock' },
-  { title: 'Rejected', value: 2, color: 'error', icon: 'mdi-close-circle' },
-  { title: 'Approved', value: 3, color: 'success', icon: 'mdi-check-circle' },
+  { 
+    title: 'Pending', 
+    value: 1, 
+    color: 'warning', 
+    icon: 'tabler-clock-hour-3', 
+    description: 'Awaiting review from administrator'
+  },
+  { 
+    title: 'Rejected', 
+    value: 2, 
+    color: 'error', 
+    icon: 'tabler-circle-x', 
+    description: 'Domain has been rejected'
+  },
+  { 
+    title: 'Approved', 
+    value: 3, 
+    color: 'success', 
+    icon: 'tabler-circle-check',
+    description: 'Domain has been approved'
+  },
 ]
 
-// Form steps configuration
-const formSteps = [
-  {
-    id: 1,
-    title: 'Basic Info',
-    icon: 'mdi-information',
-    color: 'primary',
-    fields: ['client_id', 'title', 'country', 'turnaround_time']
-  },
-  {
-    id: 2,
-    title: 'Status & Approval',
-    icon: 'mdi-shield-check',
-    color: 'success',
-    fields: ['status', 'approval_status']
-  },
-  {
-    id: 3,
-    title: 'URLs & Links',
-    icon: 'mdi-link',
-    color: 'info',
-    fields: ['source_url', 'target_url']
-  },
-  {
-    id: 4,
-    title: 'SEO Metrics',
-    icon: 'mdi-chart-line',
-    color: 'warning',
-    fields: ['domain_authority', 'domain_rating', 'organic_traffic']
-  },
-  {
-    id: 5,
-    title: 'Pricing & Details',
-    icon: 'mdi-currency-usd',
-    color: 'error',
-    fields: ['price_ne', 'price_gp', 'price', 'anchor_text', 'special_requirements']
-  }
+
+// Country options
+const countryOptions = [
+  'United States',
+  'United Kingdom', 
+  'Canada',
+  'Australia',
+  'Germany',
+  'France',
+  'Japan',
+  'India',
+  'China',
+  'Brazil',
+  'Mexico',
+  'Spain',
+  'Italy',
+  'Netherlands',
+  'Sweden',
+  'Switzerland',
+  'Singapore',
+  'South Korea',
+  'UAE',
+  'Saudi Arabia'
 ]
 
-// Enhanced validation rules
+// Validation rules
 const rules = {
   required: v => !!v || 'This field is required',
-  url: v => !v || /^https?:\/\/.+/.test(v) || 'Must be a valid URL',
+  url: v => !v || /^https?:\/\/.+\..+/.test(v) || 'Must be a valid URL',
+  email: v => !v || /.+@.+\..+/.test(v) || 'Must be a valid email',
   number: v => !v || /^\d*\.?\d+$/.test(v) || 'Must be a valid number',
-  positiveNumber: v => !v || (parseFloat(v) > 0) || 'Must be greater than 0',
-  maxLength: max => v => !v || v.length <= max || `Maximum ${max} characters allowed`,
+  positiveNumber: v => !v || (parseFloat(v) >= 0) || 'Must be 0 or greater',
+  maxLength: max => v => !v || v.length <= max || `Maximum ${max} characters`,
+  minLength: min => v => !v || v.length >= min || `Minimum ${min} characters`,
   domainAuthority: [
-    v => !v || (v >= 0 && v <= 100) || 'Domain Authority must be between 0 and 100',
-    v => !v || Number.isInteger(Number(v)) || 'Domain Authority must be a whole number',
+    v => !v || (v >= 0 && v <= 100) || 'Must be between 0 and 100',
+    v => !v || Number.isInteger(Number(v)) || 'Must be a whole number',
   ],
   domainRating: [
-    v => !v || (v >= 0 && v <= 100) || 'Domain Rating must be between 0 and 100',
-    v => !v || Number.isInteger(Number(v)) || 'Domain Rating must be a whole number',
+    v => !v || (v >= 0 && v <= 100) || 'Must be between 0 and 100',
+    v => !v || Number.isInteger(Number(v)) || 'Must be a whole number',
   ],
-}
-
-// Step navigation
-const goToStep = (step) => {
-  currentStep.value = step
-}
-
-const nextStep = () => {
-  if (currentStep.value < totalSteps) {
-    currentStep.value++
-  }
-}
-
-const prevStep = () => {
-  if (currentStep.value > 1) {
-    currentStep.value--
-  }
 }
 
 // Submit handler
@@ -126,10 +171,18 @@ const submitForm = async () => {
   if (!formRef.value) return
 
   const { valid } = await formRef.value.validate()
-  if (!valid) return
+  if (!valid) {
+    state.errorMessage = 'Please fix all validation errors before submitting'
+    // Scroll to first error
+    const errorElement = document.querySelector('.v-input--error')
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    return
+  }
 
-  submitting.value = true
-  errorMessage.value = ''
+  state.submitting = true
+  state.errorMessage = ''
 
   try {
     // Prepare payload
@@ -142,19 +195,33 @@ const submitForm = async () => {
     })
 
     await useDomainStore(payload)
-    showSuccessAlert.value = true
+    
+    // Clear draft on success
+    localStorage.removeItem('domain_draft')
+    
+    state.showSuccessAlert = true
 
-    // Navigate after short delay
+    // Navigate after animation
     setTimeout(() => {
       router.push({ name: 'apps-domain-list' })
-    }, 1500)
+    }, 2000)
 
   } catch (err) {
     console.error(err)
-    errorMessage.value = err.response?.data?.message || 'An error occurred while creating the domain. Please try again.'
+    state.errorMessage = err.response?.data?.message || 'An error occurred. Please try again.'
+    
+    // Scroll to top to show error
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   } finally {
-    submitting.value = false
+    state.submitting = false
   }
+}
+
+// Reset form
+const resetForm = () => {
+  formRef.value?.reset()
+  localStorage.removeItem('domain_draft')
+  state.formTouched = false
 }
 
 // Auto-calculate total price
@@ -167,7 +234,7 @@ watch([() => form.value.price_ne, () => form.value.price_gp, () => form.value.pr
     form.value.total_price = total > 0 ? total.toFixed(2) : null
   })
 
-// Format currency display
+// Format helpers
 const formatCurrency = (value) => {
   if (!value || value === '0') return '$0.00'
   return new Intl.NumberFormat('en-US', {
@@ -175,407 +242,1091 @@ const formatCurrency = (value) => {
     currency: 'USD'
   }).format(value)
 }
+
+const getMetricColor = (value, max = 100) => {
+  const percentage = (value / max) * 100
+  if (percentage >= 70) return 'success'
+  if (percentage >= 40) return 'warning'
+  return 'error'
+}
+
+// Utility function for debounce
+function debounce(func, wait) {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+// Scroll to section
+const scrollToSection = (sectionId) => {
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 </script>
 
 <template>
-  <VCard class="mb-6">
-    <!-- Enhanced Header with Progress -->
-    <div>
-      <div class="d-flex align-center justify-space-between pa-6 pb-4">
-        <div class="d-flex align-center">
-          <VAvatar color="success" variant="tonal" class="me-3">
-            <VIcon icon="mdi-plus" />
-          </VAvatar>
-          <div>
-            <h4 class="text-h4 font-weight-bold">Create New Domain</h4>
-            <p class="text-body-2 text-medium-emphasis mb-0">
-              Create a new domain entry with detailed information
-            </p>
-          </div>
-        </div>
-      </div>
+  <div class="domain-create-page">
+    <!-- Floating Save Indicator -->
+    <VSlideYTransition>
+      <VChip
+        v-if="draftSaved"
+        color="success"
+        variant="elevated"
+        size="small"
+        class="save-indicator"
+      >
+        <VIcon icon="mdi-check" size="12" class="me-1" />
+        Draft saved at {{ lastSavedTime }}
+      </VChip>
+    </VSlideYTransition>
 
-      <!-- Progress Bar -->
-      <div class="px-6 pb-4">
-        <VProgressLinear :model-value="progressPercentage" color="primary" height="8" rounded class="mb-2" />
-        <div class="d-flex justify-space-between text-body-2 text-medium-emphasis">
-          <span>Step {{ currentStep }} of {{ totalSteps }}</span>
-          <span>{{ Math.round(progressPercentage) }}% Complete</span>
-        </div>
-      </div>
-
-      <!-- Step Navigation -->
-      <div class="px-6 pb-4">
-        <VRow class="d-flex justify-space-between" dense>
-          <VCol v-for="step in formSteps" :key="step.id" cols="auto" class="px-1">
-            <VBtn :color="currentStep === step.id ? step.color : 'grey lighten-3'"
-              :variant="currentStep === step.id ? 'elevated' : 'text'" size="small"
-              class="d-flex align-center text-caption" @click="goToStep(step.id)">
-              <VIcon :icon="step.icon" size="16" class="me-1"
-                :class="currentStep === step.id ? 'text-white' : 'text-body-1'" />
-              <span :class="currentStep === step.id ? 'text-white' : 'text-body-1'">
-                {{ step.title }}
-              </span>
-            </VBtn>
+    <!-- Page Header -->
+     <VCard class="mb-10 pa-8 overflow-hidden" elevation="2">
+      <VContainer fluid>
+        <VRow align="center">
+          <VCol cols="12" md="8">
+            <div class="d-flex align-center">
+              <VAvatar
+                size="64"
+                color="primary"
+                variant="elevated"
+                class="me-4"
+              >
+                <IconWorldWww stroke={2} />
+              </VAvatar>
+              <div>
+                <h1 class="text-h3 font-weight-bold mb-1">Create New Domain</h1>
+                <p class="text-body-1 text-medium-emphasis mb-0">
+                  Fill in the domain details below to add a new entry to the system
+                </p>
+              </div>
+            </div>
           </VCol>
-        </VRow>
-      </div>
-    </div>
-
-    <VDivider />
-
-    <!-- Success Alert -->
-    <VExpandTransition>
-      <div v-if="showSuccessAlert" class="pa-4">
-        <VAlert color="success" variant="tonal" closable @click:close="showSuccessAlert = false">
-          <VIcon icon="mdi-check-circle" class="me-2" />
-          Domain created successfully!
-        </VAlert>
-      </div>
-    </VExpandTransition>
-
-    <!-- Error Alert -->
-    <VExpandTransition>
-      <div v-if="errorMessage" class="pa-4">
-        <VAlert color="error" variant="tonal" closable @click:close="errorMessage = ''">
-          <VIcon icon="mdi-alert-circle" class="me-2" />
-          {{ errorMessage }}
-        </VAlert>
-      </div>
-    </VExpandTransition>
-
-    <!-- Form Content -->
-    <VCardText>
-      <VForm ref="formRef" @submit.prevent="submitForm">
-
-        <!-- Step 1: Basic Information -->
-        <div v-show="currentStep === 1" class="pa-2">
-          <VCard elevation="0" class="mb-6">
-            <VCardTitle class="pa-4">
-              <div class="d-flex align-center">
-                <VIcon icon="mdi-information" class="me-2" />
-              </div>
-            </VCardTitle>
-            <VCardText class="pa-4 pt-0">
-              <VRow>
-                <VCol cols="12">
-                  <AppTextField v-model="form.client_id" label="Client ID" placeholder="Enter unique client identifier"
-                    :rules="[rules]" prepend-inner-icon="mdi-account" variant="outlined" />
-                </VCol>
-
-                <VCol cols="12">
-                  <AppTextField v-model="form.title" label="Domain Title" placeholder="Enter descriptive domain title"
-                    :rules="[rules, rules.maxLength(100)]" prepend-inner-icon="mdi-format-title" variant="outlined"
-                    required />
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="form.country" label="Country" placeholder="Enter country"
-                    prepend-inner-icon="mdi-flag" variant="outlined" />
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="form.turnaround_time" label="Turnaround Time"
-                    placeholder="e.g., 5-7 business days" prepend-inner-icon="mdi-clock" variant="outlined" />
-                </VCol>
-              </VRow>
-            </VCardText>
-          </VCard>
-        </div>
-
-        <!-- Step 2: Status & Approval -->
-        <div v-show="currentStep === 2" class="pa-2">
-          <VCard elevation="0" class="mb-6">
-            <VCardTitle class="pa-4">
-              <div class="d-flex align-center">
-                <VIcon icon="mdi-shield-check" class="me-2" />
-              </div>
-            </VCardTitle>
-            <VCardText class="pa-4 pt-0">
-              <VRow>
-                <VCol cols="12" md="6">
-                  <AppSelect v-model="form.status" label="Domain Status" :items="statusOptions" variant="outlined"
-                    required>
-                    <template #selection="{ item }">
-                      <div class="d-flex align-center">
-                        <VIcon :icon="item.raw.icon" :color="item.raw.color" size="16" class="me-2" />
-                        {{ item.raw.title }}
-                      </div>
-                    </template>
-                    <template #item="{ item, props }">
-                      <VListItem v-bind="props">
-                        <template #prepend>
-                          <VIcon :icon="item.raw.icon" :color="item.raw.color" size="16" />
-                        </template>
-                      </VListItem>
-                    </template>
-                  </AppSelect>
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <AppSelect v-model="form.approval_status" label="Approval Status" :items="approvalStatusOptions"
-                    variant="outlined" required>
-                    <template #selection="{ item }">
-                      <div class="d-flex align-center">
-                        <VIcon :icon="item.raw.icon" :color="item.raw.color" size="16" class="me-2" />
-                        {{ item.raw.title }}
-                      </div>
-                    </template>
-                    <template #item="{ item, props }">
-                      <VListItem v-bind="props">
-                        <template #prepend>
-                          <VIcon :icon="item.raw.icon" :color="item.raw.color" size="16" />
-                        </template>
-                      </VListItem>
-                    </template>
-                  </AppSelect>
-                </VCol>
-              </VRow>
-
-              <!-- Status Preview -->
-              <VCard variant="outlined" class="mt-4 pa-4">
-                <div class="d-flex align-center justify-space-between">
-                  <div class="d-flex align-center">
-                    <VChip :color="statusOptions.find(s => s.value == form.status)?.color" variant="tonal" size="small"
-                      class="me-3">
-                      <VIcon :icon="statusOptions.find(s => s.value == form.status)?.icon" size="14" class="me-1" />
-                      {{statusOptions.find(s => s.value == form.status)?.title}}
-                    </VChip>
-
-                    <VChip :color="approvalStatusOptions.find(s => s.value === form.approval_status)?.color"
-                      variant="tonal" size="small">
-                      <VIcon :icon="approvalStatusOptions.find(s => s.value === form.approval_status)?.icon" size="14"
-                        class="me-1" />
-                      {{approvalStatusOptions.find(s => s.value === form.approval_status)?.title}}
-                    </VChip>
-                  </div>
-
-                  <span class="text-body-2 text-medium-emphasis">Current Status</span>
-                </div>
-              </VCard>
-            </VCardText>
-          </VCard>
-        </div>
-
-        <!-- Step 3: URLs & Links -->
-        <div v-show="currentStep === 3" class="pa-2">
-          <VCard elevation="0" class="mb-6">
-            <VCardTitle class="pa-4">
-              <div class="d-flex align-center">
-                <VIcon icon="mdi-link" class="me-2" />
-              </div>
-            </VCardTitle>
-            <VCardText class="pa-4 pt-0">
-              <VRow>
-                <VCol cols="12">
-                  <AppTextField v-model="form.source_url" label="Source URL"
-                    placeholder="https://example.com/source-page" :rules="[rules.url]" prepend-inner-icon="mdi-web"
-                    variant="outlined" />
-                </VCol>
-
-                <VCol cols="12">
-                  <AppTextField v-model="form.target_url" label="Target URL"
-                    placeholder="https://target.com/destination-page" :rules="[rules.url]"
-                    prepend-inner-icon="mdi-target" variant="outlined" />
-                </VCol>
-              </VRow>
-
-              <!-- URL Preview -->
-              <VCard variant="outlined" class="mt-4 pa-4" v-if="form.source_url || form.target_url">
-                <h6 class="text-h6 mb-3">URL Preview</h6>
-                <div class="d-flex flex-column gap-2">
-                  <div v-if="form.source_url" class="d-flex align-center">
-                    <VIcon icon="mdi-arrow-right" class="me-2 text-primary" />
-                    <a :href="form.source_url" target="_blank" class="text-primary text-decoration-none">
-                      {{ form.source_url }}
-                    </a>
-                  </div>
-                  <div v-if="form.target_url" class="d-flex align-center">
-                    <VIcon icon="mdi-arrow-right" class="me-2 text-success" />
-                    <a :href="form.target_url" target="_blank" class="text-success text-decoration-none">
-                      {{ form.target_url }}
-                    </a>
-                  </div>
-                </div>
-              </VCard>
-            </VCardText>
-          </VCard>
-        </div>
-
-        <!-- Step 4: SEO Metrics -->
-        <div v-show="currentStep === 4" class="pa-2">
-          <VCard elevation="0" class="mb-6">
-            <VCardTitle class="pa-4">
-              <div class="d-flex align-center">
-                <VIcon icon="mdi-chart-line" class="me-2" />
-              </div>
-            </VCardTitle>
-            <VCardText class="pa-4 pt-0">
-              <VRow>
-                <VCol cols="12" md="4">
-                  <AppTextField v-model="form.domain_authority" label="Domain Authority" placeholder="0-100"
-                    type="number" min="0" max="100" :rules="rules.domainAuthority" prepend-inner-icon="mdi-shield-check"
-                    variant="outlined" />
-                  <VProgressLinear v-if="form.domain_authority" :model-value="form.domain_authority" max="100"
-                    color="primary" class="mt-2" height="4" rounded />
-                </VCol>
-
-                <VCol cols="12" md="4">
-                  <AppTextField v-model="form.domain_rating" label="Domain Rating" placeholder="0-100" type="number"
-                    min="0" max="100" :rules="rules.domainRating" prepend-inner-icon="mdi-star" variant="outlined" />
-                  <VProgressLinear v-if="form.domain_rating" :model-value="form.domain_rating" max="100" color="success"
-                    class="mt-2" height="4" rounded />
-                </VCol>
-
-                <VCol cols="12" md="4">
-                  <AppTextField v-model="form.organic_traffic" label="Organic Traffic" placeholder="Monthly visitors"
-                    type="number" min="0" :rules="[rules.number]" prepend-inner-icon="mdi-trending-up"
-                    variant="outlined" />
-                </VCol>
-              </VRow>
-
-              <!-- SEO Metrics Summary -->
-              <VCard variant="outlined" class="mt-4 pa-4"
-                v-if="form.domain_authority || form.domain_rating || form.organic_traffic">
-                <h6 class="text-h6 mb-3">SEO Metrics Summary</h6>
-                <div class="d-flex justify-space-around">
-                  <div v-if="form.domain_authority" class="text-center">
-                    <VAvatar color="primary" variant="tonal" size="32" class="mb-2">
-                      <span class="text-caption font-weight-bold">{{ form.domain_authority }}</span>
-                    </VAvatar>
-                    <p class="text-body-2 mb-0">DA</p>
-                  </div>
-                  <div v-if="form.domain_rating" class="text-center">
-                    <VAvatar color="success" variant="tonal" size="32" class="mb-2">
-                      <span class="text-caption font-weight-bold">{{ form.domain_rating }}</span>
-                    </VAvatar>
-                    <p class="text-body-2 mb-0">DR</p>
-                  </div>
-                  <div v-if="form.organic_traffic" class="text-center">
-                    <VAvatar color="info" variant="tonal" size="32" class="mb-2">
-                      <VIcon icon="mdi-trending-up" size="16" />
-                    </VAvatar>
-                    <p class="text-body-2 mb-0">{{ Number(form.organic_traffic).toLocaleString() }}</p>
-                  </div>
-                </div>
-              </VCard>
-            </VCardText>
-          </VCard>
-        </div>
-
-        <!-- Step 5: Pricing & Additional Details -->
-        <div v-show="currentStep === 5" class="pa-2">
-          <VCard elevation="0" class="mb-6">
-            <VCardTitle class="pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div class="d-flex align-center">
-                  <VIcon icon="mdi-currency-usd" class="me-2" />
-                </div>
-                <VChip v-if="form.total_price" color="error" variant="elevated" size="small">
-                  Total: {{ formatCurrency(form.total_price) }}
-                </VChip>
-              </div>
-            </VCardTitle>
-            <VCardText class="pa-4 pt-0">
-              <!-- Pricing Section -->
-              <h6 class="text-h6 mb-4">Pricing Breakdown</h6>
-              <VRow>
-                <VCol cols="12" md="4">
-                  <AppTextField v-model="form.price_ne" label="Price NE" placeholder="0.00" type="number" step="0.01"
-                    min="0" :rules="[rules.number]" prepend-inner-icon="mdi-currency-usd" variant="outlined" />
-                </VCol>
-
-                <VCol cols="12" md="4">
-                  <AppTextField v-model="form.price_gp" label="Price GP" placeholder="0.00" type="number" step="0.01"
-                    min="0" :rules="[rules.number]" prepend-inner-icon="mdi-currency-usd" variant="outlined" />
-                </VCol>
-
-                <VCol cols="12" md="4">
-                  <AppTextField v-model="form.price" label="Base Price" placeholder="0.00" type="number" step="0.01"
-                    min="0" :rules="[rules.number]" prepend-inner-icon="mdi-currency-usd" variant="outlined" />
-                </VCol>
-
-                <VCol cols="12">
-                  <AppTextField v-model="form.total_price" label="Total Price" :placeholder="formatCurrency(0)"
-                    type="number" step="0.01" prepend-inner-icon="mdi-calculator" variant="filled" readonly
-                    hint="Auto-calculated" />
-                </VCol>
-              </VRow>
-
-              <!-- Additional Information Section -->
-              <VDivider class="my-6" />
-              <h6 class="text-h6 mb-4">Additional Information</h6>
-              <VRow>
-                <VCol cols="12">
-                  <AppTextField v-model="form.anchor_text" label="Anchor Text"
-                    placeholder="Enter the anchor text for the link" :rules="[rules.maxLength(200)]"
-                    prepend-inner-icon="mdi-anchor" variant="outlined" />
-                </VCol>
-
-                <VCol cols="12">
-                  <AppTextField v-model="form.special_requirements" label="Special Requirements"
-                    placeholder="Enter any special requirements or notes..." :rules="[rules.maxLength(500)]"
-                    variant="outlined" rows="4" multiline counter />
-                </VCol>
-              </VRow>
-            </VCardText>
-          </VCard>
-        </div>
-
-        <!-- Navigation Footer -->
-        <div class="mt-6">
-          <VDivider class="mb-4" />
-          <div class="d-flex justify-space-between align-center">
-            <VBtn v-if="currentStep > 1" variant="outlined" color="default" @click="prevStep">
-              <VIcon icon="mdi-arrow-left" class="me-2" />
-              Previous
-            </VBtn>
-            <VSpacer v-else />
-
-            <div class="d-flex gap-3">
-              <VBtn v-if="currentStep < totalSteps" color="primary" @click="nextStep">
-                Next
-                <VIcon icon="mdi-arrow-right" class="ms-2" />
+          <VCol cols="12" md="4" class="text-md-end">
+            <div class="d-flex gap-2 justify-md-end">
+              <VBtn
+                color="primary"
+                variant="outlined"
+                @click="resetForm"
+                :disabled="state.submitting"
+              >
+                <VIcon icon="tabler-refresh" class="me-2" />
+                Reset
               </VBtn>
-
-              <VBtn v-else type="submit" color="success" :loading="submitting" :disabled="showSuccessAlert">
-                <VIcon icon="mdi-check" class="me-2" />
-                Create Domain
-              </VBtn>
-
-              <VBtn variant="outlined" color="secondary" @click="router.push({ name: 'apps-domain-list' })"
-                :disabled="submitting">
-                Cancel
+              <VBtn
+                variant="outlined"
+                @click="router.push({ name: 'apps-domain-list' })"
+                :disabled="state.submitting"
+              >
+                 <VIcon icon="tabler-arrow-left" class="me-2" />
+                Back to List
               </VBtn>
             </div>
-          </div>
-        </div>
+          </VCol>
+        </VRow>
+
+        <!-- Quick Navigation -->
+        <!-- <VCard variant="tonal" color="primary" class="mt-6">
+          <VCardText class="pa-3">
+            <div class="d-flex align-center flex-wrap gap-2">
+              <span class="text-body-2 font-weight-medium me-2">Quick Navigation:</span>
+              <VChip
+                v-for="(section, index) in ['Basic Info', 'Status', 'URLs', 'SEO Metrics', 'Pricing']"
+                :key="index"
+                size="small"
+                variant="elevated"
+                color="white"
+                @click="scrollToSection(`section-${index + 1}`)"
+                class="cursor-pointer"
+              >
+                {{ section }}
+              </VChip>
+            </div>
+          </VCardText>
+        </VCard> -->
+      </VContainer>
+    </VCard>
+
+    <!-- Main Form Container -->
+    <VContainer  fluid >
+      <!-- Alerts -->
+      <VSlideYTransition>
+        <VAlert
+          v-if="state.showSuccessAlert"
+          type="success"
+          variant="elevated"
+          class="mb-6"
+          closable
+          @click:close="state.showSuccessAlert = false"
+        >
+          <template v-slot:prepend>
+            <VIcon icon="mdi-check-circle" />
+          </template>
+          <VAlertTitle>Success!</VAlertTitle>
+          Domain has been created successfully. Redirecting to domain list...
+        </VAlert>
+      </VSlideYTransition>
+
+      <VSlideYTransition>
+        <VAlert
+          v-if="state.errorMessage"
+          type="error"
+          variant="tonal"
+          class="mb-6"
+          closable
+          @click:close="state.errorMessage = ''"
+        >
+          <template v-slot:prepend>
+            <VIcon icon="mdi-alert-circle" />
+          </template>
+          {{ state.errorMessage }}
+        </VAlert>
+      </VSlideYTransition>
+
+      <VForm ref="formRef" @submit.prevent="submitForm">
+        <!-- Section 1: Basic Information -->
+        <VCard id="section-1" class="mb-6 section-card">
+          <VCardTitle class="section-header">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <VAvatar color="primary" variant="tonal" size="40" class="me-3">
+                  <IconWorldMinus stroke={2} />
+                </VAvatar>
+                <div>
+                  <h2 class="text-h5 font-weight-bold">Basic Information</h2>
+                  <p class="text-body-2 text-medium-emphasis mb-0">Essential domain details and identification</p>
+                </div>
+              </div>
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                @click="toggleSection(0)"
+              >
+                <VIcon :icon="state.expandedSections[0] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+              </VBtn>
+            </div>
+          </VCardTitle>
+
+          <VExpandTransition>
+            <div v-show="state.expandedSections[0]">
+              <VDivider />
+              <VCardText class="pa-6">
+                <VRow>
+                  <VCol cols="12" md="6">
+                    <AppTextField
+                      v-model="form.client_id"
+                      label="Client ID"
+                      placeholder="e.g., CLT-2024-001"
+                      variant="outlined"
+                      hint="Unique identifier for the client"
+                      persistent-hint
+                      @input="markFormTouched"
+                    />
+                  </VCol>
+
+                  <VCol cols="12" md="6">
+                    <AppTextField
+                      v-model="form.title"
+                      label="Domain Title *"
+                      placeholder="Enter a descriptive title"
+                      :rules="[rules.required, rules.minLength(3), rules.maxLength(100)]"
+                      variant="outlined"
+                      hint="Primary identifier for this domain"
+                      persistent-hint
+                      required
+                      @input="markFormTouched"
+                    />
+                  </VCol>
+
+                  <!-- <VCol cols="12" md="6">
+                    <VAutocomplete
+                      v-model="form.country"
+                      label="Country"
+                      :items="countryOptions"
+                      prepend-inner-icon="mdi-flag"
+                      variant="outlined"
+                      hint="Target country for this domain"
+                      persistent-hint
+                      clearable
+                      @update:model-value="markFormTouched"
+                    />
+                  </VCol> -->
+
+                  <VCol cols="12" md="6">
+                    <AppTextField
+                      v-model="form.turnaround_time"
+                      label="Turnaround Time"
+                      placeholder="e.g., 5-7 business days"
+                      variant="outlined"
+                      hint="Expected delivery timeframe"
+                      persistent-hint
+                      @input="markFormTouched"
+                    />
+                  </VCol>
+                </VRow>
+              </VCardText>
+            </div>
+          </VExpandTransition>
+        </VCard>
+
+        <!-- Section 2: Status Configuration -->
+        <VCard id="section-2" class="mb-6 section-card">
+          <VCardTitle class="section-header">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <VAvatar color="success" variant="tonal" size="40" class="me-3">
+                <IconDevicesCog stroke={2} />
+                </VAvatar>
+                <div>
+                  <h2 class="text-h5 font-weight-bold">Status Configuration</h2>
+                  <p class="text-body-2 text-medium-emphasis mb-0">Set availability and approval status</p>
+                </div>
+              </div>
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                @click="toggleSection(1)"
+              >
+                <VIcon :icon="state.expandedSections[1] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+              </VBtn>
+            </div>
+          </VCardTitle>
+
+          <VExpandTransition>
+            <div v-show="state.expandedSections[1]">
+              <VDivider />
+              <VCardText class="pa-6">
+                <VRow>
+                  <VCol cols="12" md="6">
+                    <p class="text-body-2 font-weight-medium mb-3">Domain Status</p>
+                    <VItemGroup v-model="form.status" mandatory>
+                      <VRow>
+                        <VCol
+                          v-for="status in statusOptions"
+                          :key="status.value"
+                          cols="12"
+                        >
+                          <VItem :value="status.value" v-slot="{ isSelected, toggle }">
+                            <VCard
+                              :color="isSelected ? status.color : undefined"
+                              :variant="isSelected ? 'elevated' : 'outlined'"
+                              class="status-selection-card pa-4"
+                              @click="toggle"
+                            >
+                              <div class="d-flex align-center">
+                                <VAvatar
+                                  :color="status.color"
+                                  variant="tonal"
+                                  size="36"
+                                  class="me-3"
+                                >
+                                  <VIcon :icon="status.icon" size="20" />
+                                </VAvatar>
+                                <div class="flex-grow-1">
+                                  <p class=" font-weight-medium mb-0">
+                                    {{ status.title }}
+                                  </p>
+                                  <p class=" font-weight-medium mb-0">
+                                    {{ status.description }}
+                                  </p>
+                                </div>
+                                <VIcon
+                                  :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
+                                  :color="isSelected ? status.color : 'grey'"
+                                />
+                              </div>
+                            </VCard>
+                          </VItem>
+                        </VCol>
+                      </VRow>
+                    </VItemGroup>
+                  </VCol>
+
+                  <VCol cols="12" md="6">
+                    <p class="text-body-2 font-weight-medium mb-3">Approval Status</p>
+                    <VItemGroup v-model="form.approval_status" mandatory>
+                      <VRow>
+                        <VCol
+                          v-for="status in approvalStatusOptions"
+                          :key="status.value"
+                          cols="12"
+                        >
+                          <VItem :value="status.value" v-slot="{ isSelected, toggle }">
+                            <VCard
+                              :color="isSelected ? status.color : undefined"
+                              :variant="isSelected ? 'elevated' : 'outlined'"
+                              class="status-selection-card pa-4"
+                              @click="toggle"
+                            >
+                              <div class="d-flex align-center">
+                                <VAvatar
+                                  :color="status.color"
+                                  variant="tonal"
+                                  size="36"
+                                  class="me-3"
+                                >
+                                  <VIcon :icon="status.icon" size="20" />
+                                </VAvatar>
+                                <div class="flex-grow-1">
+                                 <p class=" font-weight-medium mb-0">
+                                    {{ status.title }}
+                                  </p>
+                                  <p class=" font-weight-medium mb-0">
+                                    {{ status.description }}
+                                  </p>
+                                </div>
+                                <VIcon
+                                  :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
+                                  :color="isSelected ? status.color : 'grey'"
+                                />
+                              </div>
+                            </VCard>
+                          </VItem>
+                        </VCol>
+                      </VRow>
+                    </VItemGroup>
+                  </VCol>
+                </VRow>
+              </VCardText>
+            </div>
+          </VExpandTransition>
+        </VCard>
+
+        <!-- Section 3: URL Management -->
+        <VCard id="section-3" class="mb-6 section-card">
+          <VCardTitle class="section-header">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <VAvatar color="info" variant="tonal" size="40" class="me-3">
+                  <IconUnlink stroke={2} />
+                </VAvatar>
+                <div>
+                  <h2 class="text-h5 font-weight-bold">URL Management</h2>
+                  <p class="text-body-2 text-medium-emphasis mb-0">Configure source and target URLs</p>
+                </div>
+              </div>
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                @click="toggleSection(2)"
+              >
+                <VIcon :icon="state.expandedSections[2] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+              </VBtn>
+            </div>
+          </VCardTitle>
+
+          <VExpandTransition>
+            <div v-show="state.expandedSections[2]">
+              <VDivider />
+              <VCardText class="pa-6">
+                <VRow>
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="form.source_url"
+                      label="Source URL"
+                      placeholder="https://example.com/source-page"
+                      :rules="[rules.url]"
+                      variant="outlined"
+                      hint="The URL where the link will be placed"
+                      persistent-hint
+                      @input="markFormTouched"
+                    >
+                      <template v-slot:append-inner>
+                        <VTooltip location="top">
+                          <template v-slot:activator="{ props }">
+                            <VIcon v-bind="props" icon="mdi-information-outline" size="20" />
+                          </template>
+                          <span>This is the website that will link to your target</span>
+                        </VTooltip>
+                      </template>
+                    </AppTextField>
+                  </VCol>
+
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="form.target_url"
+                      label="Target URL*"
+                      placeholder="https://target.com/destination-page"
+                      :rules="[rules.url,rules.required]"
+                      variant="outlined"
+                      required
+                      hint="The destination URL for the link"
+                      persistent-hint
+                      @input="markFormTouched"
+                    >
+                      <template v-slot:append-inner>
+                        <VTooltip location="top">
+                          <template v-slot:activator="{ props }">
+                            <VIcon v-bind="props" icon="mdi-information-outline" size="20" />
+                          </template>
+                          <span>This is where users will be directed when clicking the link</span>
+                        </VTooltip>
+                      </template>
+                    </AppTextField>
+                  </VCol>
+                </VRow>
+
+                <!-- URL Preview -->
+                <VSlideYTransition>
+                  <VCard
+                    v-if="form.source_url || form.target_url"
+                    color="grey-lighten-5"
+                    variant="flat"
+                    class="mt-6"
+                  >
+                    <VCardText>
+                      <p class="text-body-2 font-weight-medium mb-4">Link Flow Visualization</p>
+                      
+                      <div class="url-flow-visualization">
+                        <div v-if="form.source_url" class="url-box source">
+                          <VIcon icon="mdi-web" color="info" class="me-2" />
+                          <div>
+                            <p class="text-caption text-medium-emphasis mb-1">Source</p>
+                            <a :href="form.source_url" target="_blank" class="text-decoration-none text-info">
+                              {{ form.source_url }}
+                            </a>
+                          </div>
+                        </div>
+
+                        <div v-if="form.source_url && form.target_url" class="flow-arrow">
+                          <VIcon icon="mdi-arrow-down-thick" size="24" color="primary" />
+                        </div>
+
+                        <div v-if="form.target_url" class="url-box target">
+                          <VIcon icon="mdi-target" color="success" class="me-2" />
+                          <div>
+                            <p class="text-caption text-medium-emphasis mb-1">Target</p>
+                            <a :href="form.target_url" target="_blank" class="text-decoration-none text-success">
+                              {{ form.target_url }}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </VCardText>
+                  </VCard>
+                </VSlideYTransition>
+              </VCardText>
+            </div>
+          </VExpandTransition>
+        </VCard>
+
+        <!-- Section 4: SEO Metrics -->
+        <VCard id="section-4" class="mb-6 section-card">
+          <VCardTitle class="section-header">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <VAvatar color="warning" variant="tonal" size="40" class="me-3">
+                 <IconSeo stroke={2} />
+                </VAvatar>
+                <div>
+                  <h2 class="text-h5 font-weight-bold">SEO Metrics</h2>
+                  <p class="text-body-2 text-medium-emphasis mb-0">Domain authority and performance indicators</p>
+                </div>
+              </div>
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                @click="toggleSection(3)"
+              >
+                <VIcon :icon="state.expandedSections[3] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+              </VBtn>
+            </div>
+          </VCardTitle>
+
+          <VExpandTransition>
+            <div v-show="state.expandedSections[3]">
+              <VDivider />
+              <VCardText class="pa-6">
+                <VRow>
+                  <VCol cols="12" md="4">
+                    <VCard variant="outlined" class="metric-input-card">
+                      <VCardText>
+                        <div class="d-flex align-center mb-3">
+                          <VAvatar color="primary" variant="tonal" size="36" class="me-3">
+                            <VIcon icon="tabler-award" size="32" />
+                          </VAvatar>
+                          <div>
+                            <p class="text-body-2 font-weight-medium mb-0">Domain Authority</p>
+                            <p class="text-caption text-medium-emphasis mb-0">MOZ metric (0-100)</p>
+                          </div>
+                        </div>
+                        
+                        <AppTextField
+                          v-model="form.domain_authority"
+                          type="number"
+                          min="0"
+                          max="100"
+                          :rules="rules.domainAuthority"
+                          variant="solo-filled"
+                          placeholder="0"
+                          class="metric-input"
+                          @input="markFormTouched"
+                        />
+                        
+                        <VProgressLinear
+                          v-if="form.domain_authority"
+                          :model-value="form.domain_authority"
+                          max="100"
+                          :color="getMetricColor(form.domain_authority)"
+                          height="6"
+                          rounded
+                          class="mt-3"
+                        />
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+
+                  <VCol cols="12" md="4">
+                    <VCard variant="outlined" class="metric-input-card">
+                      <VCardText>
+                        <div class="d-flex align-center mb-3">
+                          <VAvatar color="success" variant="tonal" size="36" class="me-3">
+                             <VIcon icon="tabler-trending-up" size="32" />
+                          </VAvatar>
+                          <div>
+                            <p class="text-body-2 font-weight-medium mb-0">Domain Rating</p>
+                            <p class="text-caption text-medium-emphasis mb-0">Ahrefs metric (0-100)</p>
+                          </div>
+                        </div>
+                        
+                        <AppTextField
+                          v-model="form.domain_rating"
+                          type="number"
+                          min="0"
+                          max="100"
+                          :rules="rules.domainRating"
+                          variant="solo-filled"
+                          placeholder="0"
+                          class="metric-input"
+                          @input="markFormTouched"
+                        />
+                        
+                        <VProgressLinear
+                          v-if="form.domain_rating"
+                          :model-value="form.domain_rating"
+                          max="100"
+                          :color="getMetricColor(form.domain_rating)"
+                          height="6"
+                          rounded
+                          class="mt-3"
+                        />
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+
+                  <VCol cols="12" md="4">
+                    <VCard variant="outlined" class="metric-input-card">
+                      <VCardText>
+                        <div class="d-flex align-center mb-3">
+                          <VAvatar color="info" variant="tonal" size="36" class="me-3">
+                            <VIcon icon="tabler-users" size="32" />
+                          </VAvatar>
+                          <div>
+                            <p class="text-body-2 font-weight-medium mb-0">Organic Traffic</p>
+                            <p class="text-caption text-medium-emphasis mb-0">Monthly visitors</p>
+                          </div>
+                        </div>
+                        
+                        <AppTextField
+                          v-model="form.organic_traffic"
+                          type="number"
+                          min="0"
+                          :rules="[rules.number, rules.positiveNumber]"
+                          variant="solo-filled"
+                          placeholder="0"
+                          class="metric-input"
+                          @input="markFormTouched"
+                        />
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+                </VRow>
+
+                <!-- Metrics Summary -->
+                <VSlideYTransition>
+                  <VCard
+                    v-if="form.domain_authority || form.domain_rating || form.organic_traffic"
+                    color="primary"
+                    variant="tonal"
+                    class="mt-6"
+                  >
+                    <VCardText>
+                      <p class="text-body-1 font-weight-medium mb-4">SEO Performance Summary</p>
+                      <div class="d-flex justify-space-around align-center">
+                        <div v-if="form.domain_authority" class="text-center">
+                          <VAvatar
+                            :color="getMetricColor(form.domain_authority)"
+                            size="72"
+                            variant="elevated"
+                            class="mb-2"
+                          >
+                            <span class="text-h5 font-weight-bold">{{ form.domain_authority }}</span>
+                          </VAvatar>
+                          <p class="text-body-2 mb-0">DA Score</p>
+                        </div>
+                        <div v-if="form.domain_rating" class="text-center">
+                          <VAvatar
+                            :color="getMetricColor(form.domain_rating)"
+                            size="72"
+                            variant="elevated"
+                            class="mb-2"
+                          >
+                            <span class="text-h5 font-weight-bold">{{ form.domain_rating }}</span>
+                          </VAvatar>
+                          <p class="text-body-2 mb-0">DR Score</p>
+                        </div>
+                        <div v-if="form.organic_traffic" class="text-center">
+                          <VAvatar
+                            color="info"
+                            size="72"
+                            variant="elevated"
+                            class="mb-2"
+                          >
+                            <span class="text-h6 font-weight-bold">{{ form.organic_traffic }}</span>
+                          </VAvatar>
+                          <p class="text-body-2 mb-0">Traffic</p>
+                        </div>
+                      </div>
+                    </VCardText>
+                  </VCard>
+                </VSlideYTransition>
+              </VCardText>
+            </div>
+          </VExpandTransition>
+        </VCard>
+
+        <!-- Section 5: Pricing & Details -->
+        <VCard id="section-5" class="mb-6 section-card">
+          <VCardTitle class="section-header">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <VAvatar color="error" variant="tonal" size="40" class="me-3">
+                  <IconTag stroke={2} />
+                </VAvatar>
+                <div>
+                  <h2 class="text-h5 font-weight-bold">Pricing & Additional Details</h2>
+                  <p class="text-body-2 text-medium-emphasis mb-0">Cost breakdown and special requirements</p>
+                </div>
+              </div>
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                @click="toggleSection(4)"
+              >
+                <VIcon :icon="state.expandedSections[4] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+              </VBtn>
+            </div>
+          </VCardTitle>
+
+          <VExpandTransition>
+            <div v-show="state.expandedSections[4]">
+              <VDivider />
+              <VCardText class="pa-6">
+                <!-- Pricing Grid -->
+                <div class="pricing-section mb-6">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <p class="text-body-1 font-weight-medium mb-0">Pricing Components</p>
+                    <VChip
+                      v-if="form.total_price > 0"
+                      color="error"
+                      variant="elevated"
+                      size="large"
+                      class="font-weight-bold"
+                    >
+                      Total: {{ formatCurrency(form.total_price) }}
+                    </VChip>
+                  </div>
+
+                  <VRow>
+                    <VCol cols="12" md="4">
+                      <VCard variant="outlined">
+                        <VCardText>
+                          <AppTextField
+                            v-model="form.price_ne"
+                            label="Price NE"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            :rules="[rules.number, rules.positiveNumber]"
+                            variant="solo-filled"
+                            placeholder="0.00"
+                            @input="markFormTouched"
+                          />
+                        </VCardText>
+                      </VCard>
+                    </VCol>
+
+                    <VCol cols="12" md="4">
+                      <VCard variant="outlined">
+                        <VCardText>
+                          <AppTextField
+                            v-model="form.price_gp"
+                            label="Price GP"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            :rules="[rules.number, rules.positiveNumber]"
+                            variant="solo-filled"
+                            placeholder="0.00"
+                            @input="markFormTouched"
+                          />
+                        </VCardText>
+                      </VCard>
+                    </VCol>
+
+                    <VCol cols="12" md="4">
+                      <VCard variant="outlined">
+                        <VCardText>
+                          <AppTextField
+                            v-model="form.price"
+                            label="Base Price"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            :rules="[rules.number, rules.positiveNumber]"
+                            variant="solo-filled"
+                            placeholder="0.00"
+                            @input="markFormTouched"
+                          />
+                        </VCardText>
+                      </VCard>
+                    </VCol>
+                  </VRow>
+
+                  <!-- Total Display -->
+                  <VSlideYTransition>
+                    <VCard
+                      v-if="form.total_price > 0"
+                      color="error"
+                      variant="tonal"
+                      class="mt-4"
+                    >
+                      <VCardText class="text-center pa-4">
+                        <p class="text-body-2 mb-2">Total Price</p>
+                        <p class="text-h3 font-weight-bold mb-0">{{ formatCurrency(form.total_price) }}</p>
+                      </VCardText>
+                    </VCard>
+                  </VSlideYTransition>
+                </div>
+
+                <VDivider class="mb-6" />
+
+                <!-- Additional Details -->
+                <div class="additional-details">
+                  <p class="text-body-1 font-weight-medium mb-4">Additional Information</p>
+                  
+                  <VRow>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model="form.anchor_text"
+                        label="Anchor Text"
+                        placeholder="Enter the anchor text for the link"
+                        :rules="[rules.maxLength(200)]"
+                        variant="outlined"
+                        hint="The clickable text for the hyperlink"
+                        persistent-hint
+                        @input="markFormTouched"
+                      />
+                    </VCol>
+
+                    <VCol cols="12">
+                      <AppTextarea
+                        v-model="form.special_requirements"
+                        label="Special Requirements"
+                        placeholder="Enter any special requirements, notes, or instructions..."
+                        :rules="[rules.maxLength(500)]"
+                        variant="outlined"
+                        rows="5"
+                        counter
+                        hint="Additional instructions or notes for domain setup"
+                        persistent-hint
+                        @input="markFormTouched"
+                      />
+                    </VCol>
+                  </VRow>
+                </div>
+              </VCardText>
+            </div>
+          </VExpandTransition>
+        </VCard>
+
+        <!-- Form Actions -->
+        <VCard class="action-card">
+          <VCardText class="pa-6">
+            <div class="d-flex justify-space-between align-center">
+              <div>
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  <VIcon icon="mdi-information-outline" size="16" class="me-1" />
+                  All fields marked with * are required
+                </p>
+              </div>
+              
+              <div class="d-flex gap-3">
+                <VBtn
+                  variant="outlined"
+                  color="default"
+                  size="large"
+                  @click="resetForm"
+                  :disabled="state.submitting"
+                >
+                  Reset Form
+                </VBtn>
+                
+                <!-- <VBtn
+                  variant="tonal"
+                  color="primary"
+                  size="large"
+                  @click="saveDraft"
+                  :disabled="state.submitting || !state.formTouched"
+                >
+                  <VIcon icon="mdi-content-save" class="me-2" />
+                  Save Draft
+                </VBtn> -->
+
+                <VBtn
+                  type="submit"
+                  color="success"
+                  size="large"
+                  variant="elevated"
+                  :loading="state.submitting"
+                  :disabled="state.showSuccessAlert"
+                >
+                  Create Domain
+                </VBtn>
+              </div>
+            </div>
+          </VCardText>
+        </VCard>
       </VForm>
-    </VCardText>
-  </VCard>
+    </VContainer>
+  </div>
 </template>
 
-<style scoped>
-:deep(.v-field--variant-outlined) {
-  --v-field-border-width: 2px;
+<style lang="scss" scoped>
+.domain-create-page {
+  position: relative;
+  background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.03) 0%, transparent 100%);
+  min-height: 100vh;
+  padding-bottom: 2rem;
+  
+  .save-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .page-header {
+    background: white;
+    padding: 1rem 0;
+    border-radius:12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
 }
 
-:deep(.v-field--variant-outlined.v-field--focused) {
-  --v-field-border-width: 3px;
+.section-card {
+  transition: all 0.3s ease;
+  border-radius: 12px !important;
+  overflow: hidden;
+  
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .section-header {
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
+    padding: 1.5rem;
+  }
 }
 
-/* Step transition animations */
-.v-enter-active,
-.v-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+.status-selection-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
-.v-enter-from {
-  transform: translateX(30px);
+.metric-input-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .metric-input {
+    :deep(.v-field__input) {
+      font-size: 2rem;
+      font-weight: 600;
+      text-align: center;
+      padding: 1rem;
+    }
+  }
 }
 
-.v-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
+.url-flow-visualization {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  
+  .url-box {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-radius: 8px;
+    background: white;
+    border: 2px solid rgba(var(--v-theme-primary), 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: rgba(var(--v-theme-primary), 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    &.source {
+      border-left: 4px solid rgb(var(--v-theme-info));
+    }
+    
+    &.target {
+      border-left: 4px solid rgb(var(--v-theme-success));
+    }
+  }
+  
+  .flow-arrow {
+    padding: 0.5rem;
+    animation: bounce 2s infinite;
+  }
+}
+
+.pricing-section {
+  .v-card {
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+.action-card {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-radius: 12px !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+// Dark mode adjustments
+.v-theme--dark {
+  .domain-create-page {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+    
+    .page-header {
+      background: rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  .section-card {
+    .section-header {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    }
+  }
+  
+  .url-flow-visualization {
+    .url-box {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+  
+  .action-card {
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 960px) {
+  .domain-create-page {
+    .page-header {
+      .text-h3 {
+        font-size: 1.75rem !important;
+      }
+    }
+  }
+  
+  .section-card {
+    .section-header {
+      .text-h5 {
+        font-size: 1.25rem !important;
+      }
+    }
+  }
+  
+  .action-card {
+    position: relative;
+    
+    .d-flex {
+      flex-direction: column;
+      gap: 1rem;
+      
+      .d-flex.gap-3 {
+        width: 100%;
+        
+        .v-btn {
+          flex: 1;
+        }
+      }
+    }
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  
+  &:hover {
+    opacity: 0.8;
+  }
 }
 </style>

@@ -1,0 +1,794 @@
+<script setup>
+import { useReportShow } from "@/composables/reportApi";
+import { IconCheck, IconClock, IconX } from "@tabler/icons-vue";
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const reportId = computed(() => route.params.id);
+
+// Pagination
+const page = ref(1);
+const itemsPerPage = ref(10);
+
+// View toggles
+const viewMode = ref("domains"); // 'all' or 'domains'
+const activeTab = ref("");
+
+const requestBody = reactive({
+  page: 1,
+  per_page: 10,
+  search: "",
+  status: "",
+})
+
+// API
+const {
+  data: reportData,
+  isLoading,
+} = await useReportShow(reportId.value,requestBody);
+
+// Watch for pagination changes
+watch([requestBody], () => {
+  refresh({
+    params: {
+      page: page.value,
+      per_page: itemsPerPage.value,
+    },
+  });
+});
+
+const report = computed(() => reportData.value?.report ?? {});
+const backlinksData = computed(
+  () =>
+    reportData.value?.backlinks ?? {
+      data: [],
+      current_page: 1,
+      last_page: 1,
+      per_page: itemsPerPage.value,
+      total: 0,
+    }
+);
+
+const allBacklinks = computed(() => backlinksData.value.data ?? []);
+
+// Group backlinks by domain
+const backlinksByDomain = computed(() => {
+  const grouped = {};
+  allBacklinks.value.forEach((backlink) => {
+    const domain = backlink.domain || "Unknown Domain";
+    if (!grouped[domain]) {
+      grouped[domain] = [];
+    }
+    grouped[domain].push(backlink);
+  });
+  return grouped;
+});
+
+// Get domain names for tabs
+const domainNames = computed(() => Object.keys(backlinksByDomain.value));
+
+// Set first domain as active tab when domains are loaded
+watch(
+  domainNames,
+  (newDomains) => {
+    if (newDomains.length > 0 && !activeTab.value) {
+      activeTab.value = newDomains[0];
+    }
+  },
+  { immediate: true }
+);
+
+// Current backlinks to display
+const currentBacklinks = computed(() => {
+  if (viewMode.value === "all") {
+    return allBacklinks.value;
+  }
+  return backlinksByDomain.value[activeTab.value] || [];
+});
+
+// Status config
+const getStatusConfig = (status) => {
+  if (status === "accepted")
+    return { color: "success", icon: IconCheck, text: "Accepted" };
+  if (status === "rejected")
+    return { color: "error", icon: IconX, text: "Rejected" };
+  return { color: "warning", icon: IconClock, text: "Pending" };
+};
+
+// Get tier color
+const getTierColor = (tier) => {
+  if (tier >= 3) return "success";
+  if (tier >= 2) return "warning";
+  return "error";
+};
+
+// Get quality score color
+const getScoreColor = (score) => {
+  if (score >= 80) return "success";
+  if (score >= 60) return "warning";
+  if (score >= 40) return "info";
+  return "error";
+};
+
+// Stats using report data
+const stats = computed(() => {
+  return {
+    total: report.value.total_backlink || 0,
+    accepted: report.value.accepted_backlinks || 0,
+    rejected: report.value.rejected_backlinks || 0,
+    pending:
+      (report.value.total_backlink || 0) -
+      (report.value.accepted_backlinks || 0) -
+      (report.value.rejected_backlinks || 0),
+    domains: report.value.domain_count || 0,
+  };
+});
+
+// Format date
+const formatDate = (dateString) => {
+  if (!dateString) return "Not recorded";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+</script>
+
+<template>
+  <div>
+    <!-- Header -->
+    <VCard class="mb-8 overflow-hidden" elevation="2">
+      <div class="pa-8">
+        <VRow align="start" justify="space-between">
+          <VCol cols="12" md="8">
+            <!-- Back button -->
+            <VBtn
+              variant="outlined"
+              color="primary"
+              class="mb-6"
+              :to="{ name: 'apps-report-list' }"
+            >
+              <VIcon icon="tabler-arrow-left" class="me-2" />
+              Back to Reports
+            </VBtn>
+
+            <div>
+              <!-- Heading -->
+              <h2 class="text-h3 font-weight-bold mb-3">Report Analysis</h2>
+
+              <!-- Chips -->
+              <div class="d-flex align-center gap-3 flex-wrap">
+                <VChip color="primary" variant="elevated" size="large">
+                  <VIcon icon="tabler-id" class="me-2" />
+                  ID: {{ report.id }}
+                </VChip>
+
+                <VChip color="primary" variant="outlined" size="large">
+                  <VIcon icon="tabler-play" class="me-2" />
+                  Run: {{ report.run_id }}
+                </VChip>
+
+                <VChip color="primary" variant="outlined" size="large">
+                  <VIcon icon="tabler-calendar" class="me-2" />
+                  {{ formatDate(report.created_at) }}
+                </VChip>
+              </div>
+            </div>
+          </VCol>
+        </VRow>
+      </div>
+    </VCard>
+
+    <!-- Loading -->
+    <template v-if="isLoading">
+      <VCard class="mb-6" elevation="2">
+        <VCardText class="text-center py-16">
+          <VProgressCircular
+            indeterminate
+            color="primary"
+            size="64"
+            width="6"
+          />
+          <h6 class="text-h6 mt-6 mb-2">Loading report...</h6>
+          <p class="text-body-2 text-medium-emphasis">
+            Fetching backlink data, please wait.
+          </p>
+        </VCardText>
+      </VCard>
+    </template>
+
+    <!-- Report Content -->
+    <template v-else-if="report.id">
+      <!-- Stats Cards -->
+      <VRow class="mb-8">
+        <VCol cols="12" md="2" sm="6">
+          <VCard elevation="2" class="h-100" color="primary" variant="tonal">
+            <VCardText class="pa-6 text-center">
+              <VAvatar size="56" color="primary" class="mb-3">
+                <VIcon icon="tabler-link" size="28" />
+              </VAvatar>
+              <p class="text-body-2 text-medium-emphasis mb-1">Total</p>
+              <h4 class="text-h4 font-weight-bold text-primary">
+                {{ stats.total }}
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" md="2" sm="6">
+          <VCard elevation="2" class="h-100" color="success" variant="tonal">
+            <VCardText class="pa-6 text-center">
+              <VAvatar size="56" color="success" class="mb-3">
+                <VIcon icon="tabler-check" size="28" />
+              </VAvatar>
+              <p class="text-body-2 text-medium-emphasis mb-1">Accepted</p>
+              <h4 class="text-h4 font-weight-bold text-success">
+                {{ stats.accepted }}
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" md="2" sm="6">
+          <VCard elevation="2" class="h-100" color="error" variant="tonal">
+            <VCardText class="pa-6 text-center">
+              <VAvatar size="56" color="error" class="mb-3">
+                <VIcon icon="tabler-x" size="28" />
+              </VAvatar>
+              <p class="text-body-2 text-medium-emphasis mb-1">Rejected</p>
+              <h4 class="text-h4 font-weight-bold text-error">
+                {{ stats.rejected }}
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" md="2" sm="6">
+          <VCard elevation="2" class="h-100" color="warning" variant="tonal">
+            <VCardText class="pa-6 text-center">
+              <VAvatar size="56" color="warning" class="mb-3">
+                <VIcon icon="tabler-clock" size="28" />
+              </VAvatar>
+              <p class="text-body-2 text-medium-emphasis mb-1">Pending</p>
+              <h4 class="text-h4 font-weight-bold text-warning">
+                {{ stats.pending }}
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" md="2" sm="6">
+          <VCard elevation="2" class="h-100" color="info" variant="tonal">
+            <VCardText class="pa-6 text-center">
+              <VAvatar size="56" color="info" class="mb-3">
+                <VIcon icon="tabler-world" size="28" />
+              </VAvatar>
+              <p class="text-body-2 text-medium-emphasis mb-1">Domains</p>
+              <h4 class="text-h4 font-weight-bold text-info">
+                {{ stats.domains }}
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" md="2" sm="6">
+          <VCard elevation="2" class="h-100" color="secondary" variant="tonal">
+            <VCardText class="pa-6 text-center">
+              <VAvatar size="56" color="secondary" class="mb-3">
+                <VIcon icon="tabler-percentage" size="28" />
+              </VAvatar>
+              <p class="text-body-2 text-medium-emphasis mb-1">Success Rate</p>
+              <h4 class="text-h4 font-weight-bold text-secondary">
+                {{
+                  stats.total
+                    ? Math.round((stats.accepted / stats.total) * 100)
+                    : 0
+                }}%
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+      </VRow>
+
+      <!-- View Controls -->
+      <VCard elevation="2" class="mb-6">
+        <VCardTitle class="d-flex align-center pa-6">
+          <div
+            class="d-flex align-center justify-space-between w-100 flex-wrap"
+          >
+            <div class="d-flex align-center">
+              <VAvatar color="primary" variant="tonal" class="me-3">
+                <VIcon icon="tabler-link" />
+              </VAvatar>
+              <div>
+                <h5 class="text-h5">Backlinks Overview</h5>
+                <p class="text-body-2 text-medium-emphasis">
+                  Showing {{ backlinksData.from || 0 }} to
+                  {{ backlinksData.to || 0 }} of {{ backlinksData.total || 0 }}
+                  results
+                </p>
+              </div>
+            </div>
+            <!-- Enhanced View Mode Toggle -->
+            <!-- <VCard variant="outlined" class="pa-1">
+              <VBtnToggle v-model="viewMode" color="primary" variant="elevated" divided mandatory>
+                <VBtn value="all" size="large" class="px-6">
+                  <VIcon icon="tabler-list" class="me-2" />
+                  All Backlinks
+                  <VChip size="x-small" color="primary" variant="elevated" class="ml-2">
+                    {{ allBacklinks.length }}
+                  </VChip>
+                </VBtn>
+                <VBtn value="domains" size="large" class="px-6">
+                  <VIcon icon="tabler-sitemap" class="me-2" />
+                  By Domain
+                  <VChip size="x-small" color="primary" variant="elevated" class="ml-2">
+                    {{ domainNames.length }}
+                  </VChip>
+                </VBtn>
+              </VBtnToggle>
+            </VCard> -->
+          </div>
+        </VCardTitle>
+
+        <!-- Domain Dropdown (only show when in domain view) -->
+        <VCardText
+          v-if="viewMode === 'domains' && domainNames.length > 0"
+          class="px-6 pt-0 pb-4"
+        >
+          <VSelect
+            v-model="activeTab"
+            :items="domainNames"
+            label="Select Domain"
+            variant="outlined"
+            class="domain-dropdown"
+            :menu-props="{ maxHeight: 300 }"
+            item-title="title"
+            item-value="title"
+            clearable
+            persistent-clear
+            autocomplete
+            style="width: 250px"
+          >
+            <template #selection="{ item }">
+              <div class="d-flex align-center">
+                <VAvatar size="28" color="primary" variant="tonal" class="me-2">
+                  <VIcon icon="tabler-world" size="16" />
+                </VAvatar>
+                <span class="text-capitalize">{{ item.title }}</span>
+              </div>
+            </template>
+
+            <template #item="{ props, item }">
+              <VListItem v-bind="props">
+                <template #prepend>
+                  <VAvatar
+                    size="28"
+                    color="primary"
+                    variant="tonal"
+                    class="me-2"
+                  >
+                    <VIcon icon="tabler-world" size="16" />
+                  </VAvatar>
+                </template>
+                <VListItemTitle class="text-capitalize">{{
+                  item.title
+                }}</VListItemTitle>
+                <VListItemSubtitle>
+                  {{ backlinksByDomain[item.title].length }} backlinks
+                </VListItemSubtitle>
+              </VListItem>
+            </template>
+          </VSelect>
+        </VCardText>
+
+        <!-- Backlinks Display -->
+        <VCardText class="pa-6">
+          <div v-if="currentBacklinks.length === 0" class="text-center py-12">
+            <VAvatar size="120" color="grey-lighten-2" class="mb-6">
+              <VIcon icon="tabler-link-off" size="60" />
+            </VAvatar>
+            <h5 class="text-h5 mb-2">No Backlinks Found</h5>
+            <p class="text-body-2 text-medium-emphasis">
+              {{
+                viewMode === "domains"
+                  ? "This domain has no backlinks yet."
+                  : "No backlinks available for thisreport."
+              }}
+            </p>
+          </div>
+
+          <!-- Full-width Horizontal Cards -->
+          <div v-else class="backlinks-container">
+            <VCard
+              v-for="backlink in currentBacklinks"
+              :key="backlink.id"
+              elevation="1"
+              class="backlink-card mb-4"
+              border
+            >
+              <VCardText class="pa-6">
+                <VRow align="center">
+                  <!-- Domain Section - Most Prominent -->
+                  <VCol cols="12" md="3" class="domain-section">
+                    <div class="d-flex align-center">
+                      <VAvatar
+                        size="48"
+                        color="primary"
+                        variant="tonal"
+                        class="me-4"
+                      >
+                        <VIcon icon="tabler-world" size="24" />
+                      </VAvatar>
+                      <div>
+                        <div class="text-h5 font-weight-bold text-primary mb-1">
+                          {{
+                            backlink.domain || backlink.from_domain || "Unknown"
+                          }}
+                        </div>
+                        <div class="text-body-2 text-medium-emphasis">
+                          {{ backlink.page_title || "No title" }}
+                        </div>
+                      </div>
+                    </div>
+                  </VCol>
+
+                  <!-- URL Section -->
+                  <VCol cols="12" md="4" class="url-section">
+                    <div class="mb-3">
+                      <div class="d-flex align-center mb-1">
+                        <VIcon
+                          icon="tabler-target"
+                          class="me-2 text-success"
+                          size="16"
+                        />
+                        <span class="text-body-2 font-weight-medium"
+                          >Target URL</span
+                        >
+                      </div>
+                      <a
+                        :href="backlink.target_url"
+                        target="_blank"
+                        class="text-success text-decoration-none d-block text-truncate"
+                        style="max-width: 100%"
+                        :title="backlink.target_url"
+                      >
+                        {{ backlink.target_url }}
+                        <VIcon
+                          icon="tabler-external-link"
+                          size="12"
+                          class="ml-1"
+                        />
+                      </a>
+                    </div>
+
+                    <div v-if="backlink.anchor">
+                      <div class="d-flex align-center mb-1">
+                        <VIcon
+                          icon="tabler-anchor"
+                          class="me-2 text-secondary"
+                          size="16"
+                        />
+                        <span class="text-body-2 font-weight-medium"
+                          >Anchor</span
+                        >
+                      </div>
+                      <VChip size="small" color="secondary" variant="outlined">
+                        {{ backlink.anchor }}
+                      </VChip>
+                    </div>
+                  </VCol>
+
+                  <!-- Metrics Section -->
+                  <VCol cols="12" md="3" class="metrics-section">
+                    <VRow class="text-center">
+                      <VCol cols="4">
+                        <div class="metric-item">
+                          <VAvatar
+                            size="32"
+                            :color="getTierColor(backlink.tier)"
+                            variant="tonal"
+                            class="mb-1"
+                          >
+                            <VIcon icon="tabler-star" size="16" />
+                          </VAvatar>
+                          <div class="text-body-2 text-medium-emphasis">
+                            Tier
+                          </div>
+                          <div class="text-h6 font-weight-bold">
+                            {{ backlink.tier || 0 }}
+                          </div>
+                        </div>
+                      </VCol>
+                      <VCol cols="4">
+                        <div class="metric-item">
+                          <VAvatar
+                            size="32"
+                            :color="getScoreColor(backlink.score)"
+                            variant="tonal"
+                            class="mb-1"
+                          >
+                            <VIcon icon="tabler-chart-line" size="16" />
+                          </VAvatar>
+                          <div class="text-body-2 text-medium-emphasis">
+                            Score
+                          </div>
+                          <div class="text-h6 font-weight-bold">
+                            {{ backlink.score || 0 }}
+                          </div>
+                        </div>
+                      </VCol>
+                      <VCol cols="4">
+                        <div class="metric-item">
+                          <VAvatar
+                            size="32"
+                            :color="backlink.do_follow ? 'success' : 'warning'"
+                            variant="tonal"
+                            class="mb-1"
+                          >
+                            <VIcon
+                              :icon="
+                                backlink.do_follow
+                                  ? 'tabler-link'
+                                  : 'tabler-link-off'
+                              "
+                              size="16"
+                            />
+                          </VAvatar>
+                          <div class="text-body-2 text-medium-emphasis">
+                            Type
+                          </div>
+                          <div class="text-body-2 font-weight-bold">
+                            {{ backlink.do_follow ? "DoFollow" : "NoFollow" }}
+                          </div>
+                        </div>
+                      </VCol>
+                    </VRow>
+                  </VCol>
+
+                  <!-- Actions & Status Section -->
+                  <VCol
+                    class="d-flex flex-row align-center justify-center gap-2"
+                  >
+                    <!-- Status -->
+                    <VChip
+                      :color="getStatusConfig(backlink.status).color"
+                      size="small"
+                      variant="elevated"
+                      class="action-chip"
+                    >
+                      <VIcon
+                        :icon="getStatusConfig(backlink.status).icon"
+                        size="16"
+                        class="me-1"
+                      />
+                      <span class="text-capitalize">{{
+                        getStatusConfig(backlink.status).text
+                      }}</span>
+                    </VChip>
+
+                    <!-- Spam Score -->
+                    <VTooltip text="Spam Score">
+                      <template #activator="{ props }">
+                        <VChip
+                          v-bind="props"
+                          size="small"
+                          color="warning"
+                          variant="outlined"
+                          class="action-chip"
+                        >
+                          <VIcon icon="tabler-flag" size="14" class="me-1" />
+                          {{ backlink.spam_score || 0 }}%
+                        </VChip>
+                      </template>
+                    </VTooltip>
+
+                    <!-- Details button -->
+                    <router-link
+                      :to="{
+                        name: 'apps-report-backlink-view',
+                        params: { id: backlink.id },
+                      }"
+                    >
+                      <VBtn
+                        size="small"
+                        color="primary"
+                        variant="elevated"
+                        icon
+                        class="action-chip"
+                      >
+                        <VIcon icon="tabler-eye" size="18" />
+                      </VBtn>
+                    </router-link>
+
+                    <!-- Broken link -->
+                    <VTooltip v-if="backlink.is_broken" text="Broken Link">
+                      <template #activator="{ props }">
+                        <VChip
+                          v-bind="props"
+                          size="small"
+                          color="error"
+                          variant="elevated"
+                          class="action-chip"
+                        >
+                          <VIcon icon="tabler-link-off" size="14" />
+                        </VChip>
+                      </template>
+                    </VTooltip>
+                  </VCol>
+                </VRow>
+              </VCardText>
+            </VCard>
+          </div>
+        </VCardText>
+
+        <!-- Pagination (only show when in 'all' mode) -->
+        <!-- <div>
+          <VDivider />
+          <VCardActions class="justify-center pa-6">
+            <VPagination
+              v-model="page"
+              :length="backlinksData.last_page || 1"
+              :total-visible="7"
+              color="primary"
+              variant="elevated"
+              size="large"
+            />
+
+            <VDivider vertical class="mx-6" />
+
+            <div class="d-flex align-center gap-3">
+              <span class="text-body-2 text-medium-emphasis"
+                >Items per page:</span
+              >
+              <VSelect
+                v-model="itemsPerPage"
+                :items="[10, 25, 50, 100, 200, 500, 1000]"
+                variant="outlined"
+                density="compact"
+                hide-details
+                class="items-per-page-select"
+              />
+            </div>
+          </VCardActions>
+        </div> -->
+      </VCard>
+    </template>
+
+    <!-- Error State -->
+    <VCard v-else elevation="2" class="mb-6">
+      <VCardText class="text-center py-16">
+        <VAvatar size="120" color="error" variant="tonal" class="mb-6 mx-auto">
+          <VIcon icon="tabler-database-off" size="64" />
+        </VAvatar>
+        <h4 class="text-h4 mb-4">Report Not Found</h4>
+        <p class="text-body-1 text-medium-emphasis mb-6 max-width-400 mx-auto">
+          The report you're looking for doesn't exist or may have been deleted.
+        </p>
+        <VBtn color="primary" size="large" :to="{ name: 'apps-report-list' }">
+          <VIcon icon="tabler-arrow-left" class="me-2" />
+          Back to Reports
+        </VBtn>
+      </VCardText>
+    </VCard>
+  </div>
+</template>
+
+<style scoped>
+.backlink-card {
+  transition: all 0.3s ease;
+}
+
+.backlink-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--v-theme-primary), 0.15) !important;
+}
+
+.domain-section {
+  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.url-section {
+  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.metrics-section {
+  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.domain-tabs .v-tab {
+  min-height: 80px !important;
+  padding: 16px 24px !important;
+  text-transform: none !important;
+  font-weight: 500;
+  border-radius: 12px;
+  margin: 0 8px;
+  transition: all 0.3s ease;
+}
+
+.domain-tabs .v-tab--selected {
+  background: rgba(var(--v-theme-primary), 0.1) !important;
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+.domain-tabs .v-tab:hover {
+  background: rgba(var(--v-theme-primary), 0.05) !important;
+}
+
+.max-width-400 {
+  max-width: 400px;
+}
+
+.bg-gradient-to-r {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--v-theme-primary)) 0%,
+    rgb(var(--v-theme-secondary)) 100%
+  );
+}
+
+.v-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.items-per-page-select {
+  max-width: 100px;
+}
+
+.backlinks-container {
+  max-width: 100%;
+}
+
+@media (max-width: 960px) {
+  .domain-section,
+  .url-section,
+  .metrics-section {
+    border-right: none !important;
+    border-bottom: 1px solid
+      rgba(var(--v-border-color), var(--v-border-opacity));
+    padding-bottom: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .actions-section {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .action-chip {
+    min-height: 32px;
+    /* makes all chips same height */
+    padding: 0 8px;
+    /* keeps spacing consistent */
+    display: flex;
+    align-items: center;
+  }
+
+  .domain-tabs .v-tab {
+    min-height: 60px !important;
+    padding: 12px 16px !important;
+  }
+}
+</style>

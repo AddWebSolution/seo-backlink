@@ -6,16 +6,9 @@
       {{ new Date().getFullYear() }}
       Made With
       <VIcon icon="tabler-heart-filled" color="error" size="1.25rem" class="mx-1" />
-      By <a href="https://pixinvent.com" target="_blank" rel="noopener noreferrer"
-        class="text-primary ms-1">Pixinvent</a>
+      By <a href="https://www.addwebsolution.com" target="_blank" rel="noopener noreferrer"
+        class="text-primary ms-1">AddWeb Solution</a>
     </span>
     <!-- 👉 Footer: right content -->
-    <span class="d-md-flex gap-x-4 text-primary d-none">
-      <a href="https://themeforest.net/licenses/standard" target="noopener noreferrer">License</a>
-      <a href="https://1.envato.market/pixinvent_portfolio" target="noopener noreferrer">More Themes</a>
-      <a href="https://demos.pixinvent.com/vuexy-vuejs-admin-template/documentation/guide/laravel-integration/folder-structure.html"
-        target="noopener noreferrer">Documentation</a>
-      <a href="https://pixinvent.ticksy.com/" target="noopener noreferrer">Support</a>
-    </span>
   </div>
 </template>
