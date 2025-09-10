@@ -27,8 +27,19 @@ export function useReportDelete(id) {
 }
 
 // Export reports 
-
 export function useExportReport(requestBody) {
-  return useApi('api/report/export', { method: 'POST', body: requestBody });
+  return fetch('/api/report/export', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${useCookie("accessToken").value}`,
+    },
+    body: JSON.stringify(requestBody)
+  }).then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+    return res.blob() 
+  });
 }
+
 

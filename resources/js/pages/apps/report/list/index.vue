@@ -36,6 +36,22 @@ const clearAllFilters = () => {
   fetchReports()
 }
 
+function generateBacklinkReportFilename() {
+  const now = new Date();
+
+  const day = String(now.getDate()).padStart(2, '0');
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[now.getMonth()];
+  const year = now.getFullYear();
+
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `BacklinkReport_${day}-${month}-${year}_${hours}-${minutes}-${seconds}.xlsx`;
+}
+
+
 // Check if any filters are active
 const hasActiveFilters = computed(() => {
   return selectedStatus.value || selectedDateRange.value || searchQuery.value
@@ -76,17 +92,59 @@ const handleExportReports = async () => {
     alert('Please select at least one report to export.')
     return
   }
+
   const reportIds = selectedRows.value 
+  const requestBody = { report_ids: reportIds }
 
-  const requestBody = computed(() => ({
-    report_ids: reportIds
-  }));
+  try {
+    const blob = await useExportReport(requestBody);
 
-  const { data: response } = await useExportReport(requestBody);
-  
-  console.log('Export response:', response)
-  alert('Export started successfully.')
+    const filename = generateBacklinkReportFilename();
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    alert('Export completed successfully!')
+
+  } catch (error) {
+    console.error('Export failed:', error)
+    alert(`Export failed: ${error.message}`)
+  }
 }
+
+const handleExportsingleReport = async (reportId) => {
+  if (!reportId) return alert('No report selected for export.')
+
+  const requestBody = { report_ids: [reportId] }
+
+  try {
+    const blob = await useExportReport(requestBody)
+    const filename = generateBacklinkReportFilename()
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    alert('Export completed successfully!')
+  } catch (error) {
+    console.error('Export failed:', error)
+    alert(`Export failed: ${error.message}`)
+  }
+}
+
+
 
 
 const deleteReport = async id => {
@@ -160,7 +218,7 @@ const formatDate = (dateString) => {
         </VCol>
         <VCol cols="12" md="4" class="text-md-end">
           <VBtn color="white" variant="outlined" size="large" class="text-primary font-weight-medium"
-           >
+            @click="handleExportReports">
             <VIcon icon="tabler-download" class="me-2" />
             Export Reports
           </VBtn>
@@ -388,44 +446,44 @@ const formatDate = (dateString) => {
             </VTooltip>
 
             <VTooltip text="Download Report">
-              <template #activator="{ props }">
-                <IconBtn v-bind="props" size="small">
+              <<template #activator="{ props }">
+                <IconBtn v-bind="props" size="small" @click="handleExportsingleReport(item.id)">
                   <VIcon icon="tabler-download" color="info" size="24" />
                 </IconBtn>
-              </template>
-            </VTooltip>
-
-          </div>
         </template>
+        </VTooltip>
 
-        <!-- Enhanced Pagination -->
-        <template #bottom>
-          <div class="d-flex justify-space-between align-center pa-4 border-t">
-            <div class="text-body-2 text-medium-emphasis">
-              Showing {{ ((page - 1) * itemsPerPage) + 1 }} to {{ Math.min(page * itemsPerPage, totalReports) }} of {{
-                totalReports }} entries
-            </div>
-            <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalReports" />
-          </div>
-        </template>
+        </div>
+</template>
 
-        <!-- Empty State -->
-        <template #no-data>
-          <div class="text-center pa-8">
-            <VIcon icon="tabler-report-off" size="48" class="text-medium-emphasis mb-4" />
-            <h3 class="text-h6 mb-2">No reports found</h3>
-            <p class="text-body-2 text-medium-emphasis mb-4">
-              No reports match your current search criteria. Try adjusting your filters or generate a new report.
-            </p>
-            <VBtn color="primary">
-              <VIcon icon="tabler-plus" class="me-2" />
-              Generate New Report
-            </VBtn>
-          </div>
-        </template>
-      </VDataTableServer>
-    </VCard>
-  </VContainer>
+<!-- Enhanced Pagination -->
+<template #bottom>
+  <div class="d-flex justify-space-between align-center pa-4 border-t">
+    <div class="text-body-2 text-medium-emphasis">
+      Showing {{ ((page - 1) * itemsPerPage) + 1 }} to {{ Math.min(page * itemsPerPage, totalReports) }} of {{
+      totalReports }} entries
+    </div>
+    <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalReports" />
+  </div>
+</template>
+
+<!-- Empty State -->
+<template #no-data>
+  <div class="text-center pa-8">
+    <VIcon icon="tabler-report-off" size="48" class="text-medium-emphasis mb-4" />
+    <h3 class="text-h6 mb-2">No reports found</h3>
+    <p class="text-body-2 text-medium-emphasis mb-4">
+      No reports match your current search criteria. Try adjusting your filters or generate a new report.
+    </p>
+    <VBtn color="primary">
+      <VIcon icon="tabler-plus" class="me-2" />
+      Generate New Report
+    </VBtn>
+  </div>
+</template>
+</VDataTableServer>
+</VCard>
+</VContainer>
 </template>
 
 <style lang="scss" scoped>

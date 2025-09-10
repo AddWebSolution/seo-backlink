@@ -46,6 +46,6 @@ class ReportController extends BaseController
     public function reportExport(Request $request)
     {
         $reportIds = $request->input('report_ids');
-        dd($reportIds);
+        return $this->service->exportReport($reportIds);
     }
 }
