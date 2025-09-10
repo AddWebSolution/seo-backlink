@@ -39,9 +39,13 @@ class ReportController extends BaseController
             'success'   => true,
             'report'    => $result['report'],
             'backlinks' => $result['backlinks'],
-            'accepted_count' => $result['accepted_count'],
-            'rejected_count' => $result['rejected_count'],
             'domains'       => $result['domains']
         ]);
+    }
+
+    public function reportExport(Request $request)
+    {
+        $reportIds = $request->input('report_ids');
+        dd($reportIds);
     }
 }

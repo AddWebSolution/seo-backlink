@@ -26,9 +26,42 @@ class Report extends BaseModel
         return $this->hasMany(Backlinkreport::class, 'report_id', 'id');
     }
 
-            protected static function newFactory(): Factory
+    protected static function newFactory(): Factory
     {
         $factoryClass = "\\Database\\Factories\\" . class_basename(static::class) . "Factory";
         return $factoryClass::new();
+    }
+
+    public function getAcceptedCount(): int
+    {
+        return $this->backlinks()->where('status', 'accepted')->count();
+    }
+
+    public function getRejectedCount(): int
+    {
+        return $this->backlinks()->where('status', 'rejected')->count();
+    }
+
+    public function getDomains(): array
+    {
+        return $this->backlinks()
+            ->whereNotNull('domain')
+            ->distinct()
+            ->pluck('target_url', 'domain')
+            ->toArray();
+    }
+
+    public function getDomainsCount(): int
+    {
+        return $this->backlinks()
+            ->whereNotNull('domain')
+            ->distinct('domain')
+            ->count('domain');
+    }
+
+    public function getBacklinkCount(): int
+    {
+        return $this->backlinks()
+            ->count('domain');
     }
 }

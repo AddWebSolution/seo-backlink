@@ -375,6 +375,7 @@
     "watchTriggerable": true,
     "watchWithFilter": true,
     "whenever": true,
-    "useDomainList": true
+    "useDomainList": true,
+    "useExportReport": true
   }
 }

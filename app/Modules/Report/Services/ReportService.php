@@ -25,6 +25,9 @@ class ReportService extends BaseService
         $report = Report::findOrFail($id);
 
         $query = $report->backlinks();
+        $report->accepted_backlinks = $report->getAcceptedCount();
+        $report->rejected_backlinks = $report->getRejectedCount();
+        $report->domain_count = $report->getDomainsCount();
 
         // Search
         if (!empty($filters['search'])) {
@@ -52,21 +55,12 @@ class ReportService extends BaseService
 
         $backlinks = $query->paginate($perPage);
 
-        // Count accepted and rejected backlinks (ignoring pagination)
-        $acceptedCount = $report->backlinks()->where('status', 'accepted')->count();
-        $rejectedCount = $report->backlinks()->where('status', 'rejected')->count();
-        $domains = $report->backlinks()
-            ->whereNotNull('domain')
-            ->distinct()
-            ->pluck('target_url','domain')
-            ->toArray();
+        $domains = $report->getDomains();
 
         return [
             'report'    => $report,
             'backlinks' => $backlinks,
-            'accepted_count'    => $acceptedCount,
-            'rejected_count'    => $rejectedCount,
-            'domains'           => $domains
+            'domains'   => $domains
         ];
     }
 }

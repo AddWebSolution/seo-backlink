@@ -25,3 +25,10 @@ export function useReportShow(id, body) {
 export function useReportDelete(id) {
     return useApi(`api/report/delete/${id}`, { method: 'POST' })
 }
+
+// Export reports 
+
+export function useExportReport(requestBody) {
+  return useApi('api/report/export', { method: 'POST', body: requestBody });
+}
+

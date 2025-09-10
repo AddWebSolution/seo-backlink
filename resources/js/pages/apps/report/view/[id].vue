@@ -53,10 +53,15 @@ const { data: domainResponse, isFetching: isDomainLoading } = useDomainList();
 const report = computed(() => reportData.value?.report ?? {});
 const backlinksDomains = computed(() => reportData.value?.domains ?? {});
 
-const accepted_backlinks = computed(() => reportData.value?.accepted_count ?? {});
-const rejected_backlinks = computed(() => reportData.value?.rejected_count ?? {});
+const accepted_backlinks = computed(() => {
+  return parseInt(report.value?.accepted_backlinks || 0, 10);
+});
 
-console.log('reports',report);  
+const rejected_backlinks = computed(() => {
+  return parseInt(report.value?.rejected_backlinks || 0, 10);
+});
+
+
 const backlinksData = computed(
   () =>
     reportData.value?.backlinks ?? {
@@ -381,7 +386,7 @@ const paginationInfo = computed(() => {
                 {{
                   stats.total
                     ? Math.round((accepted_backlinks / stats.total) * 100)
-                    : 0
+                : 0
                 }}%
               </h4>
             </VCardText>
@@ -437,8 +442,8 @@ const paginationInfo = computed(() => {
             <!-- Search Field -->
             <VCol cols="12" md="4">
               <VTextField v-model="searchQuery" variant="outlined" label="Search backlinks..." :placeholder="searchScope === 'domain' && selectedDomain
-                  ? `Search in ${selectedDomain}...`
-                  : 'Search by domain, URL, or anchor text'
+                ? `Search in ${selectedDomain}...`
+                : 'Search by domain, URL, or anchor text'
                 " hide-details clearable prepend-inner-icon="tabler-search" @keyup.enter="handleSearch" />
             </VCol>
 
@@ -568,7 +573,7 @@ const paginationInfo = computed(() => {
                         <VIcon icon="tabler-target" class="me-1 flex-shrink-0" size="26" />
                         <span class="text-truncate responsive-url me-1">{{
                           backlink.target_url
-                        }}</span>
+                          }}</span>
                         <VIcon icon="tabler-external-link" size="10" class="flex-shrink-0" />
                       </a>
                     </div>
@@ -602,7 +607,7 @@ const paginationInfo = computed(() => {
                       <!-- Tier -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon icon="tabler-star" color="error" size="22" />
+                          <VIcon icon="tabler-star" color="error" size="22" />
                           <div class="matric-text  text-medium-emphasis">Tier</div>
                           <div class="matric-text  font-weight-bold">{{ backlink.tier || 0 }}</div>
                         </div>
@@ -611,7 +616,7 @@ const paginationInfo = computed(() => {
                       <!-- Score -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon icon="tabler-chart-line" color="info" size="22" />
+                          <VIcon icon="tabler-chart-line" color="info" size="22" />
                           <div class="matric-text  text-medium-emphasis">Score</div>
                           <div class="matric-text  font-weight-bold">{{ backlink.score || 0 }}</div>
                         </div>
@@ -620,7 +625,8 @@ const paginationInfo = computed(() => {
                       <!-- Type -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon :icon="backlink.do_follow ? 'tabler-circles-relation' : 'tabler-space-off'" size="22" :color="backlink.do_follow ? 'success' : 'error'" />
+                          <VIcon :icon="backlink.do_follow ? 'tabler-circles-relation' : 'tabler-space-off'" size="22"
+                            :color="backlink.do_follow ? 'success' : 'error'" />
                           <div class="matric-text  text-medium-emphasis">Type</div>
                           <div class="matric-text  font-weight-bold">
                             {{ backlink.do_follow ? "DoFollow" : "NoFollow" }}
@@ -631,7 +637,7 @@ const paginationInfo = computed(() => {
                       <!-- Spam -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon icon="tabler-flag" size="22" color="error" />
+                          <VIcon icon="tabler-flag" size="22" color="error" />
                           <div class="matric-text  text-medium-emphasis">Spam</div>
                           <div class="matric-text  font-weight-bold">{{ backlink.spam_score || 0 }}%</div>
                         </div>
@@ -640,16 +646,16 @@ const paginationInfo = computed(() => {
                       <!-- Page Rank -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon icon="tabler-arrow-badge-up" color="warning" size="26" />
+                          <VIcon icon="tabler-arrow-badge-up" color="warning" size="26" />
                           <div class="matric-text text-medium-emphasis">Page Rank</div>
-                         <div class="matric-text font-weight-bold">{{ backlink.rank || 0 }}</div>
-                       </div>
+                          <div class="matric-text font-weight-bold">{{ backlink.rank || 0 }}</div>
+                        </div>
                       </VCol>
 
                       <!-- Domain Rank -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon icon="tabler-network" size="26" color="default" />
+                          <VIcon icon="tabler-network" size="26" color="default" />
                           <div class="matric-text text-medium-emphasis">Domain Rank</div>
                           <div class="matric-text font-weight-bold">{{ backlink.domain_rank || 0 }}</div>
                         </div>
@@ -659,19 +665,20 @@ const paginationInfo = computed(() => {
 
                   <VCol cols="12" md="1" class="d-flex flex-wrap align-center justify-center gap-3">
                     <!-- Status -->
-                      <VIcon :icon="getStatusConfig(backlink.status).icon" :color="getStatusConfig(backlink.status).color" class="me-1 icon-size" />
-                      
-                    <!-- Broken link indicator -->
-                      <VIcon v-if="backlink.is_broken" color="error" icon="tabler-link-off" class="icon-size" />
+                    <VIcon :icon="getStatusConfig(backlink.status).icon" :color="getStatusConfig(backlink.status).color"
+                      class="me-1 icon-size" />
 
-                      <VIcon v-if="!backlink.is_broken" color="success" icon="tabler-link" class="icon-size" />
+                    <!-- Broken link indicator -->
+                    <VIcon v-if="backlink.is_broken" color="error" icon="tabler-link-off" class="icon-size" />
+
+                    <VIcon v-if="!backlink.is_broken" color="success" icon="tabler-link" class="icon-size" />
 
                     <!-- Details button -->
                     <router-link :to="{
                       name: 'apps-report-backlink-view',
                       params: { id: backlink.id },
                     }">
-                        <VIcon icon="tabler-eye" class="icon-size" />
+                      <VIcon icon="tabler-eye" class="icon-size" />
                     </router-link>
                   </VCol>
                 </VRow>
@@ -726,7 +733,6 @@ const paginationInfo = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-
 $border-color: rgba(var(--v-theme-on-surface), 0.12);
 $border-opacity: var(--v-border-opacity);
 $transition-duration: 0.2s;
@@ -749,12 +755,13 @@ $animation-duration: 0.5s;
   }
 }
 
-.icon-size{
- font-size: 28px;
+.icon-size {
+  font-size: 28px;
 
   @media (max-width: 1916px) {
     font-size: 24px;
   }
+
   @media (max-width: 1676px) {
     font-size: 20px;
   }
@@ -777,11 +784,12 @@ $animation-duration: 0.5s;
 }
 
 .matric-text {
-  font-size: 13px; 
+  font-size: 13px;
 
   @media (max-width: 1916px) {
     font-size: 12px;
   }
+
   @media (max-width: 1676px) {
     font-size: 10px;
   }
@@ -828,12 +836,13 @@ $animation-duration: 0.5s;
 }
 
 .responsive-text {
-  font-size: 1.125rem; 
+  font-size: 1.125rem;
 
-  @media (max-width: 1825px) { 
+  @media (max-width: 1825px) {
     font-size: 0.875rem;
   }
-  @media (max-width: 640px) { 
+
+  @media (max-width: 640px) {
     font-size: 0.875rem;
   }
 }
@@ -852,7 +861,7 @@ $animation-duration: 0.5s;
 }
 
 // Media Queries
-@media (max-width: 960px) {
+@media (max-width: 1000px) {
   .metrics-section {
     border-left: none;
     border-right: none;
@@ -860,6 +869,10 @@ $animation-duration: 0.5s;
     border-bottom: 1px solid $border-color;
     margin: 8px 0;
     padding: 8px 0;
+  }
+
+  .v-row.v-row--no-gutters .metrics-section {
+    padding: 12px 12px !important;
   }
 
   .domain-section,
