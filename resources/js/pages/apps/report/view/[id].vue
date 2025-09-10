@@ -542,6 +542,7 @@ const paginationInfo = computed(() => {
               class="backlink-card mb-2" border>
               <VCardText class="pa-3">
                 <VRow align="center" no-gutters class="g-2">
+
                   <!-- Domain & URL Section - Combined -->
                   <VCol cols="12" md="5" class="domain-url-section">
                     <div class="d-flex align-center mb-2">
@@ -549,7 +550,7 @@ const paginationInfo = computed(() => {
                         <VIcon icon="tabler-world" size="16" />
                       </VAvatar>
                       <div class="flex-grow-1 min-width-0">
-                        <div class="text-lg pa-2 font-weight-bold text-primary mb-0 text-truncate">
+                        <div class="responsive-text pa-2 font-weight-bold text-primary mb-0 text-truncate">
                           {{
                             backlink.domain ||
                             backlink.target_url ||
@@ -565,7 +566,7 @@ const paginationInfo = computed(() => {
                         class="text-success text-decoration-none d-flex align-center text-body-1"
                         style="max-width: 100%" :title="backlink.target_url">
                         <VIcon icon="tabler-target" class="me-1 flex-shrink-0" size="26" />
-                        <span class="text-truncate me-1">{{
+                        <span class="text-truncate responsive-url me-1">{{
                           backlink.target_url
                         }}</span>
                         <VIcon icon="tabler-external-link" size="10" class="flex-shrink-0" />
@@ -602,8 +603,8 @@ const paginationInfo = computed(() => {
                       <VCol cols="2">
                         <div class="metric-item-compact">
                             <VIcon icon="tabler-star" color="error" size="22" />
-                          <div class="text-caption text-medium-emphasis">Tier</div>
-                          <div class="text-body-2 font-weight-bold">{{ backlink.tier || 0 }}</div>
+                          <div class="matric-text  text-medium-emphasis">Tier</div>
+                          <div class="matric-text  font-weight-bold">{{ backlink.tier || 0 }}</div>
                         </div>
                       </VCol>
 
@@ -611,8 +612,8 @@ const paginationInfo = computed(() => {
                       <VCol cols="2">
                         <div class="metric-item-compact">
                             <VIcon icon="tabler-chart-line" color="info" size="22" />
-                          <div class="text-caption text-medium-emphasis">Score</div>
-                          <div class="text-body-2 font-weight-bold">{{ backlink.score || 0 }}</div>
+                          <div class="matric-text  text-medium-emphasis">Score</div>
+                          <div class="matric-text  font-weight-bold">{{ backlink.score || 0 }}</div>
                         </div>
                       </VCol>
 
@@ -620,8 +621,8 @@ const paginationInfo = computed(() => {
                       <VCol cols="2">
                         <div class="metric-item-compact">
                             <VIcon :icon="backlink.do_follow ? 'tabler-link' : 'tabler-link-off'" size="22" color="success" />
-                          <div class="text-caption text-medium-emphasis">Type</div>
-                          <div class="text-caption font-weight-bold">
+                          <div class="matric-text  text-medium-emphasis">Type</div>
+                          <div class="matric-text  font-weight-bold">
                             {{ backlink.do_follow ? "DoFollow" : "NoFollow" }}
                           </div>
                         </div>
@@ -631,35 +632,34 @@ const paginationInfo = computed(() => {
                       <VCol cols="2">
                         <div class="metric-item-compact">
                             <VIcon icon="tabler-flag" size="22" color="error" />
-                          <div class="text-caption text-medium-emphasis">Spam</div>
-                          <div class="text-caption font-weight-bold">{{ backlink.spam_score || 0 }}%</div>
+                          <div class="matric-text  text-medium-emphasis">Spam</div>
+                          <div class="matric-text  font-weight-bold">{{ backlink.spam_score || 0 }}%</div>
                         </div>
                       </VCol>
 
                       <!-- Page Rank -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon icon="tabler-arrow-badge-up" color="warning" size="32" />
-                          <div class="text-caption text-medium-emphasis">Page Rank</div>
-                          <div class="text-caption font-weight-bold">{{ backlink.rank || 0 }}</div>
-                        </div>
+                            <VIcon icon="tabler-arrow-badge-up" color="warning" size="26" />
+                          <div class="matric-text text-medium-emphasis">Page Rank</div>
+                         <div class="matric-text font-weight-bold">{{ backlink.rank || 0 }}</div>
+                       </div>
                       </VCol>
 
                       <!-- Domain Rank -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
                             <VIcon icon="tabler-network" size="26" color="default" />
-                          <div class="text-caption text-medium-emphasis">Domain Rank</div>
-                          <div class="text-caption font-weight-bold">{{ backlink.domain_rank || 0 }}</div>
+                          <div class="matric-text text-medium-emphasis">Domain Rank</div>
+                          <div class="matric-text font-weight-bold">{{ backlink.domain_rank || 0 }}</div>
                         </div>
                       </VCol>
                     </VRow>
                   </VCol>
 
-                  <!-- Actions & Status Section - Compact -->
                   <VCol cols="12" md="1" class="d-flex flex-wrap align-center justify-center gap-3">
                     <!-- Status -->
-                      <VIcon :icon="getStatusConfig(backlink.status).icon" :color="getStatusConfig(backlink.status).color" size="34" class="me-1" />
+                      <VIcon :icon="getStatusConfig(backlink.status).icon" :color="getStatusConfig(backlink.status).color" class="me-1 icon-size" />
                       
                     <!-- Broken link indicator -->
                     <VChip v-if="backlink.is_broken" size="x-small" color="error" variant="elevated">
@@ -675,7 +675,7 @@ const paginationInfo = computed(() => {
                       name: 'apps-report-backlink-view',
                       params: { id: backlink.id },
                     }">
-                        <VIcon icon="tabler-eye" size="34" />
+                        <VIcon icon="tabler-eye" class="icon-size" />
                     </router-link>
                   </VCol>
                 </VRow>
@@ -711,7 +711,7 @@ const paginationInfo = computed(() => {
     </template>
 
     <!-- Error State -->
-    <VCard v-else elevation="2" class="mb-6">
+    <VCard v-if="!report" elevation="2" class="mb-6">
       <VCardText class="text-center py-16">
         <VAvatar size="120" color="error" variant="tonal" class="mb-6 mx-auto">
           <VIcon icon="tabler-database-off" size="64" />
@@ -729,46 +729,48 @@ const paginationInfo = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+
+$border-color: rgba(var(--v-theme-on-surface), 0.12);
+$border-opacity: var(--v-border-opacity);
+$transition-duration: 0.2s;
+$animation-duration: 0.5s;
+
 .backlink-card {
-  transition: all 0.2s ease;
+  transition: all $transition-duration ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
 }
 
-.backlink-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+.responsive-url {
+  display: none;
+
+  @media (min-width: 1787px) {
+    display: inline;
+  }
 }
 
+.icon-size{
+ font-size: 34px;
+
+  @media (max-width: 1916px) {
+    font-size: 24px;
+  }
+  @media (max-width: 1676px) {
+    font-size: 20px;
+  }
+}
+
+
+// Metric Item Styles
 .metric-item-compact {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1px;
-}
-
-.domain-url-section {
-  min-width: 0;
-  /* Allow text truncation */
-  display: inline-flex;
-  justify-content: space-around;
-}
-
-.metrics-section {
-  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-right: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-}
-
-
-.domain-section {
-  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-
-.url-section {
-  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-
-.metrics-section {
-  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 .metric-item {
@@ -778,17 +780,39 @@ const paginationInfo = computed(() => {
   gap: 4px;
 }
 
-@media (max-width: 960px) {
-  .metrics-section {
-    border-left: none;
-    border-right: none;
-    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-    margin: 8px 0;
-    padding: 8px 0;
+.matric-text {
+  font-size: 13px; 
+
+  @media (max-width: 1916px) {
+    font-size: 12px;
+  }
+  @media (max-width: 1676px) {
+    font-size: 10px;
   }
 }
 
+
+// Section Styles
+.domain-url-section {
+  min-width: 0;
+  display: inline-flex;
+  justify-content: space-around;
+}
+
+.metrics-section {
+  border-left: 1px solid $border-color;
+  border-right: 1px solid $border-color;
+}
+
+.domain-section {
+  border-right: 1px solid rgba(var(--v-border-color), $border-opacity);
+}
+
+.url-section {
+  border-right: 1px solid rgba(var(--v-border-color), $border-opacity);
+}
+
+// Utility Classes
 .max-width-400 {
   max-width: 400px;
 }
@@ -797,9 +821,27 @@ const paginationInfo = computed(() => {
   min-width: 0;
 }
 
-.v-card {
-  animation: fadeInUp 0.5s ease-out;
+// Container Styles
+.backlinks-container {
+  max-width: 100%;
 }
+
+// Animations
+.v-card {
+  animation: fadeInUp $animation-duration ease-out;
+}
+
+.responsive-text {
+  font-size: 1.125rem; 
+
+  @media (max-width: 1825px) { 
+    font-size: 0.875rem;
+  }
+  @media (max-width: 640px) { 
+    font-size: 0.875rem;
+  }
+}
+
 
 @keyframes fadeInUp {
   from {
@@ -813,17 +855,21 @@ const paginationInfo = computed(() => {
   }
 }
 
-.backlinks-container {
-  max-width: 100%;
-}
-
+// Media Queries
 @media (max-width: 960px) {
+  .metrics-section {
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    margin: 8px 0;
+    padding: 8px 0;
+  }
 
   .domain-section,
-  .url-section,
-  .metrics-section {
+  .url-section {
     border-right: none !important;
-    border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    border-bottom: 1px solid rgba(var(--v-border-color), $border-opacity);
     padding-bottom: 16px !important;
     margin-bottom: 16px !important;
   }

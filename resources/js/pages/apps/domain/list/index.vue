@@ -18,8 +18,8 @@ const headers = [
   { title: 'Approval Status', key: 'approval_status' },
   { title: 'Country', key: 'country' },
   { title: 'Anchor Text', key: 'anchor_text' },
-  { title: 'Special Requirements', key: 'special_requirements' },
-  { title: 'Price', key: 'price' },
+  // { title: 'Special Requirements', key: 'special_requirements' },
+  // { title: 'Price', key: 'price' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
@@ -141,3 +141,54 @@ const deleteDomain = async id => {
     </VDataTableServer>
   </VCard>
 </template>
+
+<style lang="scss" scoped>
+.v-card {
+  padding: 1rem;
+
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+  }
+}
+
+.v-row {
+  display: flex;
+  flex-wrap: wrap;
+
+  .v-col {
+    margin-bottom: 1rem;
+
+    @media (max-width: 600px) {
+      flex: 1 1 100% !important;
+      max-width: 100% !important;
+    }
+  }
+}
+
+.app-text-field {
+  width: 100% !important;
+
+  @media (min-width: 600px) {
+    inline-size: 200px;
+  }
+}
+
+.v-data-table-server {
+  overflow-x: auto;
+  display: block;
+  width: 100%;
+
+  table {
+    min-width: 1000px; 
+  }
+}
+
+.icon-btn {
+  margin-right: 0.5rem;
+}
+
+.v-btn {
+  white-space: nowrap;
+}
+
+</style>

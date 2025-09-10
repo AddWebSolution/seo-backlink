@@ -6,7 +6,8 @@ import { themeConfig } from '@themeConfig'
 import Footer from '@/layouts/components/Footer.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import NavBarI18n from '@core/components/I18n.vue'
-import UserProfile from './UserProfile.vue'
+import UserProfile from '@/layouts/components/UserProfile.vue'
+
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
