@@ -662,13 +662,9 @@ const paginationInfo = computed(() => {
                       <VIcon :icon="getStatusConfig(backlink.status).icon" :color="getStatusConfig(backlink.status).color" class="me-1 icon-size" />
                       
                     <!-- Broken link indicator -->
-                    <VChip v-if="backlink.is_broken" size="x-small" color="error" variant="elevated">
-                      <VIcon icon="tabler-link-off" size="12" />
-                    </VChip>
+                      <VIcon v-if="backlink.is_broken" color="error" icon="tabler-link-off" class="icon-size" />
 
-                    <VChip v-if="!backlink.is_broken"  size="x-small" color="success" variant="elevated">
-                      <VIcon icon="tabler-link" size="12" />
-                    </VChip>
+                      <VIcon v-if="!backlink.is_broken" color="success" icon="tabler-link" class="icon-size" />
 
                     <!-- Details button -->
                     <router-link :to="{
@@ -754,7 +750,7 @@ $animation-duration: 0.5s;
 }
 
 .icon-size{
- font-size: 34px;
+ font-size: 28px;
 
   @media (max-width: 1916px) {
     font-size: 24px;
