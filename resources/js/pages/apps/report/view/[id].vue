@@ -748,7 +748,7 @@ $animation-duration: 0.5s;
 .responsive-url {
   display: none;
 
-  @media (min-width: 1787px) {
+  @media (min-width: 2356px) {
     display: inline;
   }
 }
