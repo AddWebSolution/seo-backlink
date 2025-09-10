@@ -620,7 +620,7 @@ const paginationInfo = computed(() => {
                       <!-- Type -->
                       <VCol cols="2">
                         <div class="metric-item-compact">
-                            <VIcon :icon="backlink.do_follow ? 'tabler-link' : 'tabler-link-off'" size="22" color="success" />
+                            <VIcon :icon="backlink.do_follow ? 'tabler-circles-relation' : 'tabler-space-off'" size="22" :color="backlink.do_follow ? 'success' : 'error'" />
                           <div class="matric-text  text-medium-emphasis">Type</div>
                           <div class="matric-text  font-weight-bold">
                             {{ backlink.do_follow ? "DoFollow" : "NoFollow" }}
