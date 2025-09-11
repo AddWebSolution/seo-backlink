@@ -17,10 +17,10 @@ class ReportResource extends JsonResource
         return [
             'id'       => $this->id,
             'run_id'   => $this->run_id,
-            'domain_count'   => $this->domain_count,
-            'total_backlink'   => $this->total_backlink,
-            'accepted_backlinks'   => $this->accepted_backlinks,
-            'rejected_backlinks'   => $this->rejected_backlinks,
+            'domain_count'   => $this->getDomainsCount(),
+            'total_backlink'   => $this->getBacklinkCount(),
+            'accepted_backlinks'   => $this->getAcceptedCount(),
+            'rejected_backlinks'   => $this->getRejectedCount(),
             'backlinks' => $this->backlinks,
         ];
     }

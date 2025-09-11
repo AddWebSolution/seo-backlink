@@ -1,33 +1,40 @@
 <script setup>
-import { useDomainDelete, useDomainIndex } from '@/composables/domainApi.js'
+import { onMounted, ref, computed } from 'vue'
+import { useDomainApi } from '@/composables/domainApi.js'
+import { IconWorldWww } from '@tabler/icons-vue';
 
 const headers = [
-  { title: 'ID', key: 'id' },
-  { title: 'Client ID', key: 'client_id' },
-  { title: 'Source URL', key: 'source_url' },
-  { title: 'Title', key: 'title' },
-  { title: 'Target URL', key: 'target_url' },
-  { title: 'Domain Authority', key: 'domain_authority' },
-  { title: 'Domain Rating', key: 'domain_rating' },
-  { title: 'Organic Traffic', key: 'organic_traffic' },
-  { title: 'Price NE', key: 'price_ne' },
-  { title: 'Price GP', key: 'price_gp' },
-  { title: 'Total Price', key: 'total_price' },
-  { title: 'Turnaround Time', key: 'turnaround_time' },
-  { title: 'Status', key: 'status' },
-  { title: 'Approval Status', key: 'approval_status' },
-  { title: 'Country', key: 'country' },
-  { title: 'Anchor Text', key: 'anchor_text' },
-  { title: 'Special Requirements', key: 'special_requirements' },
-  { title: 'Price', key: 'price' },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'ID', key: 'id',align: 'start', width: '60px' },
+  { title: 'Client ID', key: 'client_id',align: 'center', width: '100px' },
+  { title: 'Title', key: 'title', align: 'center',width: '200px' },
+  { title: 'Target URL', key: 'target_url',align: 'center', width: '250px' },
+  { title: 'DA', key: 'domain_authority',align: 'center', width: '80px' },
+  { title: 'DR', key: 'domain_rating',align: 'center', width: '80px' },
+  { title: 'Traffic', key: 'organic_traffic', align: 'center',width: '100px' },
+  { title: 'Price', key: 'total_price', align: 'center',width: '100px' },
+  { title: 'Turnaround', key: 'turnaround_time',  align: 'center',width: '120px' },
+  { title: 'Status', key: 'status', align: 'center',width: '120px' },
+  { title: 'Approval', key: 'approval_status', align: 'center',width: '120px' },
+  { title: 'Country', key: 'country', align: 'center',width: '100px' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center',width: '100px' },
 ]
+
+const {
+  domains,
+  loading,
+  error,
+  fetchDomains,
+  deleteDomain,
+  showAlert
+} = useDomainApi()
 
 // Filters
 const selectedStatus = ref()
+const selectedApprovalStatus = ref()
 const selectedCountry = ref()
 const searchQuery = ref('')
 const selectedRows = ref([])
+const showAdvancedFilters = ref(false)
 
 // Data table options
 const itemsPerPage = ref(10)
@@ -35,73 +42,312 @@ const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
 
+// Build filters object
+const buildFilters = () => {
+  const filters = {}
 
-// Update options from table
-const updateOptions = options => {
+  if (selectedStatus.value) filters.status = selectedStatus.value
+  if (selectedApprovalStatus.value) filters.approval_status = selectedApprovalStatus.value
+  if (selectedCountry.value) filters.country = selectedCountry.value
+  if (searchQuery.value) filters.search = searchQuery.value
+  if (sortBy.value) filters.sort_by = sortBy.value
+  if (orderBy.value) filters.order_by = orderBy.value
+
+  filters.page = page.value
+  filters.per_page = itemsPerPage.value
+
+  return filters
+}
+
+const loadDomains = async () => {
+  const filters = buildFilters()
+  await fetchDomains(filters)
+}
+
+const clearAllFilters = async () => {
+  selectedStatus.value = null
+  selectedApprovalStatus.value = null
+  selectedCountry.value = ''
+  searchQuery.value = ''
+  page.value = 1
+  await loadDomains()
+  showAlert('Custom message here!', 'info')
+}
+
+const hasActiveFilters = computed(() => {
+  return selectedStatus.value || selectedApprovalStatus.value || selectedCountry.value || searchQuery.value
+})
+
+const updateOptions = async (options) => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
-  fetchDomains()
+  page.value = options.page
+  itemsPerPage.value = options.itemsPerPage
+  await loadDomains()
 }
 
-// API call
-const {
-  data: domainsData,
-  execute: fetchDomains,
-} = await useDomainIndex()
+const getStatusConfig = (status) => {
+  if (status == 1)
+    return {
+      color: "success",
+      icon: "tabler-progress-check",
+      text: "Available",
+    };
+  if (status == 2)
+    return { color: "error", icon: "tabler-progress-x", text: "Unavailable" };
+};
 
-const domains = computed(() => domainsData.value?.data.resource ?? [])
-const totalDomains = computed(() => domainsData.value?.total ?? 0)
 
-const deleteDomain = async id => {
-  await useDomainDelete(id)
-  const index = selectedRows.value.findIndex(row => row === id)
-  if (index !== -1) selectedRows.value.splice(index, 1)
-  fetchDomains()
+const applyFilters = async () => {
+  page.value = 1
+  await loadDomains()
 }
+
+const handleDeleteDomain = async (id) => {
+  try {
+    await deleteDomain(id)
+    const index = selectedRows.value.findIndex(row => row === id)
+    if (index !== -1) selectedRows.value.splice(index, 1)
+  } catch (error) {
+    console.error('Delete failed:', error)
+  }
+}
+
+// Computed total domains count
+const totalDomains = computed(() => domains.value?.length ?? 0)
+
+// Status options
+const statusOptions = [
+  { title: 'Available', value: 1, color: 'success' },
+  { title: 'Unavailable', value: 2, color: 'error' }
+]
+
+const approvalStatusOptions = [
+  { title: 'Pending', value: 1, color: 'warning' },
+  { title: 'Rejected', value: 2, color: 'error' },
+  { title: 'Approved', value: 3, color: 'success' }
+]
+
+// Get status color
+const getStatusColor = (status) => {
+  const option = statusOptions.find(opt => opt.value === status)
+  return option?.color || 'default'
+}
+
+const getApprovalStatusColor = (status) => {
+  const option = approvalStatusOptions.find(opt => opt.value === status)
+  return option?.color || 'default'
+}
+
+// onMounted(() => {
+//   loadDomains()
+// })
+
+// Watch filters for auto-apply (optional)
+// watch([selectedStatus, selectedApprovalStatus, selectedCountry, searchQuery], () => {
+//   applyFilters()
+// })
 </script>
 
 <template>
-  <VCard title="Domains" class="mb-6">
-    <VDivider class="mb-4" />
-
-    <!-- Filters -->
-    <VCardText>
-      <VRow>
-        <VCol cols="12" md="3">
-          <AppSelect v-model="selectedStatus" placeholder="Status" :items="[
-            { title: 'Available', value: 1 },
-            { title: 'Unavailable', value: 2 }
-          ]" clearable clear-icon="tabler-x" />
+  <!-- Header Section -->
+  <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
+    <VContainer fluid>
+      <VRow align="center">
+        <VCol cols="12" md="8">
+          <div class="d-flex align-center">
+            <VAvatar size="64" color="primary" variant="elevated" class="me-4">
+              <IconWorldWww stroke={2} />
+            </VAvatar>
+            <div>
+              <h1 class="text-h3 font-weight-bold mb-1">Domain Management</h1>
+              <p class="text-body-1 text-medium-emphasis mb-0">
+                Manage and monitor your domain portfolio
+              </p>
+            </div>
+          </div>
         </VCol>
-
-        <VCol cols="12" md="3">
-          <AppTextField v-model="selectedCountry" placeholder="Country" clearable />
-        </VCol>
-
-        <VCol cols="12" md="3">
-          <AppTextField v-model="searchQuery" placeholder="Search Domains" style="inline-size: 200px;" />
-        </VCol>
-
-        <VCol cols="12" md="3" class="d-flex justify-end">
-               <VBtn color="primary" variant="outlined" class="text-primary"
-              :to="{ name: 'apps-domain-add' }">
-              <VIcon icon="tabler-arrow-right" class="me-2" />
-              Create Domain
-            </VBtn>
-          </VCol>
+        <!-- <VCol cols="12" md="4" class="text-md-end">
+          <VBtn variant="outlined" size="large" class="text-primary font-weight-medium"
+            :to="{ name: 'apps-domain-add' }">
+            <VIcon icon="tabler-plus" class="me-2" />
+            Add Domain
+          </VBtn>
+        </VCol> -->
       </VRow>
+    </VContainer>
+  </VCard>
+
+  <!-- Enhanced Search & Filter Section -->
+  <VCard class="mb-6" elevation="1">
+    <VCardTitle class="d-flex align-center justify-space-between pa-6 pb-4">
+      <div class="d-flex align-center">
+        <VIcon icon="tabler-filter" class="me-2 text-primary" />
+        <span class="text-h6 font-weight-medium">Search & Filters</span>
+        <VBadge v-if="hasActiveFilters" :content="1" color="primary" class="ml-5" />
+      </div>
+      <div class="d-flex align-center gap-2">
+        <VBtn v-if="hasActiveFilters" variant="text" size="small" color="error" @click="clearAllFilters">
+          <VIcon icon="tabler-x" class="me-1" />
+          Clear All
+        </VBtn>
+        <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
+          <VIcon :icon="showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'" class="me-1" />
+          {{ showAdvancedFilters ? 'Less' : 'More' }} Filters
+        </VBtn>
+      </div>
+    </VCardTitle>
+
+    <VCardText class="pt-0">
+      <!-- Primary Search Bar -->
+      <VRow class="mb-4">
+        <VCol cols="12">
+          <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
+            prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
+        </VCol>
+      </VRow>
+
+      <!-- Quick Filters -->
+      <VRow class="mb-4">
+        <VCol cols="12" sm="6" md="3">
+          <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
+            hide-details prepend-inner-icon="tabler-circle-dot" />
+        </VCol>
+        <VCol cols="12" sm="6" md="3">
+          <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
+            variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
+        </VCol>
+        <VCol cols="12" sm="6" md="3">
+          <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
+            clearable hide-details prepend-inner-icon="tabler-world" />
+        </VCol>
+        <VCol cols="12" sm="6" md="3" class="d-flex align-end">
+          <VBtn color="primary" variant="flat" block @click="fetchDomains">
+            <VIcon icon="tabler-search" class="me-2" />
+            Search
+          </VBtn>
+        </VCol>
+      </VRow>
+
+      <!-- Advanced Filters -->
+      <VExpandTransition>
+        <div v-show="showAdvancedFilters">
+          <VDivider class="mb-4" />
+          <VRow>
+            <VCol cols="12" sm="6" md="3">
+              <AppTextField label="Min Domain Authority" placeholder="0-100" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-trending-up" />
+            </VCol>
+            <VCol cols="12" sm="6" md="3">
+              <AppTextField label="Max Price" placeholder="Enter max price" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-currency-dollar" />
+            </VCol>
+            <VCol cols="12" sm="6" md="3">
+              <AppTextField label="Min Traffic" placeholder="Monthly visits" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-eye" />
+            </VCol>
+            <VCol cols="12" sm="6" md="3">
+              <AppTextField label="Turnaround Time" placeholder="Max days" variant="outlined" type="number" hide-details
+                prepend-inner-icon="tabler-clock" />
+            </VCol>
+          </VRow>
+        </div>
+      </VExpandTransition>
     </VCardText>
+  </VCard>
 
-    <VDivider class="mt-4" />
+  <!-- Results Summary -->
+  <VCard elevation="1">
+    <div class="d-flex flex-wrap gap-4 ma-6">
+      <div class="d-flex align-center text-body-1 font-weight-regular my-4">
+        <span class="font-weight-medium text-h6">
+          {{ totalDomains }}
+        </span>
+        <span class="ml-2">reports found</span>
 
-    <!-- Data Table -->
+        <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
+          {{ selectedRows.length }} selected
+        </VChip>
+      </div>
+
+      <VSpacer />
+      <div class="d-flex align-center gap-2">
+        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
+          <VIcon icon="tabler-trash" class="me-1" />
+          Delete Selected
+        </VBtn>
+      </div>
+      <div class="d-flex gap-4 flex-wrap align-center">
+        <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
+        <!-- 👉 Export button -->
+        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+          Export
+        </VBtn>
+        <!-- create domain-->
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/domain/add')">
+          Add Domain
+        </VBtn>
+      </div>
+    </div>
+
+    <VDivider class="mt-5 mb-2" />
+
+    <!-- Enhanced Data Table -->
     <VDataTableServer v-model:items-per-page="itemsPerPage" v-model:model-value="selectedRows" v-model:page="page"
-      :headers="headers" show-select :items="domains" :items-length="totalDomains" class="text-no-wrap"
-      @update:options="updateOptions">
-      <!-- Custom cells -->
+      :headers="headers" show-select :items="domains" :loading="loading" :items-length="totalDomains"
+      loading-text="Fetching domains, please wait..." class="domain-table" hover @update:options="updateOptions">
+
+      <template #item.target_url="{ item }">
+        <a :href="item.target_url" target="_blank" class="text-success text-decoration-none text-body-1"
+          :title="item.target_url">
+          <span class="text-truncate" style="max-width: 200px;">
+            {{ item.target_url }}
+          </span>
+          <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
+        </a>
+      </template>
+
+      <template #item.domain_authority="{ item }">
+        <VProgressCircular :model-value="item.domain_authority" size="30" width="4"
+          :color="item.domain_authority > 70 ? 'success' : item.domain_authority > 40 ? 'warning' : 'error'">
+          <small class="font-weight-medium">{{ item.domain_authority ?? 0 }}</small>
+        </VProgressCircular>
+      </template>
+
+      <template #item.domain_rating="{ item }">
+        <VProgressCircular :model-value="item.domain_rating" size="30" width="4"
+          :color="item.domain_rating > 70 ? 'success' : item.domain_rating > 40 ? 'warning' : 'error'">
+          <small class="font-weight-medium">{{ item.domain_rating ?? 0 }}</small>
+        </VProgressCircular>
+      </template>
+
+
+      <template #item.organic_traffic="{ item }">
+        <div class="d-flex align-center">
+          <VIcon icon="tabler-eye" size="16" class="me-1 text-medium-emphasis" />
+          <span class="font-weight-medium">{{ item.organic_traffic?.toLocaleString() || 'N/A' }}</span>
+        </div>
+      </template>
+
+      <template #item.total_price="{ item }">
+        <div class="d-flex align-center">
+          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />
+          <span class="font-weight-bold text-success">${{ item.total_price }}</span>
+        </div>
+      </template>
+
+      <template #item.turnaround_time="{ item }">
+        <VChip size="small"
+          :color="item.turnaround_time <= 3 ? 'success' : item.turnaround_time <= 7 ? 'warning' : 'error'"
+          variant="tonal">
+          {{ item.turnaround_time }}d
+        </VChip>
+      </template>
+
       <template #item.status="{ item }">
-        <VChip :color="item.status === 1 ? 'success' : 'error'" label size="small">
-          {{ item.status === 1 ? 'Available' : 'Unavailable' }}
+        <VChip :color="getStatusConfig(item.status).color" variant="tonal" size="small" class="ma-1">
+          <VIcon :icon="getStatusConfig(item.status).icon" size="14" class="me-1" />
+          {{ getStatusConfig(item.status).text }}
         </VChip>
       </template>
 
@@ -110,34 +356,169 @@ const deleteDomain = async id => {
           ? 'warning'
           : item.approval_status === 2
             ? 'error'
-            : 'success'" label size="small">
+            : 'success'" variant="tonal" size="small" class="font-weight-medium">
           {{ item.approval_status === 1 ? 'Pending' : item.approval_status === 2 ? 'Rejected' : 'Approved' }}
         </VChip>
       </template>
 
-      <template #item.actions="{ item }">
-        <router-link :to="{ name: 'apps-domain-view', params: { id: item.id } }">
-          <IconBtn>
-            <VIcon icon="tabler-eye" />
-          </IconBtn>
-        </router-link>
-
-        <IconBtn>
-          <VIcon icon="tabler-dots-vertical" />
-          <VMenu activator="parent">
-            <VList>
-              <VListItem value="delete" prepend-icon="tabler-trash" @click="deleteDomain(item.id)">
-                Delete
-              </VListItem>
-            </VList>
-          </VMenu>
-        </IconBtn>
+      <template #item.country="{ item }">
+        <VIcon icon="tabler-world" size="16" class="me-1 text-medium-emphasis" />
+        <span>{{ item.country }}</span>
       </template>
 
-      <!-- Pagination -->
+      <template #item.actions="{ item }">
+        <div class="d-flex">
+          <VTooltip text="View Details">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small">
+                <router-link :to="{ name: 'apps-domain-view', params: { id: item.id } }">
+                  <VIcon icon="tabler-eye" size="24" />
+                </router-link>
+              </IconBtn>
+            </template>
+          </VTooltip>
+
+          <VTooltip text="More Options">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small">
+                <VIcon icon="tabler-dots-vertical" size="18" />
+                <VMenu activator="parent" offset="8">
+                  <VList>
+                    <VListItem value="edit" prepend-icon="tabler-edit" class="text-primary">
+                      Edit
+                    </VListItem>
+                    <VListItem value="duplicate" prepend-icon="tabler-copy" class="text-info">
+                      Duplicate
+                    </VListItem>
+                    <VDivider />
+                    <VListItem value="delete" prepend-icon="tabler-trash" class="text-error"
+                      @click="deleteDomain(item.id)">
+                      Delete
+                    </VListItem>
+                  </VList>
+                </VMenu>
+              </IconBtn>
+            </template>
+          </VTooltip>
+        </div>
+      </template>
+
+      <!-- Empty State -->
+      <template #no-data>
+        <div class="text-center pa-8">
+          <VIcon icon="tabler-world-off" size="48" class="text-medium-emphasis mb-4" />
+          <h3 class="text-h6 mb-2">No domains found</h3>
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            Try adjusting your search criteria or add a new domain to get started.
+          </p>
+          <VBtn color="primary" :to="{ name: 'apps-domain-add' }">
+            <VIcon icon="tabler-plus" class="me-2" />
+            Add First Domain
+          </VBtn>
+        </div>
+      </template>
+
       <template #bottom>
-        <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalDomains" />
+        <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalProduct" />
       </template>
     </VDataTableServer>
   </VCard>
 </template>
+
+<style lang="scss" scoped>
+.search-field {
+  .v-input__control {
+    border-radius: 12px;
+  }
+}
+
+// Domain table improvements
+.domain-table {
+  .v-data-table__wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+
+    table {
+      min-width: 1200px;
+
+      th {
+        background-color: rgb(var(--v-theme-surface));
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-bottom: 2px solid rgb(var(--v-theme-primary)) !important;
+      }
+
+      tbody tr {
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: rgba(var(--v-theme-primary), 0.04) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      td {
+        padding: 16px 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+      }
+    }
+  }
+}
+
+.v-card {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+// Responsive improvements
+@media (max-width: 1024px) {
+  .domain-table table {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 768px) {
+  .domain-table {
+    .v-data-table__wrapper table {
+      min-width: 800px;
+
+      th,
+      td {
+        padding: 12px 8px;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .v-card {
+    margin: 0.5rem;
+  }
+}
+
+// Custom scrollbar
+.v-data-table__wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.v-data-table__wrapper::-webkit-scrollbar-track {
+  background: rgb(var(--v-theme-surface-variant));
+  border-radius: 3px;
+}
+
+.v-data-table__wrapper::-webkit-scrollbar-thumb {
+  background: rgb(var(--v-theme-primary));
+  border-radius: 3px;
+}
+
+// Progress circles
+.v-progress-circular {
+  margin: 0 !important;
+}
+
+// Chip improvements
+.v-chip {
+  font-size: 0.75rem;
+  height: 24px;
+}
+</style>

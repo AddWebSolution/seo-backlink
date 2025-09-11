@@ -301,7 +301,7 @@ const resetCustomizer = async () => {
       <div class="customizer-heading d-flex align-center justify-space-between">
         <div>
           <h6 class="text-h6">
-            Theme Customizer
+            Dashboard Customizer
           </h6>
           <p class="text-body-2 mb-0">
             Customize & Preview in Real Time

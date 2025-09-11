@@ -1,9 +1,12 @@
 <script setup>
-import { useDomainStore } from '@/composables/domainApi.js'
+import { useDomainApi } from '@/composables/domainApi';
 import { useRouter } from 'vue-router'
-import { IconWorldWww,IconDevicesCog,IconWorldMinus,IconUnlink,IconSeo,IconTag } from '@tabler/icons-vue';
+import { IconWorldWww, IconDevicesCog, IconWorldMinus, IconUnlink, IconSeo, IconTag } from '@tabler/icons-vue';
+import { ref, reactive, watch, onMounted } from 'vue'
 
 const router = useRouter()
+
+const { createDomain, loading, error, showAlert } = useDomainApi()
 
 // Form data
 const form = ref({
@@ -26,11 +29,7 @@ const form = ref({
   price: null,
 })
 
-// State management
 const state = reactive({
-  submitting: false,
-  showSuccessAlert: false,
-  errorMessage: '',
   formTouched: false,
   expandedSections: [true, true, true, true, true], // All sections expanded by default
 })
@@ -38,18 +37,15 @@ const state = reactive({
 // Refs
 const formRef = ref()
 
-// Auto-save draft
 const draftSaved = ref(false)
 const lastSavedTime = ref(null)
 
-// Watch for form changes to enable auto-save
 watch(form, debounce(() => {
   if (state.formTouched) {
     saveDraft()
   }
 }, 2000), { deep: true })
 
-// Save draft function
 const saveDraft = () => {
   localStorage.setItem('domain_draft', JSON.stringify(form.value))
   draftSaved.value = true
@@ -59,7 +55,6 @@ const saveDraft = () => {
   }, 2000)
 }
 
-// Load draft on mount
 onMounted(() => {
   const draft = localStorage.getItem('domain_draft')
   if (draft) {
@@ -70,17 +65,14 @@ onMounted(() => {
   }
 })
 
-// Form touched handler
 const markFormTouched = () => {
   state.formTouched = true
 }
 
-// Toggle section expansion
 const toggleSection = (index) => {
   state.expandedSections[index] = !state.expandedSections[index]
 }
 
-// Enhanced status options
 const statusOptions = [
   { 
     title: 'Available', 
@@ -121,7 +113,6 @@ const approvalStatusOptions = [
     description: 'Domain has been approved'
   },
 ]
-
 
 // Country options
 const countryOptions = [
@@ -166,14 +157,12 @@ const rules = {
   ],
 }
 
-// Submit handler
 const submitForm = async () => {
   if (!formRef.value) return
 
   const { valid } = await formRef.value.validate()
   if (!valid) {
-    state.errorMessage = 'Please fix all validation errors before submitting'
-    // Scroll to first error
+    showAlert('Please fix all validation errors before submitting', 'error')
     const errorElement = document.querySelector('.v-input--error')
     if (errorElement) {
       errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -181,50 +170,35 @@ const submitForm = async () => {
     return
   }
 
-  state.submitting = true
-  state.errorMessage = ''
-
   try {
-    // Prepare payload
     const payload = { ...form.value }
 
-    // Convert empty strings to null for numeric fields
     const numericFields = ['domain_authority', 'domain_rating', 'organic_traffic', 'price_ne', 'price_gp', 'price', 'total_price']
     numericFields.forEach(field => {
       if (payload[field] === '') payload[field] = null
     })
 
-    await useDomainStore(payload)
+    await createDomain(payload)
     
-    // Clear draft on success
     localStorage.removeItem('domain_draft')
     
-    state.showSuccessAlert = true
-
-    // Navigate after animation
     setTimeout(() => {
       router.push({ name: 'apps-domain-list' })
-    }, 2000)
+    }, 1500)
 
   } catch (err) {
-    console.error(err)
-    state.errorMessage = err.response?.data?.message || 'An error occurred. Please try again.'
+    console.error('Create domain failed:', err)
     
-    // Scroll to top to show error
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  } finally {
-    state.submitting = false
   }
 }
 
-// Reset form
 const resetForm = () => {
   formRef.value?.reset()
   localStorage.removeItem('domain_draft')
   state.formTouched = false
 }
 
-// Auto-calculate total price
 watch([() => form.value.price_ne, () => form.value.price_gp, () => form.value.price],
   ([priceNe, priceGp, price]) => {
     const ne = parseFloat(priceNe) || 0
@@ -234,7 +208,6 @@ watch([() => form.value.price_ne, () => form.value.price_gp, () => form.value.pr
     form.value.total_price = total > 0 ? total.toFixed(2) : null
   })
 
-// Format helpers
 const formatCurrency = (value) => {
   if (!value || value === '0') return '$0.00'
   return new Intl.NumberFormat('en-US', {
@@ -250,7 +223,6 @@ const getMetricColor = (value, max = 100) => {
   return 'error'
 }
 
-// Utility function for debounce
 function debounce(func, wait) {
   let timeout
   return function executedFunction(...args) {
@@ -263,7 +235,6 @@ function debounce(func, wait) {
   }
 }
 
-// Scroll to section
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId)
   if (element) {
@@ -314,7 +285,7 @@ const scrollToSection = (sectionId) => {
             <div class="d-flex gap-2 justify-md-end">
               <VBtn
                 color="primary"
-                variant="outlined"
+                variant="flat"
                 @click="resetForm"
                 :disabled="state.submitting"
               >
@@ -322,7 +293,7 @@ const scrollToSection = (sectionId) => {
                 Reset
               </VBtn>
               <VBtn
-                variant="outlined"
+                variant="flat"
                 @click="router.push({ name: 'apps-domain-list' })"
                 :disabled="state.submitting"
               >
@@ -356,8 +327,6 @@ const scrollToSection = (sectionId) => {
     </VCard>
 
     <!-- Main Form Container -->
-    <VContainer  fluid >
-      <!-- Alerts -->
       <VSlideYTransition>
         <VAlert
           v-if="state.showSuccessAlert"
@@ -1111,14 +1080,12 @@ const scrollToSection = (sectionId) => {
           </VCardText>
         </VCard>
       </VForm>
-    </VContainer>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .domain-create-page {
   position: relative;
-  background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.03) 0%, transparent 100%);
   min-height: 100vh;
   padding-bottom: 2rem;
   
@@ -1236,6 +1203,11 @@ const scrollToSection = (sectionId) => {
   }
 }
 
+.v-card {
+   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+
 .action-card {
   position: sticky;
   bottom: 0;
@@ -1257,8 +1229,6 @@ const scrollToSection = (sectionId) => {
 // Dark mode adjustments
 .v-theme--dark {
   .domain-create-page {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
-    
     .page-header {
       background: rgba(0, 0, 0, 0.2);
     }

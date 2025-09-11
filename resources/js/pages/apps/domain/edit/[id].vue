@@ -1,41 +1,84 @@
 <script setup>
-import { useDomainShow ,useDomainUpdate } from '@/composables/domainApi.js'
+import { useDomainApi } from '@/composables/domainApi'
 import DomainEditDrawer from '@/views/apps/domain/DomainEditDrawer.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const domainData = ref(null)
 const isEditDrawerActive = ref(false)
 
-// Fetch single domain by ID
-const { data, execute: fetchDomain } = useDomainShow(route.params.id)
+const { 
+  currentDomain, 
+  loading, 
+  error, 
+  updateDomain, 
+  showAlert 
+} = useDomainApi()
+
+const fetchDomainById = async (id) => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const result = await useApi(`api/clientdomain/get/${id}`, { 
+      method: 'POST' 
+    })
+    
+    if (result?.data?.resource) {
+      domainData.value = result.data.resource
+      currentDomain.value = result.data.resource
+    } else {
+      showAlert('Domain not found', 'error')
+    }
+    
+    return result
+  } catch (err) {
+    error.value = err
+    showAlert('Failed to load domain', 'error')
+    throw err
+  } finally {
+    loading.value = false
+  }
+}
 
 onMounted(async () => {
-  const response = await fetchDomain()
-  if (response?.data?.resource) {
-    domainData.value = response.data.resource
+  if (route.params.id) {
+    await fetchDomainById(route.params.id)
   }
 })
 
-// Save domain changes
 const saveDomain = async (updatedDomain) => {
-  if (!updatedDomain?.id) return
+  if (!updatedDomain?.id) {
+    showAlert('Invalid domain data', 'error')
+    return
+  }
 
-  const domainData = useDomainUpdate(updatedDomain.id)
-  domainData.value = { ...updatedDomain }
-  isEditDrawerActive.value = false
+  try {
+    await updateDomain(updatedDomain.id, updatedDomain)
+    domainData.value = { ...updatedDomain }
+    isEditDrawerActive.value = false
+    
+    await fetchDomainById(updatedDomain.id)
+  } catch (error) {
+    console.error('Save failed:', error)
+  }
 }
 
-// Example sub-item functions
 const addSubItem = (value) => {
+  if (!domainData.value) return
   if (!domainData.value.subItems) domainData.value.subItems = []
   domainData.value.subItems.push(value)
 }
 
 const removeSubItem = (index) => {
-  domainData.value?.subItems?.splice(index, 1)
+  if (!domainData.value?.subItems) return
+  domainData.value.subItems.splice(index, 1)
 }
+
+const domain = computed(() => domainData.value || currentDomain.value)
+const isLoading = computed(() => loading.value)
+const hasError = computed(() => error.value)
 </script>
 
 <template>

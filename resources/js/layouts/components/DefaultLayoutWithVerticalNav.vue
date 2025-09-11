@@ -6,10 +6,12 @@ import { themeConfig } from '@themeConfig'
 import Footer from '@/layouts/components/Footer.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import NavBarI18n from '@core/components/I18n.vue'
-import UserProfile from './UserProfile.vue'
+import UserProfile from '@/layouts/components/UserProfile.vue'
+
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
+import CustomAlert from './CustomAlert.vue'
 </script>
 
 <template>
@@ -28,10 +30,14 @@ import { VerticalNavLayout } from '@layouts'
         <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
           :languages="themeConfig.app.i18n.langConfig" />
         <NavbarThemeSwitcher />
-        <!-- <NavbarShortcuts /> -->
-        <!-- <NavBarNotifications class="me-1" /> -->
+        <NavbarShortcuts />
+        <NavBarNotifications class="me-1" />
       </div>
     </template>
+
+    <div class="d-flex align-center">
+      <CustomAlert/>
+    </div>
 
     <!-- 👉 Pages -->
     <slot />

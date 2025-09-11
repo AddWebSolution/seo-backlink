@@ -39,6 +39,13 @@ class ReportController extends BaseController
             'success'   => true,
             'report'    => $result['report'],
             'backlinks' => $result['backlinks'],
+            'domains'       => $result['domains']
         ]);
+    }
+
+    public function reportExport(Request $request)
+    {
+        $reportIds = $request->input('report_ids');
+        return $this->service->exportReport($reportIds);
     }
 }

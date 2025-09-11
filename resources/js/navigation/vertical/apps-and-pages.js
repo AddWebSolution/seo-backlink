@@ -1,5 +1,19 @@
 export default [
   { heading: 'Apps & Pages' },
+  {
+    title: 'Domain',
+    icon: { icon: 'tabler-file-invoice' },
+    children: [
+      { title: 'Domain', to: 'apps-domain-list' },
+      { title: 'Add Domain', to: 'apps-domain-add' },
+    ],
+  },
+  {
+    title: 'Report',
+    children: [
+      { title: 'Report List', to: 'apps-report-list' },
+    ],
+  },
   // {
   //   title: 'Ecommerce',
   //   icon: { icon: 'tabler-shopping-cart' },
@@ -81,20 +95,6 @@ export default [
   //   icon: { icon: 'tabler-layout-kanban' },
   //   to: 'apps-kanban',
   // },
-  {
-    title: 'Domain',
-    icon: { icon: 'tabler-file-invoice' },
-    children: [
-      { title: 'Domain', to: 'apps-domain-list' },
-      { title: 'Add Domain', to: 'apps-domain-add' },
-    ],
-  },
-  {
-    title: 'Report',
-    children: [
-      { title: 'Report List', to: 'apps-report-list' },
-    ],
-  },
   // {
   //   title: 'Invoice',
   //   icon: { icon: 'tabler-file-invoice' },
