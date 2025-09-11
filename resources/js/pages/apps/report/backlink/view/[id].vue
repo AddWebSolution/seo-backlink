@@ -8,8 +8,8 @@
           <VCol cols="12" md="8">
             <VBtn
               color="primary"
-              variant="outlined"
-              class="text-primary mb-6"
+              variant="flat"
+              class="mb-6"
               :to="{
                 name: 'apps-report-view',
                 params: { id: backlink.report_id },
@@ -28,12 +28,12 @@
                   ID: {{ backlink.id }}
                 </VChip>
 
-                <VChip color="primary" variant="outlined" size="large">
+                <VChip color="primary" variant="flat" size="large">
                   <VIcon icon="tabler-play" class="me-2" />
                   Report ID: {{ backlink.report_id }}
                 </VChip>
 
-                <VChip color="primary" variant="outlined" size="large">
+                <VChip color="primary" variant="flat" size="large">
                   <VIcon :icon="getStatusIcon(backlink.status)" class="me-2" />
                   <span class="text-capitalize">{{ backlink.status }}</span>
                 </VChip>

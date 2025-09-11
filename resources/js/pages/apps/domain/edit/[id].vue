@@ -1,5 +1,5 @@
 <script setup>
-import { useDomainApi } from '@/composables/useDomainApi.js'
+import { useDomainApi } from '@/composables/domainApi'
 import DomainEditDrawer from '@/views/apps/domain/DomainEditDrawer.vue'
 import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
