@@ -1,7 +1,14 @@
 <script setup>
-import { useDomainUpdate } from '@/composables/domainApi.js'
+import { useDomainApi } from '@/composables/domainApi'
 import { ref } from 'vue'
 
+const { 
+  currentDomain, 
+  loading, 
+  error, 
+  updateDomain, 
+  showAlert 
+} = useDomainApi()
 
 const props = defineProps({
   isDrawerOpen: {
@@ -247,7 +254,7 @@ const onSubmit = async () => {
     console.log('Is Edit Mode:', isEdit.value)
     // Determine whether to update or create
     if (isEdit.value) {
-      await useDomainUpdate(props.domain.id, payload)
+      await updateDomain(props.domain.id, payload)
     }
 
     showSuccessAlert.value = true

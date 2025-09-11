@@ -376,6 +376,9 @@
     "watchWithFilter": true,
     "whenever": true,
     "useDomainList": true,
-    "useExportReport": true
+    "useExportReport": true,
+    "useAlert": true,
+    "useDomainApi": true,
+    "useReportApi": true
   }
 }

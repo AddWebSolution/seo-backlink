@@ -1,44 +1,58 @@
 <script setup>
-import { useDomainShow } from '@/composables/domainApi.js';
+import { useDomainApi } from '@/composables/domainApi';
 import DomainEditDrawer from '@/views/apps/domain/DomainEditDrawer.vue';
 import { IconCheck, IconClock, IconX } from '@tabler/icons-vue';
-
+import { computed, ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
+
+const { 
+  currentDomain, 
+  loading, 
+  error, 
+  fetchDomain,
+  updateDomain, 
+  deleteDomain: deleteDomainApi,
+  showAlert 
+} = useDomainApi()
 
 const domainId = computed(() => route.params.id)
 const isEditDrawerOpen = ref(false)
 const showDeleteDialog = ref(false)
 
-// API call to fetch domain details
-const {
-  data: domainData,
-  execute: fetchDomain,
-  pending: isLoading,
-} = await useDomainShow(domainId.value)
+const domain = computed(() => currentDomain.value || {})
 
-const domain = computed(() => domainData.value?.data ?? {})
+onMounted(async () => {
+  if (domainId.value) {
+    await fetchDomain(domainId.value)
+  }
+})
 
 // Handle edit success
-const handleEditSuccess = () => {
-  isEditDrawerOpen.value = false
-  fetchDomain()
+const handleEditSuccess = async (updatedDomain) => {
+  try {
+    await updateDomain(domainId.value, updatedDomain)
+    isEditDrawerOpen.value = false
+    await fetchDomain(domainId.value)
+  } catch (error) {
+    console.error('Update failed:', error)
+  }
 }
 
-// Handle delete
-const deleteDomain = async () => {
+const handleDeleteDomain = async () => {
   try {
-    await $api(`clientdomain/${domainId.value}`, { method: 'DELETE' })
+    await deleteDomainApi(domainId.value)
+    showDeleteDialog.value = false
     router.push({ name: 'apps-domain-list' })
   } catch (error) {
-    console.error('Error deleting domain:', error)
-  } finally {
+    // Error handling is done in the composable
+    console.error('Delete failed:', error)
     showDeleteDialog.value = false
   }
 }
 
-// Status helpers
 const getStatusConfig = (status) => {
   return status == 1
     ? { color: 'green', icon: IconCheck, text: 'Available' }
@@ -51,9 +65,6 @@ const getApprovalStatusConfig = (status) => {
   return { color: 'green', icon: IconCheck, text: 'Approved' }
 }
 
-
-
-// Format currency
 const formatCurrency = (value) => {
   if (!value || value === '0') return '$0.00'
   return new Intl.NumberFormat('en-US', {
@@ -62,11 +73,14 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
-// Format number
 const formatNumber = (value) => {
   if (!value) return '0'
   return new Intl.NumberFormat().format(value)
 }
+
+const isLoading = computed(() => loading.value)
+const hasError = computed(() => error.value)
+const hasDomain = computed(() => Object.keys(domain.value).length > 0)
 </script>
 
 <template>
@@ -77,7 +91,7 @@ const formatNumber = (value) => {
         <VRow align="start" justify="space-between">
           <!-- Left Column: Domain Info -->
           <VCol cols="12" md="8">
-            <VBtn color="primary" variant="outlined" class="text-primary" :to="{ name: 'apps-domain-list' }">
+            <VBtn color="primary" variant="flat" :to="{ name: 'apps-domain-list' }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Domains
             </VBtn>
@@ -101,7 +115,7 @@ const formatNumber = (value) => {
 
           <!-- Right Column: Actions -->
           <VCol cols="12" md="4" class="d-flex justify-end gap-3">
-            <VBtn color="primary" variant="outlined" class="text-primary" @click="isEditDrawerOpen = true">
+            <VBtn variant="flat" @click="isEditDrawerOpen = true">
               <VIcon icon="tabler-edit" class="me-2" />
               Edit Domain
             </VBtn>

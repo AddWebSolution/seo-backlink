@@ -724,6 +724,9 @@ const getKeyHighlights = (highlights) => {
   border-color: rgb(var(--v-theme-primary));
   box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.15);
 }
+.v-card {
+   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
 
 .max-width-400 {
   max-width: 400px;

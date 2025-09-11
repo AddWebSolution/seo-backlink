@@ -11,6 +11,7 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
+import CustomAlert from './CustomAlert.vue'
 </script>
 
 <template>
@@ -33,6 +34,10 @@ import { VerticalNavLayout } from '@layouts'
         <NavBarNotifications class="me-1" />
       </div>
     </template>
+
+    <div class="d-flex align-center">
+      <CustomAlert/>
+    </div>
 
     <!-- 👉 Pages -->
     <slot />

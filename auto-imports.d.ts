@@ -158,6 +158,7 @@ declare global {
   const useAbility: typeof import('./resources/js/plugins/casl/composables/useAbility.js')['useAbility']
   const useAbs: typeof import('@vueuse/math')['useAbs']
   const useActiveElement: typeof import('@vueuse/core')['useActiveElement']
+  const useAlert: typeof import('./resources/js/composables/useAlert.js')['useAlert']
   const useAnimate: typeof import('@vueuse/core')['useAnimate']
   const useApi: typeof import('./resources/js/composables/useApi.js')['useApi']
   const useArrayDifference: typeof import('@vueuse/core')['useArrayDifference']
@@ -214,6 +215,7 @@ declare global {
   const useDevicesList: typeof import('@vueuse/core')['useDevicesList']
   const useDisplayMedia: typeof import('@vueuse/core')['useDisplayMedia']
   const useDocumentVisibility: typeof import('@vueuse/core')['useDocumentVisibility']
+  const useDomainApi: typeof import('./resources/js/composables/domainApi.js')['useDomainApi']
   const useDomainDelete: typeof import('./resources/js/composables/domainApi.js')['useDomainDelete']
   const useDomainIndex: typeof import('./resources/js/composables/domainApi.js')['useDomainIndex']
   const useDomainList: typeof import('./resources/js/composables/domainApi.js')['useDomainList']
@@ -294,6 +296,7 @@ declare global {
   const useProjection: typeof import('@vueuse/math')['useProjection']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
+  const useReportApi: typeof import('./resources/js/composables/reportApi.js')['useReportApi']
   const useReportDelete: typeof import('./resources/js/composables/reportApi.js')['useReportDelete']
   const useReportIndex: typeof import('./resources/js/composables/reportApi.js')['useReportIndex']
   const useReportShow: typeof import('./resources/js/composables/reportApi.js')['useReportShow']
@@ -536,6 +539,7 @@ declare module 'vue' {
     readonly useAbility: UnwrapRef<typeof import('./resources/js/plugins/casl/composables/useAbility.js')['useAbility']>
     readonly useAbs: UnwrapRef<typeof import('@vueuse/math')['useAbs']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>
+    readonly useAlert: UnwrapRef<typeof import('./resources/js/composables/useAlert.js')['useAlert']>
     readonly useAnimate: UnwrapRef<typeof import('@vueuse/core')['useAnimate']>
     readonly useApi: UnwrapRef<typeof import('./resources/js/composables/useApi.js')['useApi']>
     readonly useArrayDifference: UnwrapRef<typeof import('@vueuse/core')['useArrayDifference']>
@@ -592,12 +596,7 @@ declare module 'vue' {
     readonly useDevicesList: UnwrapRef<typeof import('@vueuse/core')['useDevicesList']>
     readonly useDisplayMedia: UnwrapRef<typeof import('@vueuse/core')['useDisplayMedia']>
     readonly useDocumentVisibility: UnwrapRef<typeof import('@vueuse/core')['useDocumentVisibility']>
-    readonly useDomainDelete: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainDelete']>
-    readonly useDomainIndex: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainIndex']>
-    readonly useDomainList: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainList']>
-    readonly useDomainShow: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainShow']>
-    readonly useDomainStore: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainStore']>
-    readonly useDomainUpdate: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainUpdate']>
+    readonly useDomainApi: UnwrapRef<typeof import('./resources/js/composables/domainApi.js')['useDomainApi']>
     readonly useDraggable: UnwrapRef<typeof import('@vueuse/core')['useDraggable']>
     readonly useDropZone: UnwrapRef<typeof import('@vueuse/core')['useDropZone']>
     readonly useElementBounding: UnwrapRef<typeof import('@vueuse/core')['useElementBounding']>
@@ -608,7 +607,6 @@ declare module 'vue' {
     readonly useEventBus: UnwrapRef<typeof import('@vueuse/core')['useEventBus']>
     readonly useEventListener: UnwrapRef<typeof import('@vueuse/core')['useEventListener']>
     readonly useEventSource: UnwrapRef<typeof import('@vueuse/core')['useEventSource']>
-    readonly useExportReport: UnwrapRef<typeof import('./resources/js/composables/reportApi.js')['useExportReport']>
     readonly useEyeDropper: UnwrapRef<typeof import('@vueuse/core')['useEyeDropper']>
     readonly useFavicon: UnwrapRef<typeof import('@vueuse/core')['useFavicon']>
     readonly useFetch: UnwrapRef<typeof import('@vueuse/core')['useFetch']>
@@ -672,9 +670,7 @@ declare module 'vue' {
     readonly useProjection: UnwrapRef<typeof import('@vueuse/math')['useProjection']>
     readonly useRafFn: UnwrapRef<typeof import('@vueuse/core')['useRafFn']>
     readonly useRefHistory: UnwrapRef<typeof import('@vueuse/core')['useRefHistory']>
-    readonly useReportDelete: UnwrapRef<typeof import('./resources/js/composables/reportApi.js')['useReportDelete']>
-    readonly useReportIndex: UnwrapRef<typeof import('./resources/js/composables/reportApi.js')['useReportIndex']>
-    readonly useReportShow: UnwrapRef<typeof import('./resources/js/composables/reportApi.js')['useReportShow']>
+    readonly useReportApi: UnwrapRef<typeof import('./resources/js/composables/reportApi.js')['useReportApi']>
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
     readonly useResponsiveLeftSidebar: UnwrapRef<typeof import('./resources/js/@core/composable/useResponsiveSidebar.js')['useResponsiveLeftSidebar']>
     readonly useRound: UnwrapRef<typeof import('@vueuse/math')['useRound']>
