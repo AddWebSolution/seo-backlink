@@ -217,7 +217,7 @@ const formatDate = (dateString) => {
           </div>
         </VCol>
         <VCol cols="12" md="4" class="text-md-end">
-          <VBtn color="white" variant="outlined" size="large" class="text-primary font-weight-medium"
+          <VBtn variant="outlined" size="large" class="text-primary font-weight-medium"
             @click="handleExportReports">
             <VIcon icon="tabler-download" class="me-2" />
             Export Reports
