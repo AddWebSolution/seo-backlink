@@ -146,7 +146,6 @@ const handleExportSingleReport = async (reportId) => {
     showAlert("No report selected for export.", "warning");
     return;
   }
-
   const requestBody = { report_ids: [reportId] };
 
   try {
@@ -588,11 +587,11 @@ const applyFilters = async () => {
           </VTooltip>
 
           <VTooltip text="Download Report">
-            <<template #activator="{ props }">
+            <template #activator="{ props }">
               <IconBtn
                 v-bind="props"
                 size="small"
-                @click="handleExportsingleReport(item.id)"
+                @click="handleExportSingleReport(item.id)"
               >
                 <VIcon icon="tabler-download" color="info" size="24" />
               </IconBtn>

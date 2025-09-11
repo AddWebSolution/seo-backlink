@@ -23,7 +23,7 @@ const allSeenDomains = ref(new Set());
 const uiState = reactive({
   page: 1,
   itemsPerPage: 10,
-  sortBy: [{ key: 'id', order: 'desc' }], // Default sort
+  sortBy: [{ key: "id", order: "desc" }], // Default sort
 });
 
 const requestBody = computed(() => ({
@@ -32,8 +32,8 @@ const requestBody = computed(() => ({
   search: searchQuery.value,
   status: statusFilter.value,
   domain: selectedDomain.value,
-  sort_by: uiState.sortBy[0]?.key || 'id',
-  sort_order: uiState.sortBy[0]?.order || 'desc',
+  sort_by: uiState.sortBy[0]?.key || "id",
+  sort_order: uiState.sortBy[0]?.order || "desc",
 }));
 
 onMounted(async () => {
@@ -76,18 +76,34 @@ const rejected_backlinks = computed(() => {
   return parseInt(report.value?.rejected_backlinks || 0, 10);
 });
 
-const backlinksData = computed(
-  () =>
-    currentReport.value?.backlinks ?? {
+const currentPage = computed({
+  get: () => backlinksData.value.current_page || 1,
+  set: (value) => {
+    uiState.page = value;
+  },
+});
+
+const totalItems = computed(() => backlinksData.value.total || 0);
+const itemsPerPage = computed(
+  () => backlinksData.value.per_page || uiState.itemsPerPage
+);
+const lastPage = computed(() => backlinksData.value.last_page || 1);
+
+const backlinksData = computed(() => {
+  const data = currentReport.value?.backlinks;
+  if (!data) {
+    return {
       data: [],
       current_page: 1,
       last_page: 1,
-      per_page: requestBody.value.per_page,
+      per_page: itemsPerPage,
       total: 0,
       from: 0,
       to: 0,
-    }
-);
+    };
+  }
+  return data;
+});
 
 const allBacklinks = computed(() => backlinksData.value.data ?? []);
 
@@ -179,6 +195,7 @@ const clearFilters = () => {
   statusFilter.value = "";
   selectedDomain.value = "";
   uiState.page = 1;
+  uiState.itemsPerPage = 10;
 };
 
 const searchScope = ref("global");
@@ -215,81 +232,81 @@ const isLoading = computed(() => reportLoading.value);
 // DataTable configuration
 const headers = computed(() => [
   {
-    title: 'Domain',
-    key: 'domain',
-    align: 'center',
+    title: "Domain",
+    key: "domain",
+    align: "center",
     sortable: true,
-    width: '80px',
+    width: "80px",
   },
   {
-    title: 'Target URL',
-    key: 'target_url',
-    align: 'center',
+    title: "Target URL",
+    key: "target_url",
+    align: "center",
     sortable: true,
-    width: '100px',
+    width: "100px",
   },
   {
-    title: 'Status',
-    key: 'status',
-    align: 'center',
+    title: "Status",
+    key: "status",
+    align: "center",
     sortable: true,
-    width: '120px',
+    width: "120px",
   },
   {
-    title: 'Tier',
-    key: 'tier',
-    align: 'center',
+    title: "Tier",
+    key: "tier",
+    align: "center",
     sortable: true,
-    width: '80px',
+    width: "80px",
   },
   {
-    title: 'Score',
-    key: 'score',
-    align: 'center',
+    title: "Score",
+    key: "score",
+    align: "center",
     sortable: true,
-    width: '80px',
+    width: "80px",
   },
   {
-    title: 'Type',
-    key: 'do_follow',
-    align: 'center',
+    title: "Type",
+    key: "do_follow",
+    align: "center",
     sortable: true,
-    width: '100px',
+    width: "100px",
   },
   {
-    title: 'Spam %',
-    key: 'spam_score',
-    align: 'center',
+    title: "Spam %",
+    key: "spam_score",
+    align: "center",
     sortable: true,
-    width: '80px',
+    width: "80px",
   },
   {
-    title: 'Page Rank',
-    key: 'rank',
-    align: 'center',
+    title: "Page Rank",
+    key: "rank",
+    align: "center",
     sortable: true,
-    width: '100px',
+    width: "100px",
   },
   {
-    title: 'Domain Rank',
-    key: 'domain_rank',
-    align: 'center',
+    title: "Domain Rank",
+    key: "domain_rank",
+    align: "center",
     sortable: true,
-    width: '110px',
+    width: "110px",
   },
   {
-    title: 'Link Status',
-    key: 'is_broken',
-    align: 'center',
+    title: "Link Status",
+    key: "is_broken",
+    align: "center",
     sortable: true,
-    width: '100px',
+    width: "100px",
   },
   {
-    title: 'Actions',
-    key: 'actions',
-    align: 'center',
+    title: "Actions",
+    key: "actions",
+    align: "center",
     sortable: false,
-    width: '80px',
+    width: "80px",
   },
 ]);
 
@@ -301,7 +318,7 @@ const handleOptionsUpdate = ({ page, itemsPerPage, sortBy }) => {
 };
 
 const serverItems = computed(() => ({
-  items: allBacklinks.value,
+  items: backlinksData.value.data || [],
   total: backlinksData.value.total || 0,
 }));
 </script>
@@ -495,9 +512,13 @@ const serverItems = computed(() => ({
                 variant="outlined" label="Status" hide-details clearable prepend-inner-icon="tabler-flag" />
             </VCol>
 
-            <!-- Actions -->
-            <VCol cols="12" md="3" class="d-flex align-center gap-2">
-              <VBtn variant="outlined" color="secondary" @click="clearFilters"
+            <VCol cols="12" md="1">
+              <VSelect v-model="uiState.itemsPerPage" :items="[10,20,50,100,200]" item-title="title" item-value="value"
+                variant="outlined" label="Per Page" hide-details prepend-inner-icon="tabler-file-description" />
+            </VCol>
+
+            <VCol cols="12" md="1">
+               <VBtn variant="outlined" color="secondary" @click="clearFilters"
                 :disabled="!searchQuery && !statusFilter && !selectedDomain" prepend-icon="tabler-filter-x">
                 Clear Filters
               </VBtn>
@@ -527,6 +548,7 @@ const serverItems = computed(() => ({
                 Status:
                 {{ statusOptions.find((s) => s.value === statusFilter)?.title }}
               </VChip>
+
             </div>
           </div>
         </VCardText>
@@ -542,7 +564,8 @@ const serverItems = computed(() => ({
             <div>
               <h5 class="text-h5">Backlinks Results</h5>
               <p class="text-body-2 text-medium-emphasis">
-                Showing {{ allBacklinks.length }} of {{ backlinksData.total }} results
+                Showing {{ allBacklinks.length }} of
+                {{ backlinksData.total }} results
                 <template v-if="selectedDomain">
                   in {{ selectedDomain }}
                 </template>
@@ -551,26 +574,27 @@ const serverItems = computed(() => ({
           </div>
         </VCardTitle>
 
-       <VDivider class="mt-4"/>
+        <VDivider class="mt-4" />
 
         <!-- Data Table -->
         <VDataTableServer v-model:items-per-page="uiState.itemsPerPage" v-model:page="uiState.page"
           v-model:sort-by="uiState.sortBy" :headers="headers" :items="serverItems.items"
-          :items-length="serverItems.total"loading-text="Fetching reports, please wait..." :loading="isLoading" :items-per-page-options="[
+          :items-length="serverItems.total" loading-text="Fetching reports, please wait..." :loading="isLoading"
+          :items-per-page-options="[
             { value: 5, title: '5' },
             { value: 10, title: '10' },
             { value: 25, title: '25' },
             { value: 50, title: '50' },
             { value: 100, title: '100' },
             { value: 500, title: '500' },
-          ]" class="reports-table" @update:options="handleOptionsUpdate">
-
+          ]" class="reports-table">
+          <!-- Your existing template slots here... -->
           <!-- Target URL Column -->
           <template #item.target_url="{ item }">
             <a :href="item.target_url" target="_blank" class="text-success text-decoration-none text-body-1"
               :title="item.target_url">
               <VIcon icon="tabler-target" class="me-1 flex-shrink-0" size="16" />
-              <span class="text-truncate" style="max-width: 200px;">
+              <span class="text-truncate" style="max-width: 200px">
                 {{ item.target_url }}
               </span>
               <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
@@ -602,15 +626,24 @@ const serverItems = computed(() => ({
           <!-- Type Column -->
           <template #item.do_follow="{ item }">
             <VChip :color="item.do_follow ? 'success' : 'error'" variant="tonal" size="small">
-              <VIcon :icon="item.do_follow ? 'tabler-circles-relation' : 'tabler-space-off'" size="14" class="me-1" />
+              <VIcon :icon="
+                  item.do_follow
+                    ? 'tabler-circles-relation'
+                    : 'tabler-space-off'
+                " size="14" class="me-1" />
               {{ item.do_follow ? "DoFollow" : "NoFollow" }}
             </VChip>
           </template>
 
           <!-- Spam Score Column -->
           <template #item.spam_score="{ item }">
-            <VChip :color="(item.spam_score || 0) > 50 ? 'error' : (item.spam_score || 0) > 20 ? 'warning' : 'success'"
-              variant="tonal" size="small">
+            <VChip :color="
+                (item.spam_score || 0) > 50
+                  ? 'error'
+                  : (item.spam_score || 0) > 20
+                  ? 'warning'
+                  : 'success'
+              " variant="tonal" size="small">
               {{ item.spam_score || 0 }}%
             </VChip>
           </template>
@@ -627,7 +660,9 @@ const serverItems = computed(() => ({
           <template #item.domain_rank="{ item }">
             <div class="text-center">
               <VIcon icon="tabler-network" size="16" class="me-1" />
-              <span class="font-weight-medium">{{ item.domain_rank || 0 }}</span>
+              <span class="font-weight-medium">{{
+                item.domain_rank || 0
+                }}</span>
             </div>
           </template>
 
@@ -676,18 +711,9 @@ const serverItems = computed(() => ({
             </div>
           </template>
 
-          <!-- Loading slot -->
-          <!-- <template #loading>
-            <div class="text-center py-12">
-              <VProgressCircular indeterminate color="primary" size="64" width="6" />
-              <h6 class="text-h6 mt-6 mb-2">Loading backlinks...</h6>
-              <p class="text-body-2 text-medium-emphasis">
-                Fetching data, please wait.
-              </p>
-            </div>
-          </template> -->
           <template #bottom>
-            <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalProduct" />
+            <TablePagination v-model:page="uiState.page" :items-per-page="uiState.itemsPerPage"
+              :total-items="serverItems.total" />
           </template>
         </VDataTableServer>
       </VCard>
