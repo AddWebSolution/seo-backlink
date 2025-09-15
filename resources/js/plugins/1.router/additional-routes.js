@@ -39,6 +39,22 @@ export const routes = [
   },
 
 
+    // Keyword
+  {
+    path: '/keywords/:id',
+    name: 'apps-keyword-view',
+    component: () => import('@/pages/apps/keyword/view/[id].vue'),
+    props: true,
+  },
+  {
+    path: '/keywords/:id/edit',
+    name: 'apps-keyword-edit',
+    component: () => import('@/pages/apps/keyword/edit/[id].vue'),
+    props: true,
+  },
+
+
+
   // Report
   {
     path: '/report/:id',

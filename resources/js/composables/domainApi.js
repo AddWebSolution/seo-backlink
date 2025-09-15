@@ -130,7 +130,8 @@ export function useDomainApi() {
             const result = await useApi('api/clientdomain/domain/list', {
                 method: 'POST',
             })
-            domainList.value = result|| []
+            console.log('Domain List API Result:', result)
+           domainList.value = result.data.value.domains || []
             return result
         } catch (err) {
             error.value = err
@@ -144,7 +145,7 @@ export function useDomainApi() {
 
     return {
         domains: readonly(domains),
-        domainList: readonly(domainList),
+        domainList: domainList,
         currentDomain: readonly(currentDomain),
         loading: readonly(loading),
         error: readonly(error),

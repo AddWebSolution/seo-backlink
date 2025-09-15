@@ -1,5 +1,5 @@
 export default [
-  { heading: 'Apps & Pages' },
+  { heading: 'SEO Backlink' },
   {
     title: 'Domain',
     icon: { icon: 'tabler-file-invoice' },
@@ -12,6 +12,21 @@ export default [
     title: 'Report',
     children: [
       { title: 'Report List', to: 'apps-report-list' },
+    ],
+  },
+   { heading: 'SEO Keyword' },
+  {
+    title: 'Keyword',
+    icon: { icon: 'tabler-file-invoice' },
+    children: [
+      { title: 'Keyword', to: 'apps-keyword-list' },
+      { title: 'Add Keyword', to: 'apps-keyword-add' },
+    ],
+  },
+  {
+    title: 'KeywordReport',
+    children: [
+      { title: 'Report List', to: 'apps-keywordreport-list' },
     ],
   },
   // {

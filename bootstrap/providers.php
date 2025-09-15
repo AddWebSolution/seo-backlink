@@ -1,7 +1,5 @@
 <?php
 
-use App\Modules\Backlinkreport\Providers\BacklinkreportServiceProvider;
-
 return [
     App\Providers\AppServiceProvider::class,
     Spatie\Permission\PermissionServiceProvider::class,
@@ -10,5 +8,7 @@ return [
     App\Modules\User\Providers\UserServiceProvider::class,
     App\Modules\ClientDomain\Providers\ClientDomainServiceProvider::class,
     App\Modules\Report\Providers\ReportServiceProvider::class,
-    App\Modules\Backlinkreport\Providers\BacklinkreportServiceProvider::class
+    App\Modules\Backlinkreport\Providers\BacklinkreportServiceProvider::class,
+    App\Modules\Keyword\Providers\KeywordServiceProvider::class,
+    App\Modules\KeywordReport\Providers\KeywordReportServiceProvider::class
 ];

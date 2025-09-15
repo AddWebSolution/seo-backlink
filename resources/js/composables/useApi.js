@@ -19,15 +19,19 @@ export const useApi = createFetch({
           Authorization: `Bearer ${accessToken}`,
         };
       }
-      if (options.body && typeof options.body === "object") {
-        const rawBody = unref(options.body);
-        options.body = JSON.stringify(rawBody);
-        options.headers = {
-          ...options.headers,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        };
-      }
+         if (
+           !options.skipJsonTransform &&
+           options.body &&
+           typeof options.body === "object"
+         ) {
+           const rawBody = unref(options.body);
+           options.body = JSON.stringify(rawBody);
+           options.headers = {
+             ...options.headers,
+             Accept: "application/json",
+             "Content-Type": "application/json",
+           };
+         }
 
       return { options };
     },
