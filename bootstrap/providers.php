@@ -8,7 +8,8 @@ return [
     App\Modules\User\Providers\UserServiceProvider::class,
     App\Modules\ClientDomain\Providers\ClientDomainServiceProvider::class,
     App\Modules\Report\Providers\ReportServiceProvider::class,
-    App\Modules\Backlinkreport\Providers\BacklinkreportServiceProvider::class,
+    App\Modules\BacklinkDatum\Providers\BacklinkDatumServiceProvider::class,
     App\Modules\Keyword\Providers\KeywordServiceProvider::class,
-    App\Modules\KeywordReport\Providers\KeywordReportServiceProvider::class
+    App\Modules\KeywordReport\Providers\KeywordReportServiceProvider::class,
+    App\Modules\KeywordDatum\Providers\KeywordDatumServiceProvider::class
 ];

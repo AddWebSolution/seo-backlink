@@ -1,5 +1,5 @@
 <script setup>
-import { useReportApi } from "@/composables/reportApi";
+import { useKeywordReportApi } from "@/composables/useKeywordReportApi";
 import { reactive, computed, ref, watch, unref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 
@@ -11,9 +11,9 @@ const {
   reportBacklinks,
   loading: reportLoading,
   error: reportError,
-  fetchReportBacklinks,
+  fetchKeywordReport,
   showAlert,
-} = useReportApi();
+} = useKeywordReportApi();
 
 const searchQuery = ref("");
 const statusFilter = ref("");
@@ -44,7 +44,7 @@ onMounted(async () => {
 
 const loadReportData = async () => {
   try {
-    await fetchReportBacklinks(reportId.value, requestBody.value);
+    await fetchKeywordReport(reportId.value, requestBody.value);
   } catch (error) {
     console.error("Failed to load report:", error);
   }
@@ -330,7 +330,7 @@ const serverItems = computed(() => ({
       <div class="pa-8">
         <VRow align="center" justify="space-between">
           <VCol cols="12" md="8">
-            <h2 class="text-h3 font-weight-bold mb-4">Report Analysis</h2>
+            <h2 class="text-h3 font-weight-bold mb-4">Keyword Analysis</h2>
 
             <div class="d-flex align-center flex-wrap gap-3">
               <VChip color="primary" variant="elevated" size="large">

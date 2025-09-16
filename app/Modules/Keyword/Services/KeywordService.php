@@ -2,9 +2,10 @@
 
 namespace App\Modules\Keyword\Services;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Addweb\Base\Services\BaseService;
 use App\Modules\Keyword\Models\Keyword;
-use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -17,12 +18,14 @@ use App\Modules\ClientDomain\Models\ClientDomain;
 
 class KeywordService extends BaseService
 {
+
     public array $searchFields = [
         'title' => [],
     ];
 
     public array $filters = [
         'title' => ['filter' => 'contain'],
+        'status' => ['filter' => 'contain']
     ];
 
     public function __construct()
@@ -155,44 +158,42 @@ class KeywordService extends BaseService
 
     public function keywordImport($file)
     {
-        $spreadsheet = IOFactory::load($file);
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray();
-
-        $header = array_map('strtolower', $rows[0]);
-        unset($rows[0]);
-
-        $importedCount = 0;
-        DB::beginTransaction();
-
         try {
-            foreach ($rows as $row) {
-                $data = array_combine($header, $row);
-                
-                if (empty($data['client_domain']) || empty($data['keyword']) || empty($data['status'])) {
-                    continue;
-                }
-                
-                $domain = null;
-                
-                if (!empty($data['client_domain'])) {
+            $spreadsheet = IOFactory::load($file);
+            $importedCount = 0;
+
+            DB::beginTransaction();
+
+            foreach ($spreadsheet->getAllSheets() as $sheet) {
+                $rows = $sheet->toArray();
+                $header = array_map('strtolower', $rows[0] ?? []);
+                unset($rows[0]);
+
+                foreach ($rows as $row) {
+                    $data = array_combine($header, $row);
+
+                    if (empty($data['client_domain']) || empty($data['keyword']) || empty($data['status'])) {
+                        continue;
+                    }
+
                     $domain = ClientDomain::where('title', $data['client_domain'])->first();
-                }
-                
-                if (!$domain && !empty($data['client_domain'])) {
-                    $domain = ClientDomain::where('target_url', $data['client_domain'])->first();
-                }
-                
-                $keywordData = [
-                    'client_domain_id' => $domain->id,
-                    'keyword' => $data['keyword'],
-                    'status' => (int) $data['status'],
-                ];
 
-                // Create keyword record
-                Keyword::create($keywordData);
+                    if (!$domain && !empty($data['client_domain'])) {
+                        $domain = ClientDomain::where('target_url', $data['client_domain'])->first();
+                    }
 
-                $importedCount++;
+                    if ($domain) {
+                        $keywordData = [
+                            'client_domain_id' => $domain->id,
+                            'keyword'          => $data['keyword'],
+                            'status'           => (int) $data['status'],
+                            'processed_at'     => Carbon::now(),
+                        ];
+
+                        Keyword::create($keywordData);
+                        $importedCount++;
+                    }
+                }
             }
 
             DB::commit();

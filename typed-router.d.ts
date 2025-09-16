@@ -46,7 +46,7 @@ declare module 'vue-router/auto-routes' {
     'apps-keyword-edit-id': RouteRecordInfo<'apps-keyword-edit-id', '/apps/keyword/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'apps-keyword-list': RouteRecordInfo<'apps-keyword-list', '/apps/keyword/list', Record<never, never>, Record<never, never>>,
     'apps-keyword-view-id': RouteRecordInfo<'apps-keyword-view-id', '/apps/keyword/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
-    'apps-keywordreport-backlink-view-id': RouteRecordInfo<'apps-keywordreport-backlink-view-id', '/apps/keywordreport/backlink/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'apps-keywordreport-keyword-view-id': RouteRecordInfo<'apps-keywordreport-keyword-view-id', '/apps/keywordreport/keyword/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'apps-keywordreport-list': RouteRecordInfo<'apps-keywordreport-list', '/apps/keywordreport/list', Record<never, never>, Record<never, never>>,
     'apps-keywordreport-view-id': RouteRecordInfo<'apps-keywordreport-view-id', '/apps/keywordreport/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'apps-logistics-dashboard': RouteRecordInfo<'apps-logistics-dashboard', '/apps/logistics/dashboard', Record<never, never>, Record<never, never>>,

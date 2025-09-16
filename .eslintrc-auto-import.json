@@ -380,6 +380,7 @@
     "useAlert": true,
     "useDomainApi": true,
     "useReportApi": true,
-    "useKeywordApi": true
+    "useKeywordApi": true,
+    "useKeywordReportApi": true
   }
 }

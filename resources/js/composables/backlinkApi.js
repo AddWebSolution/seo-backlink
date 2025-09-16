@@ -9,6 +9,6 @@ import { useApi } from './useApi'
 
 // 👉 Show single domain by ID
 export function useBacklinkShow(id) {
-    return useApi(`api/backlinkreport/get/${id}`, { method: 'POST' })
+    return useApi(`api/backlinkdatum/get/${id}`, { method: 'POST' })
 }
 

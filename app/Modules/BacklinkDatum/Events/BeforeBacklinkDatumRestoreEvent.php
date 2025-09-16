@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Modules\BacklinkDatum\Events;
+
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+use App\Modules\BacklinkDatum\Models\BacklinkDatum;
+
+class BeforeBacklinkDatumRestoreEvent
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(public BacklinkDatum $backlinkDatum)
+    {
+        //
+    }
+
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return array<int, \Illuminate\Broadcasting\Channel>
+     */
+    public function broadcastOn(): array
+    {
+        return [
+            new PrivateChannel('channel-name'),
+        ];
+    }
+}

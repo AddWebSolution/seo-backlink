@@ -7,6 +7,14 @@ export function useKeywordApi() {
   const { showAlert } = useAlert();
 
   const Keywords = ref([]);
+  const Pagination = ref({
+    total: 0,
+    currentPage: 1,
+    perPage: 10,
+    lastPage: 1,
+    itemsPerPage: 10, 
+    page: 1
+  })
   const KeywordList = ref([]);
   const currentKeyword = ref(null);
   const loading = ref(false);
@@ -25,7 +33,7 @@ export function useKeywordApi() {
     } catch (err) {
       error.value = err;
       currentKeyword.value = null;
-      showAlert("Failed to load domain", "error");
+      showAlert("Failed to load keyword", "error");
       throw err;
     } finally {
       loading.value = false;
@@ -33,27 +41,43 @@ export function useKeywordApi() {
   };
 
   // get all keywords
-  const fetchKeywords = async (filters = {}) => {
+  const fetchKeywords = async (filters = {}, page = null) => {
     loading.value = true;
     error.value = null;
-
     try {
-      const result = await useApi("api/keyword/get", {
-        method: "POST",
-        body: filters,
-      });
+      const body = { 
+        ...filters
+      };
+      const result = await useApi(
+        createUrl("api/keyword/get", { query: body}),
+        {
+          method: "POST",
+        }
+      );
       Keywords.value = result.data.value.data.resource;
+      const apiPagination = result.data.value.data.pagination;
+
+      Pagination.value = {
+        total: apiPagination.total,
+        currentPage: apiPagination.currentPage,
+        perPage: apiPagination.perPage,
+        lastPage: apiPagination.lastPage,
+        itemsPerPage: apiPagination.perPage,
+        page: apiPagination.currentPage
+      };
+
       return result;
     } catch (err) {
       error.value = err;
-      showAlert("Failed to load domains", "error");
+      showAlert("Failed to load keywords", "error");
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
-  // create domain
+
+  // create keyword
   const createKeyword = async (payload) => {
     loading.value = true;
     error.value = null;
@@ -64,19 +88,19 @@ export function useKeywordApi() {
         body: payload,
       });
 
-      showAlert("Domain created successfully!", "success");
+      showAlert("Keyword created successfully!", "success");
       await fetchKeywords();
       return result;
     } catch (err) {
       error.value = err;
-      showAlert("Failed to create domain", "error");
+      showAlert("Failed to create keyword", "error");
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
-  // update domain
+  // update keyword
   const updateKeyword = async (id, payload) => {
     loading.value = true;
     error.value = null;
@@ -87,19 +111,19 @@ export function useKeywordApi() {
         body: payload,
       });
 
-      showAlert("Domain updated successfully!", "success");
+      showAlert("Keyword updated successfully!", "success");
       await fetchKeywords();
       return result;
     } catch (err) {
       error.value = err;
-      showAlert("Failed to update domain", "error");
+      showAlert("Failed to update keyword", "error");
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
-  // delete domain
+  // delete keyword
   const deleteKeyword = async (id) => {
     loading.value = true;
     error.value = null;
@@ -109,12 +133,12 @@ export function useKeywordApi() {
         method: "POST",
       });
 
-      showAlert("Domain deleted successfully!", "success");
+      showAlert("Keyword deleted successfully!", "success");
       await fetchKeywords();
       return result;
     } catch (err) {
       error.value = err;
-      showAlert("Failed to delete domain", "error");
+      showAlert("Failed to delete keyword", "error");
       throw err;
     } finally {
       loading.value = false;
@@ -154,7 +178,7 @@ export function useKeywordApi() {
   const importKeywords = async (file) => {
     if (!file) {
       showAlert("No file selected", "error");
-      return;
+      return { success: false, message: "No file selected" };
     }
 
     loading.value = true;
@@ -168,19 +192,31 @@ export function useKeywordApi() {
         method: "POST",
         body: formData,
         skipJsonTransform: true,
-
       });
 
-      showAlert(
-        `Imported ${result.data.value} keywords successfully!`,
-        "success"
-      );
+      if (result.error.value || result.statusCode.value >= 400) {
+        const errorMsg = result.data.value?.message || "Import failed";
+        showAlert(errorMsg, "error");
+        return { success: false, message: errorMsg };
+      }
+
+      const responseData = result.data.value;
+      const successMsg = responseData?.message || "Keywords imported successfully!";
+      
+      showAlert(successMsg, "success");
       await fetchKeywords();
-    return result.data.value; 
+      
+      return { 
+        success: true, 
+        message: successMsg,
+        data: responseData 
+      };
+
     } catch (err) {
       error.value = err;
-      showAlert("Failed to import keywords", "error");
-      throw err;
+      const errorMsg = "Failed to import keywords";
+      showAlert(errorMsg, "error");
+      return { success: false, message: errorMsg };
     } finally {
       loading.value = false;
     }
@@ -188,6 +224,7 @@ export function useKeywordApi() {
 
   return {
     keywords: readonly(Keywords),
+    pagination : Pagination,
     KeywordList: readonly(KeywordList),
     currentKeyword: readonly(currentKeyword),
     loading: readonly(loading),

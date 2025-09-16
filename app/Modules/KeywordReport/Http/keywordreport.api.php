@@ -12,6 +12,10 @@ Route::group(['middleware' => ['api','auth:sanctum']], function () {
 				Route::post('get/{id}', [KeywordReportController::class, 'show'])->name('show');
 			//});
 
+			Route::post('export', [KeywordReportController::class, 'reportExport']);
+
+			Route::post('keyword/{id}', [KeywordReportController::class, 'keywordsShow']);
+
 			//Route::group(['middleware' => ['can:Create KeywordReport']], function () {
 				Route::post('store', [KeywordReportController::class, 'store'])->name('store');
 			//});

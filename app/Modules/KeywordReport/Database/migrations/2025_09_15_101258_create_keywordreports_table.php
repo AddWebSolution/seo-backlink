@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\LlmType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,16 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('seo_keyword_reports', function (Blueprint $table) {
+       Schema::create('keyword_reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('keyword_id')->constrained('keywords')->onDelete('cascade');
-            $table->foreignId('client_domain_id')->constrained('client_domains')->onDelete('cascade');
-            $table->boolean('domain_found_in_response')->nullable(); 
-            $table->longText('llm_response')->nullable();            
-            $table->text('highlights')->nullable();                
-            $table->tinyInteger('status')->unsigned()->default(1)
-                ->comment('1 = Pending, 2 = Rejected, 3 = Approved');
-            $table->timestamp('processed_at')->nullable();
+            $table->string('run_id')->index();
+            $table->integer('domain_count')->nullable();
+            $table->integer('total_keywords')->nullable();
+            $table->integer('success')->nullable();
+            $table->integer('fail')->nullable();
+            $table->timestamp('run_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('keywordreports');
+        Schema::dropIfExists('keyword_reports');
     }
 };

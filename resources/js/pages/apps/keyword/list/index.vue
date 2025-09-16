@@ -1,208 +1,200 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
-import { useKeywordApi } from '@/composables/KeywordApi';
-import { IconWorldWww } from '@tabler/icons-vue';
+import { onMounted, ref, computed } from "vue";
+import { useKeywordApi } from "@/composables/KeywordApi";
+import { IconWorldWww } from "@tabler/icons-vue";
 
 const headers = [
-  { title: 'ID', key: 'id', align: 'start', width: '60px' },
-  { title: 'Client Domain', key: 'client_domain_id', align: 'center', width: '50px' },
-  { title: 'Keyword', key: 'keyword', align: 'center', width: '100px' },
-  { title: 'Status', key: 'status', align: 'center', width: '20px' },
-  { title: 'Processed At', key: 'processed_at', align: 'center', width: '50px' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'start', width: '10px' },
+  { title: "ID", key: "id", align: "start", width: "60px" },
+  {
+    title: "Client Domain",
+    key: "client_domain_id",
+    align: "center",
+    width: "50px",
+  },
+  { title: "Keyword", key: "keyword", align: "center", width: "100px" },
+  { title: "Status", key: "status", align: "center", width: "20px" },
+  {
+    title: "Processed At",
+    key: "processed_at",
+    align: "center",
+    width: "50px",
+  },
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false,
+    align: "start",
+    width: "10px",
+  },
 ];
 
 const {
   keywords,
+  pagination,
   loading,
   error,
   fetchKeywords,
   deleteKeyword,
   downloadTemplate,
   importKeywords,
-  showAlert
-} = useKeywordApi()
+  showAlert,
+} = useKeywordApi();
 
 // Filters
-const selectedStatus = ref()
-const selectedApprovalStatus = ref()
-const selectedCountry = ref()
-const searchQuery = ref('')
-const selectedRows = ref([])
-const showAdvancedFilters = ref(false)
-
-// Data table options
-const itemsPerPage = ref(10)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const selectedStatus = ref();
+const selectedCountry = ref();
+const searchQuery = ref("");
+const selectedRows = ref([]);
+const showAdvancedFilters = ref(false);
 
 // Excel Import Dialog State
-const importDialog = ref(false)
-const selectedFile = ref(null)
-const fileError = ref('')
-const importing = ref(false)
-const isDragOver = ref(false)
+const importDialog = ref(false);
+const selectedFile = ref(null);
+const fileError = ref("");
+const importing = ref(false);
+const isDragOver = ref(false);
 
 // Build filters object
 const buildFilters = () => {
-  const filters = {}
+  const filters = {};
 
-  if (selectedStatus.value) filters.status = selectedStatus.value
-  if (selectedApprovalStatus.value) filters.approval_status = selectedApprovalStatus.value
-  if (selectedCountry.value) filters.country = selectedCountry.value
-  if (searchQuery.value) filters.search = searchQuery.value
-  if (sortBy.value) filters.sort_by = sortBy.value
-  if (orderBy.value) filters.order_by = orderBy.value
+  if (selectedStatus.value) filters.status = selectedStatus.value;
+  if (searchQuery.value) filters.searchTerm = searchQuery.value;
+  if (sortBy.value) filters.sortField = sortBy.value;
+  if (orderBy.value) filters.sortOrder = orderBy.value;
 
-  filters.page = page.value
-  filters.per_page = itemsPerPage.value
+  filters.pageNumber = pagination.value.page;
+  filters.perPage = pagination.value.itemsPerPage;
 
-  return filters
-}
+  return filters;
+};
 
 const loadKeywords = async () => {
-  const filters = buildFilters()
-  await fetchKeywords(filters)
-}
+  const filters = buildFilters();
+  console.log('run','run')
+  await fetchKeywords(filters, pagination.value.page);
+};
 
 const clearAllFilters = async () => {
-  selectedStatus.value = null
-  selectedApprovalStatus.value = null
-  selectedCountry.value = ''
-  searchQuery.value = ''
-  page.value = 1
-  await loadKeywords()
-  showAlert('Custom message here!', 'info')
-}
+  selectedStatus.value = null;
+  selectedCountry.value = "";
+  searchQuery.value = "";
+  pagination.value.page = 1;
+  await loadKeywords();
+  showAlert("Custom message here!", "info");
+};
 
 const hasActiveFilters = computed(() => {
-  return selectedStatus.value || selectedApprovalStatus.value || selectedCountry.value || searchQuery.value
-})
-
-const updateOptions = async (options) => {
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
-  page.value = options.page
-  itemsPerPage.value = options.itemsPerPage
-  await loadKeywords()
-}
+  return (
+    selectedStatus.value ||
+    selectedCountry.value ||
+    searchQuery.value
+  );
+}); 
 
 // Excel Import Dialog Functions
 const validateFile = (file) => {
   const allowedTypes = [
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-    'application/vnd.ms-excel' // .xls
-  ]
-  
-  const maxSize = 10 * 1024 * 1024 // 10MB
-  
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+    "application/vnd.ms-excel", // .xls
+  ];
+
+  const maxSize = 10 * 1024 * 1024; // 10MB
+
   if (!allowedTypes.includes(file.type)) {
-    return 'Please select a valid Excel file (.xlsx or .xls)'
+    return "Please select a valid Excel file (.xlsx or .xls)";
   }
-  
+
   if (file.size > maxSize) {
-    return 'File size must be less than 10MB'
+    return "File size must be less than 10MB";
   }
-  
-  return null
-}
+
+  return null;
+};
 
 const handleFileChange = (event) => {
-  const files = event.target?.files || event
+  const files = event.target?.files || event;
   if (files && files.length > 0) {
-    const file = files[0]
-    const error = validateFile(file)
-    
+    const file = files[0];
+    const error = validateFile(file);
+
     if (error) {
-      fileError.value = error
-      selectedFile.value = null
+      fileError.value = error;
+      selectedFile.value = null;
     } else {
-      fileError.value = ''
-      selectedFile.value = file
+      fileError.value = "";
+      selectedFile.value = file;
     }
   }
-}
+};
 
 const clearFile = () => {
-  selectedFile.value = null
-  fileError.value = ''
-}
+  selectedFile.value = null;
+  fileError.value = "";
+};
 
 const handleDragOver = (e) => {
-  e.preventDefault()
-  isDragOver.value = true
-}
+  e.preventDefault();
+  isDragOver.value = true;
+};
 
 const handleDragEnter = (e) => {
-  e.preventDefault()
-  isDragOver.value = true
-}
+  e.preventDefault();
+  isDragOver.value = true;
+};
 
 const handleDragLeave = (e) => {
-  e.preventDefault()
+  e.preventDefault();
   if (!e.currentTarget.contains(e.relatedTarget)) {
-    isDragOver.value = false
+    isDragOver.value = false;
   }
-}
+};
 
 const handleDrop = (e) => {
-  e.preventDefault()
-  isDragOver.value = false
-  
-  const files = e.dataTransfer.files
+  e.preventDefault();
+  isDragOver.value = false;
+
+  const files = e.dataTransfer.files;
   if (files.length > 0) {
-    handleFileChange(files)
+    handleFileChange(files);
   }
-}
+};
 
 const handleImportKeywords = async () => {
   if (!selectedFile.value) {
-    showAlert('Please select a file first', 'error')
-    return
+    showAlert("Please select a file first", "error");
+    return;
   }
 
-  importing.value = true
+  importing.value = true;
 
   try {
-    const { success,message } = await importKeywords(selectedFile)
+    const result = await importKeywords(selectedFile.value);
 
-    console.log('success',success)
-    console.log('message',message);
-    if (!success) {
-      showAlert(message, 'error')
-      console.error('Import error details:', message)
-    } else {
-      showAlert(message, 'success')
+    if (result.success) {
+      closeImportDialog();
+      selectedFile.value = null;
     }
-    closeImportDialog();
   } catch (err) {
-    if (err?.message) {
-      showAlert(`Import failed: ${err.message}`, 'error')
-    } else {
-      showAlert('Import failed. Please check your file format.', 'error')
-    }
-    console.error('Import exception:', err)
+    showAlert("Import failed", "error");
   } finally {
-    importing.value = false
+    importing.value = false;
   }
-}
-
-
+};
 
 const closeImportDialog = () => {
-  importDialog.value = false
-  clearFile()
-  importing.value = false
-}
+  importDialog.value = false;
+  clearFile();
+  importing.value = false;
+};
 
 const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
 
 const getStatusConfig = (status) => {
   if (status == 1)
@@ -216,63 +208,77 @@ const getStatusConfig = (status) => {
 };
 
 const applyFilters = async () => {
-  page.value = 1
-  await loadKeywords()
-}
+  page.value = 1;
+  // await loadKeywords();
+};
 
 const handleDeleteKeyword = async (id) => {
   try {
-    await deleteKeyword(id)
-    const index = selectedRows.value.findIndex(row => row === id)
-    if (index !== -1) selectedRows.value.splice(index, 1)
+    await deleteKeyword(id);
+    const index = selectedRows.value.findIndex((row) => row === id);
+    if (index !== -1) selectedRows.value.splice(index, 1);
   } catch (error) {
-    console.error('Delete failed:', error)
+    console.error("Delete failed:", error);
   }
-}
+};
 
 // Computed total domains count
-const totalKeywords = computed(() => keywords.value?.length ?? 0)
+const totalKeywords = computed(() => pagination.value.total ?? 0);
 
 // Status options
 const statusOptions = [
-  { title: 'Available', value: 1, color: 'success' },
-  { title: 'Unavailable', value: 2, color: 'error' }
-]
+  { title: "Available", value: 1, color: "success" },
+  { title: "Unavailable", value: 2, color: "error" },
+];
+
+const sortBy = ref("");
+const orderBy = ref("");
+
+const itemsPerPage = computed({
+  get: () => pagination.value.itemsPerPage,
+  set: (val) => {
+    pagination.value.itemsPerPage = val;
+    pagination.value.page = 1;
+  },
+});
+
+const updateOptions = async (options) => {
+  pagination.value.itemsPerPage = options.itemsPerPage;
+  pagination.value.page = options.page;
+  await loadKeywords();
+};
 
 const templateDownload = async () => {
   try {
-    const blob = await downloadTemplate()
+    const blob = await downloadTemplate();
 
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'keyword_import_template.xlsx')
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "keyword_import_template.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
 
-    showAlert('Template downloaded successfully!', 'success')
+    showAlert("Template downloaded successfully!", "success");
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
-}
+};
 
 const handleExportReports = () => {
-  // Export functionality placeholder
-  showAlert('Export functionality coming soon!', 'info')
-}
+  showAlert("Export functionality coming soon!", "info");
+};
 
-// Prevent default drag behaviors
 onMounted(() => {
   const preventDefaults = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
-  
-  document.addEventListener('dragover', preventDefaults)
-  document.addEventListener('drop', preventDefaults)
-})
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  document.addEventListener("dragover", preventDefaults);
+  document.addEventListener("drop", preventDefaults);
+});
 </script>
 
 <template>
@@ -283,7 +289,7 @@ onMounted(() => {
         <VCol cols="12" md="8">
           <div class="d-flex align-center">
             <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-              <IconWorldWww stroke={2} />
+              <IconWorldWww stroke="{2}" />
             </VAvatar>
             <div>
               <h1 class="text-h3 font-weight-bold mb-1">Keyword Management</h1>
@@ -303,10 +309,21 @@ onMounted(() => {
       <div class="d-flex align-center">
         <VIcon icon="tabler-filter" class="me-2 text-primary" />
         <span class="text-h6 font-weight-medium">Search & Filters</span>
-        <VBadge v-if="hasActiveFilters" :content="1" color="primary" class="ml-5" />
+        <VBadge
+          v-if="hasActiveFilters"
+          :content="1"
+          color="primary"
+          class="ml-5"
+        />
       </div>
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="hasActiveFilters" variant="text" size="small" color="error" @click="clearAllFilters">
+        <VBtn
+          v-if="hasActiveFilters"
+          variant="text"
+          size="small"
+          color="error"
+          @click="clearAllFilters"
+        >
           <VIcon icon="tabler-x" class="me-1" />
           Clear All
         </VBtn>
@@ -317,21 +334,42 @@ onMounted(() => {
       <!-- Primary Search Bar -->
       <VRow class="mb-4">
         <VCol cols="12">
-          <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
-            prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
+          <AppTextField
+            v-model="searchQuery"
+            placeholder="Search by title, URL, or any domain details..."
+            prepend-inner-icon="tabler-search"
+            variant="outlined"
+            hide-details
+            clearable
+            class="search-field"
+          />
         </VCol>
       </VRow>
 
       <!-- Quick Filters -->
       <VRow class="mb-4">
         <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
-            hide-details prepend-inner-icon="tabler-circle-dot" />
+          <AppSelect
+            v-model="selectedStatus"
+            label="Status"
+            :items="statusOptions"
+            variant="outlined"
+            clearable
+            hide-details
+            prepend-inner-icon="tabler-circle-dot"
+          />
         </VCol>
-        <VCol cols="12" sm="6" md="3">
-          <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
-            clearable hide-details prepend-inner-icon="tabler-world" />
-        </VCol>
+        <!-- <VCol cols="12" sm="6" md="3">
+          <AppTextField
+            v-model="selectedCountry"
+            label="Country"
+            placeholder="Enter country"
+            variant="outlined"
+            clearable
+            hide-details
+            prepend-inner-icon="tabler-world"
+          />
+        </VCol> -->
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
           <VBtn color="primary" variant="flat" block @click="fetchKeywords">
             <VIcon icon="tabler-search" class="me-2" />
@@ -351,40 +389,61 @@ onMounted(() => {
         </span>
         <span class="ml-2">Keywords found</span>
 
-        <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
+        <VChip
+          v-if="selectedRows.length"
+          color="primary"
+          size="small"
+          class="ml-4"
+          elevation="2"
+          outlined
+        >
           {{ selectedRows.length }} selected
         </VChip>
       </div>
 
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
+        <VBtn
+          v-if="selectedRows.length"
+          variant="text"
+          size="small"
+          color="error"
+        >
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
       </div>
       <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
-        
+
         <!-- Excel Import Dialog Button -->
-        <VBtn 
-          variant="tonal" 
-          color="secondary" 
+        <VBtn
+          variant="tonal"
+          color="secondary"
           prepend-icon="tabler-download"
           @click="importDialog = true"
         >
           Import
         </VBtn>
-        
+
         <!-- <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="templateDownload">
           Download Template
         </VBtn> -->
-        
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+
+        <VBtn
+          variant="tonal"
+          color="secondary"
+          prepend-icon="tabler-upload"
+          @click="handleExportReports"
+        >
           Export
         </VBtn>
-        
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/domain/add')">
+
+        <VBtn
+          color="primary"
+          prepend-icon="tabler-plus"
+          @click="$router.push('/apps/keyword/add')"
+        >
           Add Keyword
         </VBtn>
       </div>
@@ -393,18 +452,37 @@ onMounted(() => {
     <VDivider class="mt-5 mb-2" />
 
     <!-- Enhanced Data Table -->
-    <VDataTableServer v-model:items-per-page="itemsPerPage" v-model:model-value="selectedRows" v-model:page="page"
-      :headers="headers" show-select :items="keywords" :loading="loading" :items-length="totalKeywords"
-      loading-text="Fetching keywords, please wait..." class="keyword-table" hover @update:options="updateOptions">
-
+    <VDataTableServer
+      v-model:page="pagination.page"
+      v-model:items-per-page="pagination.itemsPerPage"
+      v-model:model-value="selectedRows"
+      :headers="headers"
+      show-select
+      :items="keywords"
+      :loading="loading"
+      :items-length="pagination.total"
+      loading-text="Fetching keywords, please wait..."
+      class="keyword-table"
+      hover
+      @update:options="updateOptions"
+    >
       <template #item.status="{ item }">
-        <VChip :color="item.status === '1' ? 'success' : 'error'" variant="tonal" size="small" class="ma-1">
-          {{ item.status === '1' ? 'Active' : 'Deactivated' }}
+        <VChip
+          :color="item.status === '1' ? 'success' : 'error'"
+          variant="tonal"
+          size="small"
+          class="ma-1"
+        >
+          {{ item.status === "1" ? "Active" : "Deactivated" }}
         </VChip>
       </template>
 
       <template #item.processed_at="{ item }">
-        {{ item.processed_at ? new Date(item.processed_at).toLocaleString() : 'Not Processed' }}
+        {{
+          item.processed_at
+            ? new Date(item.processed_at).toLocaleString()
+            : "Not Processed"
+        }}
       </template>
 
       <template #item.actions="{ item }">
@@ -412,7 +490,9 @@ onMounted(() => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-keyword-view', params: { id: item.id } }">
+                <router-link
+                  :to="{ name: 'apps-keyword-view', params: { id: item.id } }"
+                >
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -421,7 +501,11 @@ onMounted(() => {
 
           <VTooltip text="Delete">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="handleDeleteKeyword(item.id)">
+              <IconBtn
+                v-bind="props"
+                size="small"
+                @click="handleDeleteKeyword(item.id)"
+              >
                 <VIcon icon="tabler-trash" size="24" />
               </IconBtn>
             </template>
@@ -431,10 +515,15 @@ onMounted(() => {
 
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon icon="tabler-search-off" size="48" class="text-medium-emphasis mb-4" />
+          <VIcon
+            icon="tabler-search-off"
+            size="48"
+            class="text-medium-emphasis mb-4"
+          />
           <h3 class="text-h6 mb-2">No keywords found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Try adjusting your search criteria or add new keywords to get started.
+            Try adjusting your search criteria or add new keywords to get
+            started.
           </p>
           <VBtn color="primary" :to="{ name: 'apps-keyword-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
@@ -442,9 +531,12 @@ onMounted(() => {
           </VBtn>
         </div>
       </template>
-
       <template #bottom>
-        <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalKeywords" />
+        <TablePagination
+          v-model:page="pagination.page"
+          :items-per-page="pagination.itemsPerPage"
+          :total-items="totalKeywords"
+        />
       </template>
     </VDataTableServer>
   </VCard>
@@ -483,12 +575,7 @@ onMounted(() => {
           >
             <template #selection="{ fileNames }">
               <template v-for="fileName in fileNames" :key="fileName">
-                <VChip
-                  color="success"
-                  size="small"
-                  label
-                  class="me-2"
-                >
+                <VChip color="success" size="small" label class="me-2">
                   <VIcon icon="tabler-file-excel" start />
                   {{ fileName }}
                 </VChip>
@@ -507,13 +594,17 @@ onMounted(() => {
           @dragleave="handleDragLeave"
         >
           <div class="text-center">
-            <VIcon 
-              :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'" 
-              size="48" 
+            <VIcon
+              :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'"
+              size="48"
               class="text-primary mb-4"
             />
             <h4 class="text-h6 mb-2">
-              {{ isDragOver ? 'Drop your Excel file here' : 'Drag & drop your Excel file here' }}
+              {{
+                isDragOver
+                  ? "Drop your Excel file here"
+                  : "Drag & drop your Excel file here"
+              }}
             </h4>
             <p class="text-body-2 text-medium-emphasis mb-4">
               or click "Select Excel File" above
@@ -539,7 +630,10 @@ onMounted(() => {
             <div class="mt-2">
               <div class="d-flex align-center justify-space-between">
                 <span><strong>File:</strong> {{ selectedFile.name }}</span>
-                <span><strong>Size:</strong> {{ formatFileSize(selectedFile.size) }}</span>
+                <span
+                  ><strong>Size:</strong>
+                  {{ formatFileSize(selectedFile.size) }}</span
+                >
               </div>
             </div>
           </VAlert>
@@ -562,10 +656,10 @@ onMounted(() => {
                   <li>Maximum file size: 10MB</li>
                   <li>Maximum 1000 rows per import</li>
                 </ul>
-                
-                <VBtn 
-                  variant="outlined" 
-                  size="small" 
+
+                <VBtn
+                  variant="outlined"
+                  size="small"
                   prepend-icon="tabler-download"
                   @click="templateDownload"
                 >
@@ -581,15 +675,11 @@ onMounted(() => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn 
-          variant="flat" 
-          @click="closeImportDialog"
-          :disabled="importing"
-        >
+        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn 
-          color="primary" 
+        <VBtn
+          color="primary"
           :loading="importing"
           :disabled="!selectedFile || !!fileError"
           @click="handleImportKeywords"
@@ -616,12 +706,12 @@ onMounted(() => {
   transition: all 0.3s ease;
   background-color: rgba(var(--v-theme-primary), 0.02);
   cursor: pointer;
-  
+
   &:hover {
     background-color: rgba(var(--v-theme-primary), 0.04);
     border-color: rgb(var(--v-theme-primary));
   }
-  
+
   &--dragover {
     background-color: rgba(var(--v-theme-primary), 0.08);
     border-color: rgb(var(--v-theme-primary));
@@ -694,6 +784,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -723,7 +814,7 @@ onMounted(() => {
   .v-card {
     margin: 0.5rem;
   }
-  
+
   .drop-zone {
     padding: 2rem 1rem;
   }

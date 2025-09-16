@@ -12,8 +12,16 @@ class KeywordReportResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+      public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id'       => $this->id,
+            'run_id'   => $this->run_id,
+            'domain_count'   => $this->getDomainsCount(),
+            'total_keywords'   => $this->getKeywordsCount(),
+            'accepted_keywords'   => $this->getSuccessCount(),
+            'rejected_keywords'   => $this->getFailCount(),
+            'backlinks' => $this->keywords,
+        ];
     }
 }

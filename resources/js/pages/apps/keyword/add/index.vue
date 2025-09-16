@@ -126,7 +126,7 @@ const handleSubmit = async () => {
         </VCol>
 
         <VCol cols="12" class="mt-4">
-          <VBtn :loading="submitting" color="primary" type="submit">
+          <VBtn :loading="submitting" color="primary" type="submit" class="mr-3">
             Add Keyword
           </VBtn>
           <VBtn variant="text" @click="$router.back()">Cancel</VBtn>

@@ -1,6 +1,6 @@
 <script setup>
 import { IconReport, IconChartLine } from "@tabler/icons-vue";
-import { useReportApi } from "@/composables/reportApi";
+import { useKeywordReportApi } from "@/composables/useKeywordReportApi";
 import { ref, computed, watch, onMounted } from "vue";
 
 const headers = [
@@ -8,9 +8,9 @@ const headers = [
   { title: "Run ID", key: "run_id", width: "120px" },
   { title: "Run At", key: "run_at", width: "160px" },
   { title: "Domain Count", key: "domain_count", width: "130px" },
-  { title: "Total Backlinks", key: "total_backlink", width: "140px" },
-  { title: "Accepted", key: "accepted_backlinks", width: "120px" },
-  { title: "Rejected", key: "rejected_backlinks", width: "120px" },
+  { title: "Total Keywords", key: "total_keywords", width: "140px" },
+  { title: "Accepted", key: "success", width: "120px" },
+  { title: "Rejected", key: "fail", width: "120px" },
   { title: "Success Rate", key: "success_rate", width: "130px" },
   { title: "Actions", key: "actions", sortable: false, width: "100px" },
 ];
@@ -19,11 +19,11 @@ const {
   reports, 
   loading, 
   error,
-  fetchReports, 
-  deleteReport,
-  exportReports,
+  fetchKeywordReports, 
+  deleteKeywordReport,
+  exportKeywordReports,
   showAlert 
-} = useReportApi()
+} = useKeywordReportApi()
 
 const selectedStatus = ref();
 const selectedDateRange = ref();
@@ -53,7 +53,7 @@ const buildFilters = () => {
 
 const loadReports = async () => {
   const filters = buildFilters()
-  await fetchReports(filters)
+  await fetchKeywordReports(filters)
 }
 
 const clearAllFilters = async () => {
@@ -109,7 +109,7 @@ const reportsWithStats = computed(() => {
     ...report,
     success_rate:
       report.total_backlink > 0
-        ? Math.round((report.accepted_backlinks / report.total_backlink) * 100)
+        ? Math.round((report.success / report.total_keywords) * 100)
         : 0,
   }));
 });
@@ -190,24 +190,24 @@ const dateRangeOptions = [
 ];
 
 const summaryStats = computed(() => {
-  const totalBacklinks = reports.value.reduce(
-    (sum, report) => sum + (report.total_backlink || 0),
+  const totalKeywords = reports.value.reduce(
+    (sum, report) => sum + (report.total_keywords || 0),
     0
   );
   const totalAccepted = reports.value.reduce(
-    (sum, report) => sum + (report.accepted_backlinks || 0),
+    (sum, report) => sum + (report.accepted_keywords || 0),
     0
   );
   const totalRejected = reports.value.reduce(
-    (sum, report) => sum + (report.rejected_backlinks || 0),
+    (sum, report) => sum + (report.rejected_keywords || 0),
     0
   );
   const overallSuccessRate =
-    totalBacklinks > 0 ? Math.round((totalAccepted / totalBacklinks) * 100) : 0;
+    totalKeywords > 0 ? Math.round((totalAccepted / totalKeywords) * 100) : 0;
 
   return {
     totalReports: reports.value.length,
-    totalBacklinks,
+    totalKeywords,
     totalAccepted,
     totalRejected,
     overallSuccessRate,
@@ -272,7 +272,7 @@ const applyFilters = async () => {
           <VIcon icon="tabler-link" color="white" />
         </VAvatar>
         <div class="text-h5 font-weight-bold text-info">
-          {{ summaryStats.totalBacklinks.toLocaleString() }}
+          {{ summaryStats.totalKeywords.toLocaleString() }}
         </div>
         <div class="text-body-2 text-medium-emphasis">Total Backlinks</div>
       </VCard>
@@ -578,7 +578,7 @@ const applyFilters = async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link
-                  :to="{ name: 'apps-report-view', params: { id: item.id } }"
+                  :to="{ name: 'apps-keywordreport-view', params: { id: item.id } }"
                 >
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
