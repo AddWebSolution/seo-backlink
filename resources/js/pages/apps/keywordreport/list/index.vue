@@ -533,7 +533,7 @@ const applyFilters = async () => {
         <div class="d-flex align-center">
           <VProgressCircular
             :model-value="item.success_rate"
-            size="32"
+            size="42"
             width="3"
             :color="
               item.success_rate > 80
@@ -558,6 +558,7 @@ const applyFilters = async () => {
             "
             variant="tonal"
             size="small"
+            class="ml-1"
           >
             {{
               item.success_rate > 80

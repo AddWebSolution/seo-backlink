@@ -3,13 +3,41 @@
     <!-- Modern Header with Gradient Background -->
     <VCard class="mb-8 overflow-hidden" elevation="2" color="grey lighten-4">
       <VCardText class="pa-8">
-        <VRow align="start" justify="space-between">
-          <!-- Left Column: Keyword Data Info -->
+        <VRow align="center" justify="space-between" class="mb-4">
+          <!-- Left Column: Heading and Chips -->
           <VCol cols="12" md="8">
+            <h2 class="text-h3 font-weight-bold mb-3">Keyword Data Details</h2>
+
+            <div class="d-flex align-center gap-3 flex-wrap">
+              <VChip color="primary" variant="elevated" size="large">
+                <VIcon icon="tabler-id" class="me-2" />
+                ID: {{ keywordData.id }}
+              </VChip>
+
+              <VChip color="primary" variant="flat" size="large">
+                <VIcon icon="tabler-file-report" class="me-2" />
+                Report ID: {{ keywordData.report_id }}
+              </VChip>
+
+              <VChip color="primary" variant="flat" size="large">
+                <VIcon icon="tabler-key" class="me-2" />
+                Keyword ID: {{ keywordData.keyword_id }}
+              </VChip>
+
+              <VChip color="primary" variant="flat" size="large">
+                <VIcon :icon="getStatusIcon(keywordData.status)" class="me-2" />
+                <span class="text-capitalize">{{
+                  getStatusText(keywordData.status)
+                }}</span>
+              </VChip>
+            </div>
+          </VCol>
+
+          <!-- Right Column: Inline Back Button -->
+          <VCol cols="12" md="4" class="d-flex justify-end">
             <VBtn
               color="primary"
               variant="flat"
-              class="mb-6"
               :to="{
                 name: 'apps-keywordreport-view',
                 params: { id: keywordData.report_id },
@@ -18,43 +46,7 @@
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Report Details
             </VBtn>
-
-            <div class="mb-4">
-              <h2 class="text-h3 font-weight-bold mb-3">
-                Keyword Data Details
-              </h2>
-
-              <div class="d-flex align-center gap-3 flex-wrap">
-                <VChip color="primary" variant="elevated" size="large">
-                  <VIcon icon="tabler-id" class="me-2" />
-                  ID: {{ keywordData.id }}
-                </VChip>
-
-                <VChip color="primary" variant="flat" size="large">
-                  <VIcon icon="tabler-file-report" class="me-2" />
-                  Report ID: {{ keywordData.report_id }}
-                </VChip>
-
-                <VChip color="primary" variant="flat" size="large">
-                  <VIcon icon="tabler-key" class="me-2" />
-                  Keyword ID: {{ keywordData.keyword_id }}
-                </VChip>
-
-                <VChip color="primary" variant="flat" size="large">
-                  <VIcon
-                    :icon="getStatusIcon(keywordData.status)"
-                    class="me-2"
-                  />
-                  <span class="text-capitalize">{{
-                    getStatusText(keywordData.status)
-                  }}</span>
-                </VChip>
-              </div>
-            </div>
           </VCol>
-
-          <!-- Right Column: Quick Actions -->
-          <VCol cols="12" md="4" class="d-flex justify-end"> </VCol>
         </VRow>
       </VCardText>
     </VCard>
@@ -87,20 +79,20 @@
           <VCard
             elevation="2"
             class="h-100"
-            :color="getStatusColor(keywordData.status)"
+            color="primary"
             variant="tonal"
           >
             <VCardText class="pa-6 text-center">
               <VAvatar
                 size="56"
-                :color="getStatusColor(keywordData.status)"
+                color="primary"
                 class="mb-3"
               >
-                <component :is="getStatusIcon(keywordData.status)" size="28" />
+                <VIcon icon="tabler-key" size="28" ></VIcon>
               </VAvatar>
-              <p class="text-body-2 text-medium-emphasis mb-1">Status</p>
+              <p class="text-body-2 text-medium-emphasis mb-1">Keyword</p>
               <h5 class="text-h5 font-weight-bold">
-                {{ getStatusText(keywordData.status) }}
+                {{keywordData.keyword.keyword }}
               </h5>
             </VCardText>
           </VCard>
@@ -340,7 +332,7 @@
                   <VIcon icon="tabler-world" class="me-2 text-info" size="20" />
                   <span
                     class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Client Domain</span
+                    >Domain</span
                   >
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
@@ -357,7 +349,7 @@
                   />
                   <span
                     class="text-body-2 font-weight-medium text-high-emphasis"
-                    >LLM Engine</span
+                    >LLM Model</span
                   >
                 </div>
                 <div class="ml-7">
@@ -552,52 +544,57 @@ const getStatusText = (status) => {
 };
 
 const formatLLMResponse = (response) => {
-  if (!response) return '';
-  
+  if (!response) return "";
+
   let formattedResponse = response
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/__(.*?)__/g, '<strong>$1</strong>')
-    
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/_(.*?)_/g, '<em>$1</em>')
-    
-    .replace(/^[\-\*\+] (.*)$/gm, '<li>$1</li>')
-    
-    .replace(/^\d+\. (.*)$/gm, '<li>$1</li>')
-    
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-    
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    
-    .replace(/\n\n+/g, '</p><p>')
-    .replace(/\n/g, '<br>');
-  
-  formattedResponse = formattedResponse
-    .replace(/(<li>.*?<\/li>)(\s*<li>.*?<\/li>)*/gs, (match) => {
+    .replace(/^### (.*$)/gm, "<h3>$1</h3>")
+    .replace(/^## (.*$)/gm, "<h2>$1</h2>")
+    .replace(/^# (.*$)/gm, "<h1>$1</h1>")
+
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/__(.*?)__/g, "<strong>$1</strong>")
+
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/_(.*?)_/g, "<em>$1</em>")
+
+    .replace(/^[\-\*\+] (.*)$/gm, "<li>$1</li>")
+
+    .replace(/^\d+\. (.*)$/gm, "<li>$1</li>")
+
+    .replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    )
+
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+
+    .replace(/\n\n+/g, "</p><p>")
+    .replace(/\n/g, "<br>");
+
+  formattedResponse = formattedResponse.replace(
+    /(<li>.*?<\/li>)(\s*<li>.*?<\/li>)*/gs,
+    (match) => {
       const originalText = response.substring(
-        response.indexOf(match.replace(/<[^>]*>/g, '').substring(0, 20))
+        response.indexOf(match.replace(/<[^>]*>/g, "").substring(0, 20))
       );
       const isNumberedList = /^\d+\./.test(originalText);
-      
-      const listTag = isNumberedList ? 'ol' : 'ul';
+
+      const listTag = isNumberedList ? "ol" : "ul";
       return `<${listTag}>${match}</${listTag}>`;
-    });
-  
-  if (!formattedResponse.includes('<p>') && !formattedResponse.includes('<h')) {
-    formattedResponse = '<p>' + formattedResponse + '</p>';
+    }
+  );
+
+  if (!formattedResponse.includes("<p>") && !formattedResponse.includes("<h")) {
+    formattedResponse = "<p>" + formattedResponse + "</p>";
   }
-  
+
   return formattedResponse;
 };
 
 const getLLMColor = (llmType) => {
   switch (llmType?.toLowerCase()) {
     case "gpt":
-      return "success";
+      return "error";
     case "gemini":
       return "info";
     case "cohere":
