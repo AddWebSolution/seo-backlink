@@ -4,6 +4,7 @@ namespace App\Modules\KeywordReport\Models;
 
 use App\Enums\LlmType;
 use Addweb\Base\Model\BaseModel;
+use App\Modules\ClientDomain\Models\ClientDomain;
 use App\Modules\KeywordDatum\Models\KeywordDatum;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,17 +30,29 @@ class KeywordReport extends BaseModel
 
     public function getSuccessCount(): int
     {
-        return $this->keywords()->where('status', 'approved')->count();
+        return $this->keywords()->where('status', '3')->count();
     }
 
-    public function getDomains(): array
+    public function getDomains()
     {
-        return [];
+        $keywords = $this->keywords()->get();
+
+        $domainIds = $keywords->pluck('client_domain_id')->unique()->toArray();
+
+        $domains = ClientDomain::whereIn('id', $domainIds)->get();
+
+        return $domains->map(function ($domain) {
+            return [
+                'id'         => $domain->id,
+                'title'      => $domain->title,
+                'target_url' => $domain->target_url,
+            ];
+        })->toArray();
     }
 
     public function getFailCount(): int
     {
-        return $this->keywords()->where('status', 'rejected')->count();
+        return $this->keywords()->where('status', '2')->count();
     }
 
     public function getDomainsCount(): int
@@ -50,10 +63,9 @@ class KeywordReport extends BaseModel
             ->count('client_domain_id');
     }
 
-
     public function getKeywordsCount(): int
     {
         return $this->keywords()
-            ->count('llm_type');
+            ->count('id');
     }
 }

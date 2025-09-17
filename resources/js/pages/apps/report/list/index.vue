@@ -251,7 +251,7 @@ const applyFilters = async () => {
               <IconReport stroke="{2}" />
             </VAvatar>
             <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Reports Dashboard</h1>
+              <h1 class="text-h3 font-weight-bold mb-1">Backlinks Reports</h1>
               <p class="text-body-1 text-medium-emphasis mb-0">
                 Track backlink performance and campaign analytics
               </p>

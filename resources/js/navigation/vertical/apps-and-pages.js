@@ -26,7 +26,7 @@ export default [
     ],
   },
   {
-    title: 'KeywordReport',
+    title: 'Report',
     icon: { icon: 'tabler-report' },
     children: [
       { title: 'Report List', to: 'apps-keywordreport-list' },

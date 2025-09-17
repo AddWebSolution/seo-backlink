@@ -38,7 +38,7 @@ class KeywordReportController extends BaseController
         return response()->json([
             'success'   => true,
             'report'    => $result['report'],
-            'backlinks' => $result['keywords'],
+            'keywords' => $result['keywords'],
             'domains'       => $result['domains']
         ]);
     }

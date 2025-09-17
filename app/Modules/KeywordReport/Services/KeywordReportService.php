@@ -24,34 +24,32 @@ class KeywordReportService extends BaseService
     {
         $report = KeywordReport::findOrFail($id);
 
-        $query = $report->keywords();
+        $query = $report->keywords()->with('domain','keyword');
         $report->success = $report->getSuccessCount();
         $report->fail = $report->getFailCount();
+        $report->total_keywords = $report->getKeywordsCount();
         $report->domain_count = $report->getDomainsCount();
 
         // Search
-        // if (!empty($filters['search'])) {
-        //     $search = $filters['search'];
-        //     $query->where(function ($q) use ($search) {
-        //         $q->where('url', 'like', "%{$search}%")
-        //             ->orWhere('from_url', 'like', "%{$search}%")
-        //             ->orWhere('domain', 'like', "%{$search}%")
-        //             ->orWhere('target_url', 'like', "%{$search}%")
-        //             ->orWhere('anchor', 'like', "%{$search}%")
-        //             ->orWhere('page_title', 'like', "%{$search}%");
-        //     });
-        // }
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('llm_type', 'like', "%{$search}%")
+                    ->orWhere('llm_response', 'like', "%{$search}%")
+                    ->orWhereHas('domain', function ($q2) use ($search) {
+                        $q2->where('title', 'like', "%{$search}%")
+                            ->orWhere('target_url', 'like', "%{$search}%");
+                    });
+            });
+        }
 
-        // if (!empty($filters['status'])) {
-        //     $query->where('status', $filters['status']);
-        // }
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
 
-        // if (!empty($filters['domain'])) {
-        //     $query->where(function ($q) use ($filters) {
-        //         $q->orwhere('target_url', $filters['domain'])
-        //             ->orWhere('domain', $filters['domain']);
-        //     });
-        // }
+        if (isset($filters['domain']) && $filters['domain'] !== null) {
+            $query->where('client_domain_id', $filters['domain']);
+        }
 
         $keywords = $query->paginate($perPage);
 

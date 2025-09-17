@@ -8,7 +8,6 @@ const reportId = computed(() => route.params.id);
 
 const {
   currentReport,
-  reportBacklinks,
   loading: reportLoading,
   error: reportError,
   fetchKeywordReport,
@@ -23,7 +22,7 @@ const allSeenDomains = ref(new Set());
 const uiState = reactive({
   page: 1,
   itemsPerPage: 10,
-  sortBy: [{ key: "id", order: "desc" }], // Default sort
+  sortBy: [{ key: "id", order: "desc" }],
 });
 
 const requestBody = computed(() => ({
@@ -66,31 +65,31 @@ watch([searchQuery, statusFilter, selectedDomain], () => {
 });
 
 const report = computed(() => currentReport.value?.report ?? {});
-const backlinksDomains = computed(() => currentReport.value?.domains ?? {});
+const keywordsDomains = computed(() => currentReport.value?.domains ?? {});
 
-const accepted_backlinks = computed(() => {
-  return parseInt(report.value?.accepted_backlinks || 0, 10);
+const accepted_keywords = computed(() => {
+  return parseInt(report.value?.success || 0, 10);
 });
 
-const rejected_backlinks = computed(() => {
-  return parseInt(report.value?.rejected_backlinks || 0, 10);
+const rejected_keywords = computed(() => {
+  return parseInt(report.value?.fail || 0, 10);
 });
 
 const currentPage = computed({
-  get: () => backlinksData.value.current_page || 1,
+  get: () => keywordsData.value.current_page || 1,
   set: (value) => {
     uiState.page = value;
   },
 });
 
-const totalItems = computed(() => backlinksData.value.total || 0);
+const totalItems = computed(() => keywordsData.value.total || 0);
 const itemsPerPage = computed(
-  () => backlinksData.value.per_page || uiState.itemsPerPage
+  () => keywordsData.value.per_page || uiState.itemsPerPage
 );
-const lastPage = computed(() => backlinksData.value.last_page || 1);
+const lastPage = computed(() => keywordsData.value.last_page || 1);
 
-const backlinksData = computed(() => {
-  const data = currentReport.value?.backlinks;
+const keywordsData = computed(() => {
+  const data = currentReport.value?.keywords;
   if (!data) {
     return {
       data: [],
@@ -105,14 +104,14 @@ const backlinksData = computed(() => {
   return data;
 });
 
-const allBacklinks = computed(() => backlinksData.value.data ?? []);
+const allKeywords = computed(() => keywordsData.value.data ?? []);
 
 const availableDomains = computed(() => {
   return Array.from(allSeenDomains.value).sort();
 });
 
 watch(
-  () => allBacklinks.value,
+  () => allKeywords.value,
   (newBacklinks) => {
     if (newBacklinks && newBacklinks.length > 0) {
       newBacklinks.forEach((backlink) => {
@@ -127,24 +126,36 @@ watch(
 
 const domainOptions = computed(() => {
   const options = [{ title: "All Domains", value: "" }];
-  Object.entries(backlinksDomains.value).forEach(([title, targetUrl]) => {
-    options.push({
-      title,
-      value: targetUrl,
+  const data = keywordsDomains.value;
+  if (Array.isArray(data)) {
+    data.forEach((domain) => {
+      options.push({
+        title: domain.title,
+        value: domain.id,
+      });
     });
-  });
+  } else if (typeof data === 'object' && data !== null) {
+    Object.entries(data).forEach(([id, domain]) => {
+      options.push({
+        title: domain.title,
+        value: domain.id,
+      });
+    });
+  }
+
   return options;
 });
 
+
 const getStatusConfig = (status) => {
-  if (status === "accepted")
+  if (status == 3)
     return {
       color: "success",
       icon: "tabler-progress-check",
-      text: "Accepted",
+      text: "Success",
     };
-  if (status === "rejected")
-    return { color: "error", icon: "tabler-progress-x", text: "Rejected" };
+  if (status == 2)
+    return { color: "error", icon: "tabler-progress-x", text: "Failed" };
   return { color: "warning", icon: "tabler-clock", text: "Pending" };
 };
 
@@ -163,13 +174,13 @@ const getScoreColor = (score) => {
 
 const stats = computed(() => {
   return {
-    total: report.value.total_backlink || 0,
-    accepted: report.value.accepted_backlinks || accepted_backlinks.value,
-    rejected: report.value.rejected_backlinks || rejected_backlinks.value,
+    total: report.value.total_keywords || 0,
+    accepted: report.value.success || 0,
+    rejected: report.value.fail || rejected_keywords.value,
     pending:
-      (report.value.total_backlink || 0) -
-      (report.value.accepted_backlinks || accepted_backlinks.value) -
-      (report.value.rejected_backlinks || rejected_backlinks.value),
+      (report.value.total_keywords || 0) -
+      (report.value.success || accepted_keywords.value) -
+      (report.value.fail || rejected_keywords.value),
     domains: report.value.domain_count || 0,
   };
 });
@@ -185,9 +196,9 @@ const formatDate = (dateString) => {
 
 const statusOptions = [
   { title: "All Status", value: "" },
-  { title: "Accepted", value: "accepted" },
-  { title: "Rejected", value: "rejected" },
-  { title: "Pending", value: "pending" },
+  { title: "Success", value: 3 },
+  { title: "Faild", value: 2 },
+  { title: "Pending", value: 1 },
 ];
 
 const clearFilters = () => {
@@ -232,15 +243,50 @@ const isLoading = computed(() => reportLoading.value);
 // DataTable configuration
 const headers = computed(() => [
   {
-    title: "Domain",
-    key: "domain",
+    title: "ID",
+    key: "id",
     align: "center",
     sortable: true,
     width: "80px",
   },
   {
-    title: "Target URL",
-    key: "target_url",
+    title: "Keyword",
+    key: "keyword.keyword",
+    align: "center",
+    sortable: true,
+    width: "100px",
+  },
+  {
+    title: "Domain",
+    key: "domain.title",
+    align: "center",
+    sortable: true,
+    width: "120px",
+  },
+  {
+    title: "LLM Model",
+    key: "llm_type",
+    align: "center",
+    sortable: true,
+    width: "80px",
+  },
+  {
+    title: "Domain Found",
+    key: "domain_found_in_response",
+    align: "center",
+    sortable: true,
+    width: "80px",
+  },
+  // {
+  //   title: "LLM Response",
+  //   key: "llm_response",
+  //   align: "center",
+  //   sortable: true,
+  //   width: "100px",
+  // },
+  {
+    title: "Highlights",
+    key: "highlights",
     align: "center",
     sortable: true,
     width: "100px",
@@ -248,55 +294,6 @@ const headers = computed(() => [
   {
     title: "Status",
     key: "status",
-    align: "center",
-    sortable: true,
-    width: "120px",
-  },
-  {
-    title: "Tier",
-    key: "tier",
-    align: "center",
-    sortable: true,
-    width: "80px",
-  },
-  {
-    title: "Score",
-    key: "score",
-    align: "center",
-    sortable: true,
-    width: "80px",
-  },
-  {
-    title: "Type",
-    key: "do_follow",
-    align: "center",
-    sortable: true,
-    width: "100px",
-  },
-  {
-    title: "Spam %",
-    key: "spam_score",
-    align: "center",
-    sortable: true,
-    width: "80px",
-  },
-  {
-    title: "Page Rank",
-    key: "rank",
-    align: "center",
-    sortable: true,
-    width: "100px",
-  },
-  {
-    title: "Domain Rank",
-    key: "domain_rank",
-    align: "center",
-    sortable: true,
-    width: "110px",
-  },
-  {
-    title: "Link Status",
-    key: "is_broken",
     align: "center",
     sortable: true,
     width: "100px",
@@ -318,8 +315,8 @@ const handleOptionsUpdate = ({ page, itemsPerPage, sortBy }) => {
 };
 
 const serverItems = computed(() => ({
-  items: backlinksData.value.data || [],
-  total: backlinksData.value.total || 0,
+  items: keywordsData.value.data || [],
+  total: keywordsData.value.total || 0,
 }));
 </script>
 
@@ -351,7 +348,7 @@ const serverItems = computed(() => ({
           </VCol>
 
           <VCol cols="12" md="4" class="d-flex justify-end">
-            <VBtn variant="flat" :to="{ name: 'apps-report-list' }">
+            <VBtn variant="flat" :to="{ name: 'apps-keywordreport-list' }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Reports
             </VBtn>
@@ -443,7 +440,7 @@ const serverItems = computed(() => ({
               <h4 class="text-h4 font-weight-bold text-secondary">
                 {{
                 stats.total
-                ? Math.round((accepted_backlinks / stats.total) * 100)
+                ? Math.round((accepted_keywords / stats.total) * 100)
                 : 0
                 }}%
               </h4>
@@ -518,7 +515,7 @@ const serverItems = computed(() => ({
             </VCol>
 
             <VCol cols="12" md="1">
-               <VBtn variant="outlined" color="secondary" @click="clearFilters"
+              <VBtn variant="outlined" color="secondary" @click="clearFilters"
                 :disabled="!searchQuery && !statusFilter && !selectedDomain" prepend-icon="tabler-filter-x">
                 Clear Filters
               </VBtn>
@@ -562,10 +559,10 @@ const serverItems = computed(() => ({
               <VIcon icon="tabler-link" />
             </VAvatar>
             <div>
-              <h5 class="text-h5">Backlinks Results</h5>
+              <h5 class="text-h5">Keyword Results</h5>
               <p class="text-body-2 text-medium-emphasis">
-                Showing {{ allBacklinks.length }} of
-                {{ backlinksData.total }} results
+                Showing {{ allKeywords.length }} of
+                {{ keywordsData.total }} results
                 <template v-if="selectedDomain">
                   in {{ selectedDomain }}
                 </template>
@@ -588,17 +585,12 @@ const serverItems = computed(() => ({
             { value: 100, title: '100' },
             { value: 500, title: '500' },
           ]" class="reports-table">
-          <!-- Your existing template slots here... -->
-          <!-- Target URL Column -->
-          <template #item.target_url="{ item }">
-            <a :href="item.target_url" target="_blank" class="text-success text-decoration-none text-body-1"
-              :title="item.target_url">
-              <VIcon icon="tabler-target" class="me-1 flex-shrink-0" size="16" />
-              <span class="text-truncate" style="max-width: 200px">
-                {{ item.target_url }}
-              </span>
-              <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
-            </a>
+
+          <template #item.domain_found_in_response="{ item }">
+            <VChip :color="item.domain_found_in_response == 1 ? 'success' : 'error'" variant="tonal" size="small"
+              class="ma-1">
+              <VIcon :icon="item.domain_found_in_response == 1 ? 'tabler-check' : 'tabler-x'" size="24" class="me-1" />
+            </VChip>
           </template>
 
           <!-- Status Column -->
@@ -607,63 +599,6 @@ const serverItems = computed(() => ({
               <VIcon :icon="getStatusConfig(item.status).icon" size="14" class="me-1" />
               {{ getStatusConfig(item.status).text }}
             </VChip>
-          </template>
-
-          <!-- Tier Column -->
-          <template #item.tier="{ item }">
-            <VChip :color="getTierColor(item.tier || 0)" variant="tonal" size="small">
-              {{ item.tier || 0 }}
-            </VChip>
-          </template>
-
-          <!-- Score Column -->
-          <template #item.score="{ item }">
-            <VChip :color="getScoreColor(item.score || 0)" variant="tonal" size="small">
-              {{ item.score || 0 }}
-            </VChip>
-          </template>
-
-          <!-- Type Column -->
-          <template #item.do_follow="{ item }">
-            <VChip :color="item.do_follow ? 'success' : 'error'" variant="tonal" size="small">
-              <VIcon :icon="
-                  item.do_follow
-                    ? 'tabler-circles-relation'
-                    : 'tabler-space-off'
-                " size="14" class="me-1" />
-              {{ item.do_follow ? "DoFollow" : "NoFollow" }}
-            </VChip>
-          </template>
-
-          <!-- Spam Score Column -->
-          <template #item.spam_score="{ item }">
-            <VChip :color="
-                (item.spam_score || 0) > 50
-                  ? 'error'
-                  : (item.spam_score || 0) > 20
-                  ? 'warning'
-                  : 'success'
-              " variant="tonal" size="small">
-              {{ item.spam_score || 0 }}%
-            </VChip>
-          </template>
-
-          <!-- Page Rank Column -->
-          <template #item.rank="{ item }">
-            <div class="text-center">
-              <VIcon icon="tabler-arrow-badge-up" color="warning" size="16" class="me-1" />
-              <span class="font-weight-medium">{{ item.rank || 0 }}</span>
-            </div>
-          </template>
-
-          <!-- Domain Rank Column -->
-          <template #item.domain_rank="{ item }">
-            <div class="text-center">
-              <VIcon icon="tabler-network" size="16" class="me-1" />
-              <span class="font-weight-medium">{{
-                item.domain_rank || 0
-                }}</span>
-            </div>
           </template>
 
           <!-- Link Status Column -->

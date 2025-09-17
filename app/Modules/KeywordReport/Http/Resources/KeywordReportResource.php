@@ -21,7 +21,7 @@ class KeywordReportResource extends JsonResource
             'total_keywords'   => $this->getKeywordsCount(),
             'accepted_keywords'   => $this->getSuccessCount(),
             'rejected_keywords'   => $this->getFailCount(),
-            'backlinks' => $this->keywords,
+            'keywords' => $this->keywords,
         ];
     }
 }

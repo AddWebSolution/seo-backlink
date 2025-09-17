@@ -9,8 +9,8 @@ const headers = [
   { title: "Run At", key: "run_at", width: "160px" },
   { title: "Domain Count", key: "domain_count", width: "130px" },
   { title: "Total Keywords", key: "total_keywords", width: "140px" },
-  { title: "Accepted", key: "success", width: "120px" },
-  { title: "Rejected", key: "fail", width: "120px" },
+  { title: "Accepted", key: "accepted_keywords", width: "120px" },
+  { title: "Rejected", key: "rejected_keywords", width: "120px" },
   { title: "Success Rate", key: "success_rate", width: "130px" },
   { title: "Actions", key: "actions", sortable: false, width: "100px" },
 ];
@@ -20,8 +20,6 @@ const {
   loading, 
   error,
   fetchKeywordReports, 
-  deleteKeywordReport,
-  exportKeywordReports,
   showAlert 
 } = useKeywordReportApi()
 
@@ -108,8 +106,8 @@ const reportsWithStats = computed(() => {
   return reports.value.map((report) => ({
     ...report,
     success_rate:
-      report.total_backlink > 0
-        ? Math.round((report.success / report.total_keywords) * 100)
+      report.total_keywords > 0
+        ? Math.round((report.accepted_keywords / report.total_keywords) * 100)
         : 0,
   }));
 });
@@ -242,7 +240,7 @@ const applyFilters = async () => {
               <IconReport stroke="{2}" />
             </VAvatar>
             <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Reports Dashboard</h1>
+              <h1 class="text-h3 font-weight-bold mb-1">Keyword Reports</h1>
               <p class="text-body-1 text-medium-emphasis mb-0">
                 Track backlink performance and campaign analytics
               </p>
@@ -274,7 +272,7 @@ const applyFilters = async () => {
         <div class="text-h5 font-weight-bold text-info">
           {{ summaryStats.totalKeywords.toLocaleString() }}
         </div>
-        <div class="text-body-2 text-medium-emphasis">Total Backlinks</div>
+        <div class="text-body-2 text-medium-emphasis">Total Keywords</div>
       </VCard>
     </VCol>
     <VCol cols="12" sm="6" md="2">
@@ -305,7 +303,7 @@ const applyFilters = async () => {
           <VIcon icon="tabler-percentage" color="white" />
         </VAvatar>
         <div class="text-h5 font-weight-bold text-warning">
-          {{ summaryStats.overallSuccessRate }}%
+          {{ summaryStats.overallSuccessRate.toLocaleString() }}%
         </div>
         <div class="text-body-2 text-medium-emphasis">Success Rate</div>
       </VCard>
@@ -500,7 +498,7 @@ const applyFilters = async () => {
         </div>
       </template>
 
-      <template #item.total_backlink="{ item }">
+      <template #item.total_keywords="{ item }">
         <div class="d-flex align-center">
           <VIcon
             icon="tabler-link"
@@ -508,16 +506,16 @@ const applyFilters = async () => {
             class="me-2 text-medium-emphasis"
           />
           <span class="font-weight-bold">{{
-            (item.total_backlink || 0).toLocaleString()
+            (item.total_keywords || 0).toLocaleString()
           }}</span>
         </div>
       </template>
 
-      <template #item.accepted_backlinks="{ item }">
+      <template #item.accepted_keywords="{ item }">
         <div class="d-flex align-center">
           <VIcon icon="tabler-check" size="16" class="me-2 text-success" />
           <span class="font-weight-bold text-success">{{
-            (item.accepted_backlinks || 0).toLocaleString()
+            (item.accepted_keywords || 0).toLocaleString()
           }}</span>
         </div>
       </template>
