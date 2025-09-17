@@ -613,7 +613,7 @@ const serverItems = computed(() => ({
           <template #item.actions="{ item }">
             <div class="d-flex justify-center">
               <VBtn :to="{
-                  name: 'apps-report-backlink-view',
+                  name: 'apps-keywordreport-keyword-view',
                   params: { id: item.id },
                 }" icon variant="text" size="small" color="primary">
                 <VIcon icon="tabler-eye" size="26" />

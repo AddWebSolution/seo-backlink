@@ -381,6 +381,7 @@
     "useDomainApi": true,
     "useReportApi": true,
     "useKeywordApi": true,
-    "useKeywordReportApi": true
+    "useKeywordReportApi": true,
+    "useKeywordShow": true
   }
 }

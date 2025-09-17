@@ -14,6 +14,12 @@ class KeywordDatumResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        $default = parent::toArray($request);
+
+        return array_merge($default, [
+            'keyword' => $this->keyword,
+            'domain' => $this->domain,
+            'report' => $this->report
+        ]);
     }
 }
