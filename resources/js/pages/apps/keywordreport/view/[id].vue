@@ -470,7 +470,7 @@ const serverItems = computed(() => ({
               <VBtnToggle v-model="searchScope" color="primary" variant="outlined" mandatory class="w-100">
                 <VBtn value="global" class="flex-grow-1">
                   <VIcon icon="tabler-world" class="me-2" />
-                  Search All Backlinks
+                  Search All Keywords
                 </VBtn>
                 <VBtn value="domain" class="flex-grow-1" :disabled="domainOptions.length === 0">
                   <VIcon icon="tabler-sitemap" class="me-2" />
@@ -496,10 +496,10 @@ const serverItems = computed(() => ({
 
             <!-- Search Field -->
             <VCol cols="12" md="4">
-              <VTextField v-model="searchQuery" variant="outlined" label="Search backlinks..." :placeholder="
+              <VTextField v-model="searchQuery" variant="outlined" label="Search keywords..." :placeholder="
                   searchScope === 'domain' && selectedDomain
                     ? `Search in ${selectedDomain}...`
-                    : 'Search by domain, URL, or anchor text'
+                    : 'Search by domain, llm, or response'
                 " hide-details clearable prepend-inner-icon="tabler-search" @keyup.enter="handleSearch" />
             </VCol>
 

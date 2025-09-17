@@ -6,10 +6,10 @@ import { IconWorldWww } from "@tabler/icons-vue";
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
   {
-    title: "Client Domain",
-    key: "client_domain_id",
+    title: "Domain",
+    key: "domain.title",
     align: "center",
-    width: "50px",
+    width: "80px",
   },
   { title: "Keyword", key: "keyword", align: "center", width: "100px" },
   { title: "Status", key: "status", align: "center", width: "20px" },
@@ -289,7 +289,7 @@ onMounted(() => {
         <VCol cols="12" md="8">
           <div class="d-flex align-center">
             <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-              <IconWorldWww stroke="{2}" />
+              <VIcon icon="tabler-key" size="26" ></VIcon>
             </VAvatar>
             <div>
               <h1 class="text-h3 font-weight-bold mb-1">Keyword Management</h1>

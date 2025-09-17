@@ -12,8 +12,12 @@ class KeywordResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        $default = parent::toArray($request);
+
+        return array_merge($default, [
+            'domain' => $this->domain,
+        ]);
     }
 }

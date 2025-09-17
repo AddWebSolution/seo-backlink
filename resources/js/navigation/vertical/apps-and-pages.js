@@ -29,7 +29,7 @@ export default [
     title: 'Report',
     icon: { icon: 'tabler-report' },
     children: [
-      { title: 'Report List', to: 'apps-keywordreport-list' },
+      { title: 'Report List', to: 'apps-keywordreport-list',icon: { icon: 'tabler-list' } },
     ],
   },
   // {
