@@ -1,17 +1,35 @@
+
 export default [
-  { heading: 'Apps & Pages' },
+  { heading: 'SEO Backlink' },
   {
     title: 'Domain',
-    icon: { icon: 'tabler-file-invoice' },
+    icon: { icon: 'tabler-world' },
     children: [
-      { title: 'Domain', to: 'apps-domain-list' },
-      { title: 'Add Domain', to: 'apps-domain-add' },
+    { title: 'Domain List', to: 'apps-domain-list', icon: { icon: 'tabler-list' } },
+    { title: 'Add Domain', to: 'apps-domain-add',  icon: { icon: 'tabler-circle-plus' } },
+  ],
+  },
+  {
+    title: 'Report',
+    icon: { icon: 'tabler-report' },
+    children: [
+      { title: 'Report List', to: 'apps-report-list' ,icon: { icon: 'tabler-list' } },
+    ],
+  },
+   { heading: 'SEO Keyword' },
+  {
+    title: 'Keyword',
+    icon: { icon: 'tabler-key' },
+    children: [
+      { title: 'Keyword', to: 'apps-keyword-list',icon: { icon: 'tabler-list' }  },
+      { title: 'Add Keyword', to: 'apps-keyword-add',icon: { icon: 'tabler-circle-plus' } },
     ],
   },
   {
     title: 'Report',
+    icon: { icon: 'tabler-report' },
     children: [
-      { title: 'Report List', to: 'apps-report-list' },
+      { title: 'Report List', to: 'apps-keywordreport-list',icon: { icon: 'tabler-list' } },
     ],
   },
   // {

@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Modules\KeywordDatum\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class KeywordDatumResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        $default = parent::toArray($request);
+
+        return array_merge($default, [
+            'keyword' => $this->keyword,
+            'domain' => $this->domain,
+            'report' => $this->report
+        ]);
+    }
+}

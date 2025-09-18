@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use App\Modules\Report\Models\Report;
 use App\Modules\ClientDomain\Models\ClientDomain;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Modules\Backlinkreport\Models\Backlinkreport;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
@@ -78,7 +78,7 @@ class ClientDomainFactory extends Factory
             
             // Create 10 backlink reports for this domain
             for ($i = 0; $i < 10; $i++) {
-                Backlinkreport::create([
+                BacklinkDatum::create([
                     'report_id' => $currentReport->id,
                     'target_url' => $clientDomain->target_url,
                     'domain' => $clientDomain->title,

@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         // Reports table
-        Schema::create('reports', function (Blueprint $table) {
+        Schema::create('backlink_reports', function (Blueprint $table) {
             $table->id();
             $table->string('run_id')->index();
             $table->integer('domain_count')->nullable();
@@ -23,6 +23,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('reports');
+        Schema::dropIfExists('backlink_reports');
     }
 };

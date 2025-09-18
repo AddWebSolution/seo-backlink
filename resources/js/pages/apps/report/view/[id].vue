@@ -330,7 +330,7 @@ const serverItems = computed(() => ({
       <div class="pa-8">
         <VRow align="center" justify="space-between">
           <VCol cols="12" md="8">
-            <h2 class="text-h3 font-weight-bold mb-4">Report Analysis</h2>
+            <h2 class="text-h3 font-weight-bold mb-4">Backlink Analysis</h2>
 
             <div class="d-flex align-center flex-wrap gap-3">
               <VChip color="primary" variant="elevated" size="large">

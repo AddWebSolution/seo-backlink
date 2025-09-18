@@ -17,6 +17,7 @@ const headers = [
 
 const { 
   reports, 
+  pagination,
   loading, 
   error,
   fetchReports, 
@@ -31,7 +32,6 @@ const searchQuery = ref("");
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
 
-const itemsPerPage = ref(10);
 const page = ref(1);
 const sortBy = ref();
 const orderBy = ref();
@@ -41,19 +41,19 @@ const buildFilters = () => {
   
   if (selectedStatus.value) filters.status = selectedStatus.value
   if (selectedDateRange.value) filters.date_range = selectedDateRange.value
-  if (searchQuery.value) filters.search = searchQuery.value
-  if (sortBy.value) filters.sort_by = sortBy.value
-  if (orderBy.value) filters.order_by = orderBy.value
-  
-  filters.page = page.value
-  filters.per_page = itemsPerPage.value
+  if (searchQuery.value) filters.searchTerm = searchQuery.value
+  if (sortBy.value) filters.sortField = sortBy.value
+  if (orderBy.value) filters.sortOrder = orderBy.value
+
+  filters.pageNumber = pagination.value.page;
+  filters.perPage = pagination.value.itemsPerPage;
   
   return filters
 }
 
 const loadReports = async () => {
   const filters = buildFilters()
-  await fetchReports(filters)
+  await fetchReports(filters, pagination.value.page);
 }
 
 const clearAllFilters = async () => {
@@ -86,19 +86,28 @@ const hasActiveFilters = computed(() => {
   return selectedStatus.value || selectedDateRange.value || searchQuery.value;
 });
 
-const updateOptions = async (options) => {
-  sortBy.value = options.sortBy[0]?.key;
-  orderBy.value = options.sortBy[0]?.order;
-  page.value = options.page
-  itemsPerPage.value = options.itemsPerPage
-  await loadReports();
-};
 
 // onMounted(() => {
 //   loadReports()
 // })
 
-const totalReports = computed(() => reports.value?.length ?? 0);
+const totalReports = computed(() => pagination.value.total ?? 0);
+
+
+const itemsPerPage = computed({
+  get: () => pagination.value.itemsPerPage,
+  set: (val) => {
+    pagination.value.itemsPerPage = val;
+    pagination.value.page = 1;
+    // loadReports();
+  },
+});
+
+const updateOptions = async (options) => {
+  pagination.value.itemsPerPage = options.itemsPerPage;
+  pagination.value.page = options.page;
+  await loadReports();
+};
 
 watch(selectedRows, (val) => {
   console.log("Selected rows:", val);
@@ -242,7 +251,7 @@ const applyFilters = async () => {
               <IconReport stroke="{2}" />
             </VAvatar>
             <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Reports Dashboard</h1>
+              <h1 class="text-h3 font-weight-bold mb-1">Backlinks Reports</h1>
               <p class="text-body-1 text-medium-emphasis mb-0">
                 Track backlink performance and campaign analytics
               </p>
@@ -454,9 +463,9 @@ const applyFilters = async () => {
 
     <!-- Enhanced Data Table -->
     <VDataTableServer
-      v-model:items-per-page="itemsPerPage"
+      :page="page"
+      :items-per-page="itemsPerPage"
       v-model:model-value="selectedRows"
-      v-model:page="page"
       :headers="headers"
       show-select
       :items="reportsWithStats"
@@ -621,9 +630,9 @@ const applyFilters = async () => {
       </template>
       <template #bottom>
         <TablePagination
-          v-model:page="page"
-          :items-per-page="itemsPerPage"
-          :total-items="totalProduct"
+          v-model:page="pagination.page"
+          :items-per-page="pagination.itemsPerPage"
+          :total-items="totalReports"
         />
       </template>
     </VDataTableServer>

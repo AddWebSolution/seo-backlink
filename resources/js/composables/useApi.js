@@ -19,7 +19,11 @@ export const useApi = createFetch({
           Authorization: `Bearer ${accessToken}`,
         };
       }
-      if (options.body && typeof options.body === "object") {
+      if (
+        !options.skipJsonTransform &&
+        options.body &&
+        typeof options.body === "object"
+      ) {
         const rawBody = unref(options.body);
         options.body = JSON.stringify(rawBody);
         options.headers = {
@@ -33,16 +37,18 @@ export const useApi = createFetch({
     },
     afterFetch(ctx) {
       const { data, response } = ctx;
-
-      // Parse data if it's JSON
       let parsedData = null;
+
       try {
         parsedData = destr(data);
       } catch (error) {
         console.error(error);
       }
 
-      return { data: parsedData, response };
+      // Unwrap Ref if present
+      const unwrappedData = parsedData?._value ?? parsedData;
+
+      return { data: unwrappedData, response };
     },
   },
 });

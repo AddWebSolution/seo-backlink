@@ -1,162 +1,266 @@
 // @/composables/useDomainApi.js
-import { ref, readonly } from 'vue'
-import { useApi } from './useApi'
-import { useAlert } from './useAlert'
+import { ref, readonly } from "vue";
+import { useApi } from "./useApi";
+import { useAlert } from "./useAlert";
 
 export function useDomainApi() {
-    const { showAlert } = useAlert()
-    
-    const domains = ref([])
-    const domainList = ref([])
-    const currentDomain = ref(null)
-    const loading = ref(false)
-    const error = ref(null)
+  const { showAlert } = useAlert();
 
-    // get domains by id 
-    const fetchDomain = async (id) => {
-        loading.value = true
-        error.value = null
-        try {
-            const result = await useApi(`api/clientdomain/get/${id}`, { 
-                method: 'POST' 
-            })
-            currentDomain.value = result.data.value.data
-            return result
-        } catch (err) {
-            error.value = err
-            currentDomain.value = null
-            showAlert('Failed to load domain', 'error')
-            throw err
-        } finally {
-            loading.value = false
-        }
+  const domains = ref([]);
+  const pagination = ref({
+    total: 0,
+    currentPage: 1,
+    perPage: 10,
+    lastPage: 1,
+    itemsPerPage: 10,
+    page: 1,
+  });
+  const domainList = ref([]);
+  const currentDomain = ref(null);
+  const loading = ref(false);
+  const error = ref(null);
+
+  // get domains by id
+  const fetchDomain = async (id) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const result = await useApi(`api/clientdomain/get/${id}`, {
+        method: "POST",
+      });
+      currentDomain.value = result.data.value.data;
+      return result;
+    } catch (err) {
+      error.value = err;
+      currentDomain.value = null;
+      showAlert("Failed to load domain", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // get all domains
+  const fetchDomains = async (filters = {}, page = null) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const body = {
+        ...filters
+      };
+      const result = await useApi(createUrl("api/clientdomain/get",{query : body}), {
+        method: "POST",
+      });
+
+      domains.value = result.data.value.data.resource;
+      const apiPagination = result.data.value.data.pagination;
+
+      pagination.value = {
+        total: apiPagination.total,
+        currentPage: apiPagination.currentPage,
+        perPage: apiPagination.perPage,
+        lastPage: apiPagination.lastPage,
+        itemsPerPage: apiPagination.perPage,
+        page: apiPagination.currentPage,
+      };
+
+      return result;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to load domains", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // import domains
+
+  const importDomains = async (file) => {
+    if (!file) {
+      showAlert("No file selected", "error");
+      return { success: false, message: "No file selected" };
     }
 
-    // get all domains 
-    const fetchDomains = async (filters = {}) => {
-        loading.value = true
-        error.value = null
-        
-        try {
-            const result = await useApi('api/clientdomain/get', {
-                method: 'POST',
-                body: filters
-            })
-            domains.value = result.data.value.data.resource;
-            return result
-        } catch (err) {
-            error.value = err
-            showAlert('Failed to load domains', 'error')
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
+    loading.value = true;
+    error.value = null;
 
-    // create domain
-    const createDomain = async (payload) => {
-        loading.value = true
-        error.value = null
-        
-        try {
-            const result = await useApi('api/clientdomain/store', {
-                method: 'POST',
-                body: payload,
-            })
-            
-            showAlert('Domain created successfully!', 'success')
-            await fetchDomains() 
-            return result
-        } catch (err) {
-            error.value = err
-            showAlert('Failed to create domain', 'error')
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    // update domain
-    const updateDomain = async (id, payload) => {
-        loading.value = true
-        error.value = null
-        
-        try {
-            const result = await useApi(`api/clientdomain/update/${id}`, {
-                method: 'POST',
-                body: payload,
-            })
-            
-            showAlert('Domain updated successfully!', 'success')
-            await fetchDomains()
-            return result
-        } catch (err) {
-            error.value = err
-            showAlert('Failed to update domain', 'error')
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
+      const result = await useApi("api/clientdomain/import", {
+        method: "POST",
+        body: formData,
+        skipJsonTransform: true,
+      });
 
-    // delete domain
-    const deleteDomain = async (id) => {
-        loading.value = true
-        error.value = null
-        
-        try {
-            const result = await useApi(`api/clientdomain/delete/${id}`, { 
-                method: 'POST' 
-            })
-            
-            showAlert('Domain deleted successfully!', 'success')
-            await fetchDomains() 
-            return result
-        } catch (err) {
-            error.value = err
-            showAlert('Failed to delete domain', 'error')
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
+      if (result.error.value || result.statusCode.value >= 400) {
+        const errorMsg = result.data.value?.message || "Import failed";
+        showAlert(errorMsg, "error");
+        return { success: false, message: errorMsg };
+      }
 
-    // get domain list
-    const fetchDomainList = async () => {
-        loading.value = true
-        error.value = null
-        
-        try {
-            const result = await useApi('api/clientdomain/domain/list', {
-                method: 'POST',
-            })
-            domainList.value = result|| []
-            return result
-        } catch (err) {
-            error.value = err
-            domainList.value = []
-            showAlert('Failed to load domain list', 'error')
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
+      const responseData = result.data.value;
+      const successMsg =
+        responseData?.message || "Domains imported successfully!";
 
-    return {
-        domains: readonly(domains),
-        domainList: readonly(domainList),
-        currentDomain: readonly(currentDomain),
-        loading: readonly(loading),
-        error: readonly(error),
-        
-        // Methods
-        fetchDomains,
-        fetchDomainList, 
-        fetchDomain,
-        createDomain,
-        updateDomain,
-        deleteDomain,
+      showAlert(successMsg, "success");
+      await fetchDomains();
 
-        showAlert
+      return {
+        success: true,
+        message: successMsg,
+        data: responseData,
+      };
+    } catch (err) {
+      error.value = err;
+      const errorMsg = "Failed to import domains";
+      showAlert(errorMsg, "error");
+      return { success: false, message: errorMsg };
+    } finally {
+      loading.value = false;
     }
+  };
+
+  // Download Domain Import Template
+  const downloadTemplate = async () => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await fetch("/api/clientdomain/import/template/download", {
+        method: "GET",
+        headers: {
+          Accept:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          Authorization: `Bearer ${useCookie("accessToken").value}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      return blob;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to fetch keyword template", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // create domain
+  const createDomain = async (payload) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await useApi("api/clientdomain/store", {
+        method: "POST",
+        body: payload,
+      });
+
+      showAlert("Domain created successfully!", "success");
+      await fetchDomains();
+      return result;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to create domain", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // update domain
+  const updateDomain = async (id, payload) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await useApi(`api/clientdomain/update/${id}`, {
+        method: "POST",
+        body: payload,
+      });
+
+      showAlert("Domain updated successfully!", "success");
+      await fetchDomains();
+      return result;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to update domain", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // delete domain
+  const deleteDomain = async (id) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await useApi(`api/clientdomain/delete/${id}`, {
+        method: "POST",
+      });
+
+      showAlert("Domain deleted successfully!", "success");
+      await fetchDomains();
+      return result;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to delete domain", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // get domain list
+  const fetchDomainList = async () => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await useApi("api/clientdomain/domain/list", {
+        method: "POST",
+      });
+      console.log("Domain List API Result:", result);
+      domainList.value = result.data.value.domains || [];
+      return result;
+    } catch (err) {
+      error.value = err;
+      domainList.value = [];
+      showAlert("Failed to load domain list", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  return {
+    domains: readonly(domains),
+    pagination : pagination,
+    domainList: domainList,
+    currentDomain: readonly(currentDomain),
+    loading: readonly(loading),
+    error: readonly(error),
+
+    // Methods
+    fetchDomains,
+    fetchDomainList,
+    importDomains,
+    fetchDomain,
+    downloadTemplate,
+    createDomain,
+    updateDomain,
+    deleteDomain,
+
+    showAlert,
+  };
 }

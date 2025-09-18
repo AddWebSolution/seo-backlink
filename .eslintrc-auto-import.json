@@ -379,6 +379,9 @@
     "useExportReport": true,
     "useAlert": true,
     "useDomainApi": true,
-    "useReportApi": true
+    "useReportApi": true,
+    "useKeywordApi": true,
+    "useKeywordReportApi": true,
+    "useKeywordShow": true
   }
 }
