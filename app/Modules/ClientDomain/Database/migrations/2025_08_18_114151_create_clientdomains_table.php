@@ -26,7 +26,7 @@ return new class extends Migration
             $table->integer('turnaround_time')->nullable();
             $table->enum('status', ['1', '2'])->nullable()->comment('1 = available, 2 = unavailable');
             $table->tinyInteger('approval_status')->unsigned()->default(1)
-                ->comment('1 = Pending, 2 = Rejected, 3 = Approved');
+                ->comment('1 = Pending, 2 = Rejected, 3 = Approved')->nullable();
             $table->string('country')->nullable();
             $table->string('anchor_text')->nullable();
             $table->text('special_requirements')->nullable();
