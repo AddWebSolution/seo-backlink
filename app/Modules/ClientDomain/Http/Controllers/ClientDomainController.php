@@ -37,8 +37,8 @@ class ClientDomainController extends BaseController
         ]);
     }
 
-    public function domainImport(Request $request){
-
+    public function domainImport(Request $request)
+    {
         try {
             $file = $request->file('file');
 
@@ -46,7 +46,7 @@ class ClientDomainController extends BaseController
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid file upload',
-                    'data' => null
+                    'data'    => null
                 ], 422);
             }
 
@@ -54,18 +54,23 @@ class ClientDomainController extends BaseController
 
             return response()->json([
                 'success' => true,
-                'message' => 'Keywords imported successfully',
-                'data' => $result
+                'message' => $result['message'],
+                'data'    => [
+                    'imported' => $result['success'],
+                    'failed'  => $result['failed']
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Keyword import failed. Please check the file and try again.',
-                'data' => null,
-                'error' => $e->getMessage()
+                'message' => 'Domain import failed. Please check the file and try again.',
+                'data'    => null,
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
+
+
 
     public function domainImportTemplateDownload(Request $request){
 

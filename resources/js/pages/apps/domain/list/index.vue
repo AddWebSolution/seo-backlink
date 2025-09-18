@@ -1,7 +1,8 @@
 <script setup>
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed ,unref } from "vue";
 import { useDomainApi } from "@/composables/domainApi.js";
 import { IconWorldWww } from "@tabler/icons-vue";
+import { flat } from "@/views/demos/components/button/demoCodeButton";
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -54,6 +55,13 @@ const selectedCountry = ref();
 const searchQuery = ref("");
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
+
+const showImportResult = ref(false)
+const importResult = ref({
+  data: {},
+  message: '',
+  success: false,
+})
 
 // Excel Import Dialog State
 const importDialog = ref(false);
@@ -144,12 +152,14 @@ const handleImportDomains = async () => {
   importing.value = true;
 
   try {
-    const result = await importDomains(selectedFile.value);
-
+    const res = await importDomains(selectedFile.value)
+    importResult.value = res.data  
+    closeImportDialog();
     if (result.success) {
-      closeImportDialog();
+      showImportResult.value = true;
       selectedFile.value = null;
     }
+    console.log('showImportResult',showImportResult);
   } catch (err) {
     showAlert("Import failed", "error");
   } finally {
@@ -159,7 +169,6 @@ const handleImportDomains = async () => {
 
 const closeImportDialog = () => {
   importDialog.value = false;
-  clearFile();
   importing.value = false;
 };
 
@@ -267,35 +276,17 @@ const updateOptions = async (options) => {
       <div class="d-flex align-center">
         <VIcon icon="tabler-filter" class="me-2 text-primary" />
         <span class="text-h6 font-weight-medium">Search & Filters</span>
-        <VBadge
-          v-if="hasActiveFilters"
-          :content="1"
-          color="primary"
-          class="ml-5"
-        />
+        <VBadge v-if="hasActiveFilters" :content="1" color="primary" class="ml-5" />
       </div>
       <div class="d-flex align-center gap-2">
-        <VBtn
-          v-if="hasActiveFilters"
-          variant="text"
-          size="small"
-          color="error"
-          @click="clearAllFilters"
-        >
+        <VBtn v-if="hasActiveFilters" variant="text" size="small" color="error" @click="clearAllFilters">
           <VIcon icon="tabler-x" class="me-1" />
           Clear All
         </VBtn>
-        <VBtn
-          variant="text"
-          size="small"
-          @click="showAdvancedFilters = !showAdvancedFilters"
-        >
-          <VIcon
-            :icon="
+        <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
+          <VIcon :icon="
               showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
-            "
-            class="me-1"
-          />
+            " class="me-1" />
           {{ showAdvancedFilters ? "Less" : "More" }} Filters
         </VBtn>
       </div>
@@ -305,52 +296,24 @@ const updateOptions = async (options) => {
       <!-- Primary Search Bar -->
       <VRow class="mb-4">
         <VCol cols="12">
-          <AppTextField
-            v-model="searchQuery"
-            placeholder="Search by title, URL, or any domain details..."
-            prepend-inner-icon="tabler-search"
-            variant="outlined"
-            hide-details
-            clearable
-            class="search-field"
-          />
+          <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
+            prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
         </VCol>
       </VRow>
 
       <!-- Quick Filters -->
       <VRow class="mb-4">
         <VCol cols="12" sm="6" md="3">
-          <AppSelect
-            v-model="selectedStatus"
-            label="Status"
-            :items="statusOptions"
-            variant="outlined"
-            clearable
-            hide-details
-            prepend-inner-icon="tabler-circle-dot"
-          />
+          <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
+            hide-details prepend-inner-icon="tabler-circle-dot" />
         </VCol>
         <VCol cols="12" sm="6" md="3">
-          <AppSelect
-            v-model="selectedApprovalStatus"
-            label="Approval Status"
-            :items="approvalStatusOptions"
-            variant="outlined"
-            clearable
-            hide-details
-            prepend-inner-icon="tabler-check"
-          />
+          <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
+            variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
         </VCol>
         <VCol cols="12" sm="6" md="3">
-          <AppTextField
-            v-model="selectedCountry"
-            label="Country"
-            placeholder="Enter country"
-            variant="outlined"
-            clearable
-            hide-details
-            prepend-inner-icon="tabler-world"
-          />
+          <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
+            clearable hide-details prepend-inner-icon="tabler-world" />
         </VCol>
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
           <VBtn color="primary" variant="flat" block @click="fetchDomains">
@@ -366,49 +329,80 @@ const updateOptions = async (options) => {
           <VDivider class="mb-4" />
           <VRow>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField
-                label="Min Domain Authority"
-                placeholder="0-100"
-                variant="outlined"
-                type="number"
-                hide-details
-                prepend-inner-icon="tabler-trending-up"
-              />
+              <AppTextField label="Min Domain Authority" placeholder="0-100" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-trending-up" />
             </VCol>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField
-                label="Max Price"
-                placeholder="Enter max price"
-                variant="outlined"
-                type="number"
-                hide-details
-                prepend-inner-icon="tabler-currency-dollar"
-              />
+              <AppTextField label="Max Price" placeholder="Enter max price" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-currency-dollar" />
             </VCol>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField
-                label="Min Traffic"
-                placeholder="Monthly visits"
-                variant="outlined"
-                type="number"
-                hide-details
-                prepend-inner-icon="tabler-eye"
-              />
+              <AppTextField label="Min Traffic" placeholder="Monthly visits" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-eye" />
             </VCol>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField
-                label="Turnaround Time"
-                placeholder="Max days"
-                variant="outlined"
-                type="number"
-                hide-details
-                prepend-inner-icon="tabler-clock"
-              />
+              <AppTextField label="Turnaround Time" placeholder="Max days" variant="outlined" type="number" hide-details
+                prepend-inner-icon="tabler-clock" />
             </VCol>
           </VRow>
         </div>
       </VExpandTransition>
     </VCardText>
+  </VCard>
+
+   <VCard v-if="importResult" class="mb-6 pa-6" elevation="1">
+    <!-- Summary Row -->
+    <div v-if="importResult.message" class="d-flex align-center justify-space-between">
+      <div class="d-flex align-center gap-2">
+        <VIcon color="primary" icon="tabler-file-import" />
+        <span class="font-weight-medium">{{ importResult.message }}</span>
+      </div>
+
+      <VBtn size="small" variant="text" color="info"
+        :icon="showImportResult ? 'tabler-chevron-up' : 'tabler-info-circle'"
+        @click="showImportResult = !showImportResult" />
+    </div>
+
+    <!-- Expandable Panel -->
+    <VExpandTransition>
+      <VSheet v-if="showImportResult" class="mt-4 pa-4 border rounded bg-grey-lighten-4">
+        <!-- Successful -->
+        <div>
+          <h4 class="text-subtitle-1 font-weight-bold text-success mb-2">
+            Successful Imports ({{ importResult.data.imported.length }})
+          </h4>
+          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
+            <VList density="compact">
+              <VListItem v-for="(domain, idx) in importResult.data.imported" :key="'s-' + idx">
+                <VListItemTitle>{{ domain }}</VListItemTitle>
+              </VListItem>
+              <VListItem v-if="importResult.data.imported.length === 0">
+                <VListItemTitle class="text-grey">No domains imported</VListItemTitle>
+              </VListItem>
+            </VList>
+          </div>
+        </div>
+
+        <!-- Failed -->
+        <div class="mt-4">
+          <h4 class="text-subtitle-1 font-weight-bold text-error mb-2">
+            Failed Imports ({{ importResult.data.failed.length }})
+          </h4>
+          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
+            <VList density="compact">
+              <VListItem v-for="(f, idx) in importResult.data.failed" :key="'f-' + idx">
+                <VListItemTitle>
+                  <span class="text-primary">{{ f.url || 'N/A' }}</span> — {{ f.reason }}
+                </VListItemTitle>
+              </VListItem>
+              <VListItem v-if="importResult.data.failed.length === 0">
+                <VListItemTitle class="text-grey">No failed domains</VListItemTitle>
+              </VListItem>
+            </VList>
+          </div>
+        </div>
+      </VSheet>
+    </VExpandTransition>
   </VCard>
 
   <!-- Results Summary -->
@@ -420,26 +414,14 @@ const updateOptions = async (options) => {
         </span>
         <span class="ml-2">reports found</span>
 
-        <VChip
-          v-if="selectedRows.length"
-          color="primary"
-          size="small"
-          class="ml-4"
-          elevation="2"
-          outlined
-        >
+        <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
         </VChip>
       </div>
 
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn
-          v-if="selectedRows.length"
-          variant="text"
-          size="small"
-          color="error"
-        >
+        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
@@ -447,13 +429,8 @@ const updateOptions = async (options) => {
       <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
-         <!-- Excel Import Dialog Button -->
-        <VBtn
-          variant="tonal"
-          color="secondary"
-          prepend-icon="tabler-download"
-          @click="importDialog = true"
-        >
+        <!-- Excel Import Dialog Button -->
+        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
@@ -461,20 +438,11 @@ const updateOptions = async (options) => {
           Download Template
         </VBtn> -->
         <!-- 👉 Export button -->
-        <VBtn
-          variant="tonal"
-          color="secondary"
-          prepend-icon="tabler-upload"
-          @click="handleExportReports"
-        >
+        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
         <!-- create domain-->
-        <VBtn
-          color="primary"
-          prepend-icon="tabler-plus"
-          @click="$router.push('/apps/domain/add')"
-        >
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/domain/add')">
           Add Domain
         </VBtn>
       </div>
@@ -483,163 +451,103 @@ const updateOptions = async (options) => {
     <VDivider class="mt-5 mb-2" />
 
     <!-- Enhanced Data Table -->
-    <VDataTableServer
-      :page="pagination.page"
-      :items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows"
-      :headers="headers"
-      show-select
-      :items="domains"
-      :loading="loading"
-      :items-length="pagination.total"
-      loading-text="Fetching domains, please wait..."
-      class="domain-table"
-      hover
-      @update:options="updateOptions"
-    >
+    <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
+      v-model:model-value="selectedRows" :headers="headers" show-select :items="domains" :loading="loading"
+      :items-length="pagination.total" loading-text="Fetching domains, please wait..." class="domain-table" hover
+      @update:options="updateOptions">
       <template #item.target_url="{ item }">
-        <a
-          :href="item.target_url"
-          target="_blank"
-          class="text-success text-decoration-none text-body-1"
-          :title="item.target_url"
-        >
+        <a :href="item.target_url" target="_blank" class="text-success text-decoration-none text-body-1"
+          :title="item.target_url">
           <span class="text-truncate" style="max-width: 200px">
             {{ item.target_url }}
           </span>
-          <VIcon
-            icon="tabler-external-link"
-            size="12"
-            class="flex-shrink-0 ms-1"
-          />
+          <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
         </a>
       </template>
 
       <template #item.domain_authority="{ item }">
-        <VProgressCircular
-          :model-value="item.domain_authority"
-          size="30"
-          width="4"
-          :color="
+        <VProgressCircular :model-value="item.domain_authority" size="30" width="4" :color="
             item.domain_authority > 70
               ? 'success'
               : item.domain_authority > 40
               ? 'warning'
               : 'error'
-          "
-        >
+          ">
           <small class="font-weight-medium">{{
             item.domain_authority ?? 0
-          }}</small>
+            }}</small>
         </VProgressCircular>
       </template>
 
       <template #item.domain_rating="{ item }">
-        <VProgressCircular
-          :model-value="item.domain_rating"
-          size="30"
-          width="4"
-          :color="
+        <VProgressCircular :model-value="item.domain_rating" size="30" width="4" :color="
             item.domain_rating > 70
               ? 'success'
               : item.domain_rating > 40
               ? 'warning'
               : 'error'
-          "
-        >
+          ">
           <small class="font-weight-medium">{{
             item.domain_rating ?? 0
-          }}</small>
+            }}</small>
         </VProgressCircular>
       </template>
 
       <template #item.organic_traffic="{ item }">
         <div class="d-flex align-center">
-          <VIcon
-            icon="tabler-eye"
-            size="16"
-            class="me-1 text-medium-emphasis"
-          />
+          <VIcon icon="tabler-eye" size="16" class="me-1 text-medium-emphasis" />
           <span class="font-weight-medium">{{
             item.organic_traffic?.toLocaleString() || "N/A"
-          }}</span>
+            }}</span>
         </div>
       </template>
 
       <template #item.total_price="{ item }">
         <div class="d-flex align-center">
-          <VIcon
-            icon="tabler-currency-dollar"
-            size="16"
-            class="me-1 text-success"
-          />
-          <span class="font-weight-bold text-success"
-            >${{ item.total_price }}</span
-          >
+          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />
+          <span class="font-weight-bold text-success">${{ item.total_price }}</span>
         </div>
       </template>
 
       <template #item.turnaround_time="{ item }">
-        <VChip
-          size="small"
-          :color="
+        <VChip size="small" :color="
             item.turnaround_time <= 3
               ? 'success'
               : item.turnaround_time <= 7
               ? 'warning'
               : 'error'
-          "
-          variant="tonal"
-        >
+          " variant="tonal">
           {{ item.turnaround_time }}d
         </VChip>
       </template>
 
       <template #item.status="{ item }">
-        <VChip
-          :color="getStatusConfig(item.status).color"
-          variant="tonal"
-          size="small"
-          class="ma-1"
-        >
-          <VIcon
-            :icon="getStatusConfig(item.status).icon"
-            size="14"
-            class="me-1"
-          />
+        <VChip :color="getStatusConfig(item.status).color" variant="tonal" size="small" class="ma-1">
+          <VIcon :icon="getStatusConfig(item.status).icon" size="14" class="me-1" />
           {{ getStatusConfig(item.status).text }}
         </VChip>
       </template>
 
       <template #item.approval_status="{ item }">
-        <VChip
-          :color="
+        <VChip :color="
             item.approval_status === 1
               ? 'warning'
               : item.approval_status === 2
               ? 'error'
               : 'success'
-          "
-          variant="tonal"
-          size="small"
-          class="font-weight-medium"
-        >
+          " variant="tonal" size="small" class="font-weight-medium">
           {{
-            item.approval_status === 1
-              ? "Pending"
-              : item.approval_status === 2
-              ? "Rejected"
-              : "Approved"
+          item.approval_status === 1
+          ? "Pending"
+          : item.approval_status === 2
+          ? "Rejected"
+          : "Approved"
           }}
         </VChip>
       </template>
 
       <template #item.country="{ item }">
-        <VIcon
-          icon="tabler-world"
-          size="16"
-          class="me-1 text-medium-emphasis"
-        />
+        <VIcon icon="tabler-world" size="16" class="me-1 text-medium-emphasis" />
         <span>{{ item.country }}</span>
       </template>
 
@@ -648,9 +556,7 @@ const updateOptions = async (options) => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link
-                  :to="{ name: 'apps-domain-view', params: { id: item.id } }"
-                >
+                <router-link :to="{ name: 'apps-domain-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -663,27 +569,15 @@ const updateOptions = async (options) => {
                 <VIcon icon="tabler-dots-vertical" size="18" />
                 <VMenu activator="parent" offset="8">
                   <VList>
-                    <VListItem
-                      value="edit"
-                      prepend-icon="tabler-edit"
-                      class="text-primary"
-                    >
+                    <VListItem value="edit" prepend-icon="tabler-edit" class="text-primary">
                       Edit
                     </VListItem>
-                    <VListItem
-                      value="duplicate"
-                      prepend-icon="tabler-copy"
-                      class="text-info"
-                    >
+                    <VListItem value="duplicate" prepend-icon="tabler-copy" class="text-info">
                       Duplicate
                     </VListItem>
                     <VDivider />
-                    <VListItem
-                      value="delete"
-                      prepend-icon="tabler-trash"
-                      class="text-error"
-                      @click="deleteDomain(item.id)"
-                    >
+                    <VListItem value="delete" prepend-icon="tabler-trash" class="text-error"
+                      @click="deleteDomain(item.id)">
                       Delete
                     </VListItem>
                   </VList>
@@ -697,11 +591,7 @@ const updateOptions = async (options) => {
       <!-- Empty State -->
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon
-            icon="tabler-world-off"
-            size="48"
-            class="text-medium-emphasis mb-4"
-          />
+          <VIcon icon="tabler-world-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No domains found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
             Try adjusting your search criteria or add a new domain to get
@@ -714,12 +604,9 @@ const updateOptions = async (options) => {
         </div>
       </template>
 
-    <template #bottom>
-        <TablePagination
-          v-model:page="pagination.page"
-          :items-per-page="pagination.itemsPerPage"
-          :total-items="totalDomains"
-        />
+      <template #bottom>
+        <TablePagination v-model:page="pagination.page" :items-per-page="pagination.itemsPerPage"
+          :total-items="totalDomains" />
       </template>
     </VDataTableServer>
   </VCard>
@@ -746,18 +633,9 @@ const updateOptions = async (options) => {
       <VCardText class="pa-6">
         <!-- File Upload Area -->
         <div class="mb-6">
-          <VFileInput
-            v-model="selectedFile"
-            label="Select Excel File"
-            accept=".xlsx,.xls"
-            prepend-icon="tabler-paperclip"
-            variant="outlined"
-            show-size
-            counter
-            :error-messages="fileError"
-            @change="handleFileChange"
-            @click:clear="clearFile"
-          >
+          <VFileInput v-model="selectedFile" label="Select Excel File" accept=".xlsx,.xls"
+            prepend-icon="tabler-paperclip" variant="outlined" show-size counter :error-messages="fileError"
+            @change="handleFileChange" @click:clear="clearFile">
             <template #selection="{ fileNames }">
               <template v-for="fileName in fileNames" :key="fileName">
                 <VChip color="success" size="small" label class="me-2">
@@ -770,25 +648,16 @@ const updateOptions = async (options) => {
         </div>
 
         <!-- Drag & Drop Area -->
-        <div
-          class="drop-zone"
-          :class="{ 'drop-zone--dragover': isDragOver }"
-          @drop="handleDrop"
-          @dragover="handleDragOver"
-          @dragenter="handleDragEnter"
-          @dragleave="handleDragLeave"
-        >
+        <div class="drop-zone" :class="{ 'drop-zone--dragover': isDragOver }" @drop="handleDrop"
+          @dragover="handleDragOver" @dragenter="handleDragEnter" @dragleave="handleDragLeave">
           <div class="text-center">
-            <VIcon
-              :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'"
-              size="48"
-              class="text-primary mb-4"
-            />
+            <VIcon :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'" size="48"
+              class="text-primary mb-4" />
             <h4 class="text-h6 mb-2">
               {{
-                isDragOver
-                  ? "Drop your Excel file here"
-                  : "Drag & drop your Excel file here"
+              isDragOver
+              ? "Drop your Excel file here"
+              : "Drag & drop your Excel file here"
               }}
             </h4>
             <p class="text-body-2 text-medium-emphasis mb-4">
@@ -815,10 +684,8 @@ const updateOptions = async (options) => {
             <div class="mt-2">
               <div class="d-flex align-center justify-space-between">
                 <span><strong>File:</strong> {{ selectedFile.name }}</span>
-                <span
-                  ><strong>Size:</strong>
-                  {{ formatFileSize(selectedFile.size) }}</span
-                >
+                <span><strong>Size:</strong>
+                  {{ formatFileSize(selectedFile.size) }}</span>
               </div>
             </div>
           </VAlert>
@@ -842,12 +709,7 @@ const updateOptions = async (options) => {
                   <li>Maximum 1000 rows per import</li>
                 </ul>
 
-                <VBtn
-                  variant="outlined"
-                  size="small"
-                  prepend-icon="tabler-download"
-                  @click="templateDownload"
-                >
+                <VBtn variant="outlined" size="small" prepend-icon="tabler-download" @click="templateDownload">
                   Download Template
                 </VBtn>
               </div>
@@ -863,12 +725,8 @@ const updateOptions = async (options) => {
         <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn
-          color="primary"
-          :loading="importing"
-          :disabled="!selectedFile || !!fileError"
-          @click="handleImportDomains"
-        >
+        <VBtn color="primary" :loading="importing" :disabled="!selectedFile || !!fileError"
+          @click="handleImportDomains">
           <VIcon icon="tabler-download" class="me-2" />
           Import Domains
         </VBtn>

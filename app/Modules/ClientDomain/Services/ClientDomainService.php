@@ -40,28 +40,56 @@ class ClientDomainService extends BaseService
         $rows = $sheet->toArray();
 
         $header = array_map('strtolower', $rows[0]);
-
         unset($rows[0]);
 
-        $importedCount = 0;
+        $imported = [];
+        $failed = [];
+
         DB::beginTransaction();
 
         try {
             foreach ($rows as $row) {
                 $data = array_combine($header, $row);
+
                 if (empty($data['title']) || empty($data['target_url'])) {
                     continue;
                 }
+
+                $exists = ClientDomain::where('target_url', $data['target_url'])->exists();
+
+                if ($exists) {
+                    $failed[] = [
+                        'reason' => "Domain already exists",
+                        'url'    => $data['target_url'],
+                    ];
+                    continue;
+                }
+
                 ClientDomain::create($data);
-                $importedCount++;
+                $imported[] = [
+                    'reason' => "Domain imported",
+                    'url'    => $data['target_url'],
+                ];
             }
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
         }
-        return $importedCount;
+
+        return [
+            'success' => $imported,
+            'failed'  => $failed,
+            'message' => sprintf(
+                "Import completed: %d succeeded, %d failed",
+                $imported,
+                count($failed)
+            ),
+        ];
+
     }
+
 
     public function downloadTemplate()
     {
