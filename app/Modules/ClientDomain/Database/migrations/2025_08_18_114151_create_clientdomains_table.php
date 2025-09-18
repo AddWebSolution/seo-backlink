@@ -22,9 +22,9 @@ return new class extends Migration
             $table->unsignedBigInteger('organic_traffic')->nullable();
             $table->decimal('price_ne', 10, 2)->unsigned()->nullable();
             $table->decimal('price_gp', 10, 2)->unsigned()->nullable();
-            $table->decimal('total_price', 10, 2)->unsigned();
+            $table->decimal('total_price', 10, 2)->unsigned()->nullable();
             $table->integer('turnaround_time')->nullable();
-            $table->enum('status', ['1', '2'])->nullable()->comment('1 = available, 2 = unavailable');
+            $table->enum('status', ['1', '2'])->nullable()->default('1')->comment('1 = available, 2 = unavailable');
             $table->tinyInteger('approval_status')->unsigned()->default(1)
                 ->comment('1 = Pending, 2 = Rejected, 3 = Approved')->nullable();
             $table->string('country')->nullable();
