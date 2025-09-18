@@ -75,6 +75,84 @@ export function useDomainApi() {
     }
   };
 
+  // import domains
+
+  const importDomains = async (file) => {
+    if (!file) {
+      showAlert("No file selected", "error");
+      return { success: false, message: "No file selected" };
+    }
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const result = await useApi("api/clientdomain/import", {
+        method: "POST",
+        body: formData,
+        skipJsonTransform: true,
+      });
+
+      if (result.error.value || result.statusCode.value >= 400) {
+        const errorMsg = result.data.value?.message || "Import failed";
+        showAlert(errorMsg, "error");
+        return { success: false, message: errorMsg };
+      }
+
+      const responseData = result.data.value;
+      const successMsg =
+        responseData?.message || "Domains imported successfully!";
+
+      showAlert(successMsg, "success");
+      await fetchDomains();
+
+      return {
+        success: true,
+        message: successMsg,
+        data: responseData,
+      };
+    } catch (err) {
+      error.value = err;
+      const errorMsg = "Failed to import domains";
+      showAlert(errorMsg, "error");
+      return { success: false, message: errorMsg };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Download Domain Import Template
+  const downloadTemplate = async () => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await fetch("/api/clientdomain/import/template/download", {
+        method: "GET",
+        headers: {
+          Accept:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          Authorization: `Bearer ${useCookie("accessToken").value}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      return blob;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to fetch keyword template", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   // create domain
   const createDomain = async (payload) => {
     loading.value = true;
@@ -176,7 +254,9 @@ export function useDomainApi() {
     // Methods
     fetchDomains,
     fetchDomainList,
+    importDomains,
     fetchDomain,
+    downloadTemplate,
     createDomain,
     updateDomain,
     deleteDomain,

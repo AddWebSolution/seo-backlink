@@ -17,7 +17,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 
 			Route::post('import', [ClientDomainController::class, 'domainImport'])->name('domainImport');
 
-			Route::post('import/template/download', [ClientDomainController::class, 'domainImportTemplateDownload'])->name('domainImportTemplateDownload');
+			Route::get('import/template/download', [ClientDomainController::class, 'domainImportTemplateDownload'])->name('domainImportTemplateDownload');
 
 			//Route::group(['middleware' => ['can:Create ClientDomain']], function () {
 			Route::post('store', [ClientDomainController::class, 'store'])->name('store');

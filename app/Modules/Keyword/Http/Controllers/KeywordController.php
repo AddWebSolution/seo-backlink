@@ -58,4 +58,9 @@ class KeywordController extends BaseController
             ], 500);
         }
     }
+
+    public function keywordHistory($id){
+
+        return $this->service->getKeywordHistory($id);
+    }
 }

@@ -556,7 +556,7 @@ const serverItems = computed(() => ({
         <VCardTitle class="d-flex align-center justify-space-between pa-6">
           <div class="d-flex align-center">
             <VAvatar color="primary" variant="tonal" class="me-3">
-              <VIcon icon="tabler-link" />
+              <VIcon icon="tabler-key" />
             </VAvatar>
             <div>
               <h5 class="text-h5">Keyword Results</h5>
@@ -587,10 +587,8 @@ const serverItems = computed(() => ({
           ]" class="reports-table">
 
           <template #item.domain_found_in_response="{ item }">
-            <VChip :color="item.domain_found_in_response == 1 ? 'success' : 'error'" variant="tonal" size="small"
-              class="ma-1">
-              <VIcon :icon="item.domain_found_in_response == 1 ? 'tabler-check' : 'tabler-x'" size="24" class="me-1" />
-            </VChip>
+            <VIcon :icon="item.domain_found_in_response == 1 ? 'tabler-rosette-discount-check-filled' : 'tabler-rosette-discount-x-filled'"
+              size="30" class="me-1" :color="item.domain_found_in_response == 1 ? 'success' : 'error'" />
           </template>
 
           <!-- Status Column -->

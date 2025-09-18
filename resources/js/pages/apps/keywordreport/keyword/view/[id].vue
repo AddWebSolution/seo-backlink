@@ -475,7 +475,7 @@
         <VBtn
           color="primary"
           size="large"
-          :to="{ name: 'apps-keyword-data-list' }"
+          :to="{ name: 'apps-keyword  -list' }"
         >
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Keyword Data

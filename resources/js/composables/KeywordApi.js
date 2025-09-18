@@ -2,6 +2,7 @@
 import { ref, readonly } from "vue";
 import { useApi } from "./useApi";
 import { useAlert } from "./useAlert";
+import { consoleError } from "vuetify/lib/util/console.mjs";
 
 export function useKeywordApi() {
   const { showAlert } = useAlert();
@@ -12,10 +13,11 @@ export function useKeywordApi() {
     currentPage: 1,
     perPage: 10,
     lastPage: 1,
-    itemsPerPage: 10, 
-    page: 1
-  })
+    itemsPerPage: 10,
+    page: 1,
+  });
   const KeywordList = ref([]);
+  const KeywordHistory = ref([]);
   const currentKeyword = ref(null);
   const loading = ref(false);
   const error = ref(null);
@@ -45,11 +47,11 @@ export function useKeywordApi() {
     loading.value = true;
     error.value = null;
     try {
-      const body = { 
-        ...filters
+      const body = {
+        ...filters,
       };
       const result = await useApi(
-        createUrl("api/keyword/get", { query: body}),
+        createUrl("api/keyword/get", { query: body }),
         {
           method: "POST",
         }
@@ -63,7 +65,7 @@ export function useKeywordApi() {
         perPage: apiPagination.perPage,
         lastPage: apiPagination.lastPage,
         itemsPerPage: apiPagination.perPage,
-        page: apiPagination.currentPage
+        page: apiPagination.currentPage,
       };
 
       return result;
@@ -76,6 +78,26 @@ export function useKeywordApi() {
     }
   };
 
+  // get keyword history
+
+  const fetchKeywordHistory = async (id) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const result = await useApi(`api/keyword/get/keyword/data/history/${id}`, {
+        method: "GET",
+      });
+      KeywordHistory.value = result.data.value.data;
+      return result;
+    } catch (err) {
+      error.value = err;
+      KeywordHistory.value = null;
+      showAlert("Failed to load keyword", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
 
   // create keyword
   const createKeyword = async (payload) => {
@@ -201,17 +223,17 @@ export function useKeywordApi() {
       }
 
       const responseData = result.data.value;
-      const successMsg = responseData?.message || "Keywords imported successfully!";
-      
+      const successMsg =
+        responseData?.message || "Keywords imported successfully!";
+
       showAlert(successMsg, "success");
       await fetchKeywords();
-      
-      return { 
-        success: true, 
-        message: successMsg,
-        data: responseData 
-      };
 
+      return {
+        success: true,
+        message: successMsg,
+        data: responseData,
+      };
     } catch (err) {
       error.value = err;
       const errorMsg = "Failed to import keywords";
@@ -224,8 +246,9 @@ export function useKeywordApi() {
 
   return {
     keywords: readonly(Keywords),
-    pagination : Pagination,
+    pagination: Pagination,
     KeywordList: readonly(KeywordList),
+    KeywordHistory : readonly(KeywordHistory),
     currentKeyword: readonly(currentKeyword),
     loading: readonly(loading),
     error: readonly(error),
@@ -233,6 +256,7 @@ export function useKeywordApi() {
     // Methods
     fetchKeywords,
     fetchKeyword,
+    fetchKeywordHistory,
     createKeyword,
     updateKeyword,
     deleteKeyword,

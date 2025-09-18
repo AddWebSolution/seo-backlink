@@ -72,21 +72,21 @@ class ClientDomainService extends BaseService
         $headersConfig = [
             ['name' => 'title', 'required' => true],
             ['name' => 'target_url', 'required' => true],
-            ['name' => 'source_url', 'required' => true],
-            ['name' => 'client_id', 'required' => true],
+            ['name' => 'source_url', 'required' => false],
+            ['name' => 'client_id', 'required' => false],
             ['name' => 'domain_authority', 'required' => false],
             ['name' => 'domain_rating', 'required' => false],
             ['name' => 'organic_traffic', 'required' => false],
             ['name' => 'price_ne', 'required' => false],
             ['name' => 'price_gp', 'required' => false],
-            ['name' => 'total_price', 'required' => true],
+            ['name' => 'total_price', 'required' => false],
             ['name' => 'turnaround_time', 'required' => false],
-            ['name' => 'status', 'required' => true],
+            ['name' => 'status', 'required' => false],
             ['name' => 'approval_status', 'required' => false],
             ['name' => 'country', 'required' => false],
             ['name' => 'anchor_text', 'required' => false],
             ['name' => 'special_requirements', 'required' => false],
-            ['name' => 'price', 'required' => true],
+            ['name' => 'price', 'required' => false],
         ];
 
         foreach ($headersConfig as $index => $headerConfig) {
@@ -95,7 +95,7 @@ class ClientDomainService extends BaseService
             $headerName = $headerConfig['name'];
             $isRequired = $headerConfig['required'];
 
-            $displayName = $isRequired ? $headerName . ' *' : $headerName;
+            $displayName = $isRequired ? $headerName : $headerName;
             $sheet->setCellValue($cellCoordinate, $displayName);
 
             if ($isRequired) {
@@ -166,21 +166,21 @@ class ClientDomainService extends BaseService
         $explanations = [
             'title *' => 'The title or name of the domain/website (Required)',
             'target_url *' => 'The URL where the backlink should point to (Required)',
-            'source_url *' => 'The URL of the domain providing the backlink (Required)',
-            'client_id *' => 'Unique identifier for the client (Required)',
+            'source_url' => 'The URL of the domain providing the backlink',
+            'client_id' => 'Unique identifier for the client',
             'domain_authority' => 'Moz Domain Authority score (0-100, Optional)',
             'domain_rating' => 'Ahrefs Domain Rating score (0-100, Optional)',
             'organic_traffic' => 'Monthly organic traffic estimate (Optional)',
             'price_ne' => 'Price excluding negotiations (Optional)',
             'price_gp' => 'Guest post price (Optional)',
-            'total_price *' => 'Final total price for the service (Required)',
+            'total_price' => 'Final total price for the service',
             'turnaround_time' => 'Expected completion time in days (Optional)',
-            'status *' => 'Current status (e.g., pending, active, completed) (Required)',
+            'status' => 'Current status (e.g., pending, active, completed)',
             'approval_status' => 'Approval status (e.g., approved, rejected, pending, Optional)',
             'country' => 'Country/region of the domain (Optional)',
             'anchor_text' => 'Specific anchor text to be used (Optional)',
             'special_requirements' => 'Any special instructions or requirements (Optional)',
-            'price *' => 'Base price for the service (Required)'
+            'price' => 'Base price for the service'
         ];
 
         $currentRow = $explanationStartRow + 2;

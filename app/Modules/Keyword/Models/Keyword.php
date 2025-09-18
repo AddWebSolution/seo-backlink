@@ -7,6 +7,8 @@ use Addweb\Base\Model\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Modules\ClientDomain\Models\ClientDomain;
 use App\Modules\Keyword\Observers\KeywordObserver;
+use App\Modules\KeywordDatum\Models\KeywordDatum;
+use App\Modules\KeywordReport\Models\KeywordReport;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
@@ -27,5 +29,10 @@ class Keyword extends BaseModel
      public function domain()
     {
         return $this->belongsTo(ClientDomain::class, 'client_domain_id');
+    }
+
+    public function keywordHistory()
+    {
+        return $this->hasMany(KeywordDatum::class, 'keyword_id','id');
     }
 }

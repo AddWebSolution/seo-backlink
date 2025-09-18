@@ -41,6 +41,8 @@ const {
   loading,
   error,
   fetchDomains,
+  downloadTemplate,
+  importDomains,
   deleteDomain,
   showAlert,
 } = useDomainApi();
@@ -52,6 +54,13 @@ const selectedCountry = ref();
 const searchQuery = ref("");
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
+
+// Excel Import Dialog State
+const importDialog = ref(false);
+const selectedFile = ref(null);
+const fileError = ref("");
+const importing = ref(false);
+const isDragOver = ref(false);
 
 // Data table options
 const sortBy = ref();
@@ -122,6 +131,62 @@ const handleDeleteDomain = async (id) => {
     if (index !== -1) selectedRows.value.splice(index, 1);
   } catch (error) {
     console.error("Delete failed:", error);
+  }
+};
+
+// import dialog function 
+const handleImportDomains = async () => {
+  if (!selectedFile.value) {
+    showAlert("Please select a file first", "error");
+    return;
+  }
+
+  importing.value = true;
+
+  try {
+    const result = await importDomains(selectedFile.value);
+
+    if (result.success) {
+      closeImportDialog();
+      selectedFile.value = null;
+    }
+  } catch (err) {
+    showAlert("Import failed", "error");
+  } finally {
+    importing.value = false;
+  }
+};
+
+const closeImportDialog = () => {
+  importDialog.value = false;
+  clearFile();
+  importing.value = false;
+};
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
+const templateDownload = async () => {
+  try {
+    const blob = await downloadTemplate();
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "domains_import_template.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    showAlert("Template downloaded successfully!", "success");
+  } catch (err) {
+    console.error(err);
   }
 };
 
@@ -381,6 +446,20 @@ const updateOptions = async (options) => {
       </div>
       <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
+
+         <!-- Excel Import Dialog Button -->
+        <VBtn
+          variant="tonal"
+          color="secondary"
+          prepend-icon="tabler-download"
+          @click="importDialog = true"
+        >
+          Import
+        </VBtn>
+
+        <!-- <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="templateDownload">
+          Download Template
+        </VBtn> -->
         <!-- 👉 Export button -->
         <VBtn
           variant="tonal"
@@ -644,6 +723,158 @@ const updateOptions = async (options) => {
       </template>
     </VDataTableServer>
   </VCard>
+
+
+  <!-- import domains dialog-->
+
+  <VDialog v-model="importDialog" max-width="600" persistent>
+    <VCard>
+      <VCardTitle class="pa-6 pb-4">
+        <div class="d-flex align-center">
+          <VIcon icon="tabler-file-excel" class="me-3 text-success" size="32" />
+          <div>
+            <h3 class="text-h5 font-weight-bold">Import Domains</h3>
+            <p class="text-body-2 text-medium-emphasis mb-0">
+              Upload an Excel file to import multiple domains
+            </p>
+          </div>
+        </div>
+      </VCardTitle>
+
+      <VDivider />
+
+      <VCardText class="pa-6">
+        <!-- File Upload Area -->
+        <div class="mb-6">
+          <VFileInput
+            v-model="selectedFile"
+            label="Select Excel File"
+            accept=".xlsx,.xls"
+            prepend-icon="tabler-paperclip"
+            variant="outlined"
+            show-size
+            counter
+            :error-messages="fileError"
+            @change="handleFileChange"
+            @click:clear="clearFile"
+          >
+            <template #selection="{ fileNames }">
+              <template v-for="fileName in fileNames" :key="fileName">
+                <VChip color="success" size="small" label class="me-2">
+                  <VIcon icon="tabler-file-excel" start />
+                  {{ fileName }}
+                </VChip>
+              </template>
+            </template>
+          </VFileInput>
+        </div>
+
+        <!-- Drag & Drop Area -->
+        <div
+          class="drop-zone"
+          :class="{ 'drop-zone--dragover': isDragOver }"
+          @drop="handleDrop"
+          @dragover="handleDragOver"
+          @dragenter="handleDragEnter"
+          @dragleave="handleDragLeave"
+        >
+          <div class="text-center">
+            <VIcon
+              :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'"
+              size="48"
+              class="text-primary mb-4"
+            />
+            <h4 class="text-h6 mb-2">
+              {{
+                isDragOver
+                  ? "Drop your Excel file here"
+                  : "Drag & drop your Excel file here"
+              }}
+            </h4>
+            <p class="text-body-2 text-medium-emphasis mb-4">
+              or click "Select Excel File" above
+            </p>
+            <div class="d-flex justify-center gap-2 flex-wrap">
+              <VChip size="small" color="success" variant="tonal">
+                <VIcon icon="tabler-check" start />
+                .xlsx
+              </VChip>
+              <VChip size="small" color="success" variant="tonal">
+                <VIcon icon="tabler-check" start />
+                .xls
+              </VChip>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Preview -->
+        <div v-if="selectedFile && !fileError" class="mt-6">
+          <VAlert color="info" variant="tonal" class="mb-4">
+            <VIcon icon="tabler-info-circle" />
+            <VAlertTitle>File Ready for Import</VAlertTitle>
+            <div class="mt-2">
+              <div class="d-flex align-center justify-space-between">
+                <span><strong>File:</strong> {{ selectedFile.name }}</span>
+                <span
+                  ><strong>Size:</strong>
+                  {{ formatFileSize(selectedFile.size) }}</span
+                >
+              </div>
+            </div>
+          </VAlert>
+        </div>
+
+        <!-- Import Instructions -->
+        <VExpansionPanels class="mt-6" variant="accordion">
+          <VExpansionPanel>
+            <VExpansionPanelTitle>
+              <VIcon icon="tabler-help-circle" class="me-2" />
+              Import Instructions
+            </VExpansionPanelTitle>
+            <VExpansionPanelText>
+              <div class="text-body-2">
+                <h5 class="text-subtitle-1 mb-3">Excel File Requirements:</h5>
+                <ul class="ml-4 mb-4">
+                  <li>File must be in Excel format (.xlsx or .xls)</li>
+                  <li>First row should contain column headers</li>
+                  <li>Required columns: title and target_url</li>
+                  <li>Maximum file size: 10MB</li>
+                  <li>Maximum 1000 rows per import</li>
+                </ul>
+
+                <VBtn
+                  variant="outlined"
+                  size="small"
+                  prepend-icon="tabler-download"
+                  @click="templateDownload"
+                >
+                  Download Template
+                </VBtn>
+              </div>
+            </VExpansionPanelText>
+          </VExpansionPanel>
+        </VExpansionPanels>
+      </VCardText>
+
+      <VDivider />
+
+      <VCardActions class="pa-6">
+        <VSpacer />
+        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
+          Cancel
+        </VBtn>
+        <VBtn
+          color="primary"
+          :loading="importing"
+          :disabled="!selectedFile || !!fileError"
+          @click="handleImportDomains"
+        >
+          <VIcon icon="tabler-download" class="me-2" />
+          Import Domains
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
 </template>
 
 <style lang="scss" scoped>

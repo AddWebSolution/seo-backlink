@@ -50,7 +50,6 @@ export const routes = [
     component: () => import("@/pages/apps/keyword/edit/[id].vue"),
     props: true,
   },
-
   // Backlinks Report
   {
     path: "/report/:id",

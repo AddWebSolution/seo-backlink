@@ -33,6 +33,32 @@ class KeywordService extends BaseService
         $this->object = new Keyword();
     }
 
+    public function getKeywordHistory($id)
+    {
+        try {
+            $keyword = Keyword::with('keywordHistory.domain')->findOrFail($id);
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'keyword' => $keyword,
+                    'history' => $keyword->keywordHistory 
+                ]
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Keyword not found.'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred.'
+            ], 500);
+        }
+    }
+
+
+
     public function keywordImportTemplateDownload()
     {
         $spreadsheet = new Spreadsheet();
