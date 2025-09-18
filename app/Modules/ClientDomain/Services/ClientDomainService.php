@@ -65,6 +65,15 @@ class ClientDomainService extends BaseService
                     continue;
                 }
 
+                if (!isset($data['status']) || empty($data['status'])) {
+                    $data['status'] = '1';
+                }
+
+                if (!isset($data['approval_status']) || empty($data['approval_status'])) {
+                    $data['approval_status'] = 1;
+                }
+
+
                 ClientDomain::create($data);
                 $imported[] = [
                     'reason' => "Domain imported",
