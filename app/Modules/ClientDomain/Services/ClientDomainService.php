@@ -92,7 +92,7 @@ class ClientDomainService extends BaseService
             'failed'  => $failed,
             'message' => sprintf(
                 "Import completed: %d succeeded, %d failed",
-                $imported,
+                count($imported),
                 count($failed)
             ),
         ];
