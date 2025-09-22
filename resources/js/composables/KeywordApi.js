@@ -124,6 +124,8 @@ export function useKeywordApi() {
 
   // update keyword
   const updateKeyword = async (id, payload) => {
+
+    console.log('data',payload);
     loading.value = true;
     error.value = null;
 

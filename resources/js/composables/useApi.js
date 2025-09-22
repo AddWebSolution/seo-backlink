@@ -45,10 +45,7 @@ export const useApi = createFetch({
         console.error(error);
       }
 
-      // Unwrap Ref if present
-      const unwrappedData = parsedData?._value ?? parsedData;
-
-      return { data: unwrappedData, response };
+      return { data: parsedData, response };
     },
   },
 });

@@ -33,15 +33,28 @@ class KeywordService extends BaseService
         $this->object = new Keyword();
     }
 
-    public function getKeywordHistory($id)
+    public function getKeywordHistory($id, int $perPage = 10, array $filters = [])
     {
         try {
-            $keyword = Keyword::with('keywordHistory.domain')->findOrFail($id);
+            $keyword = Keyword::findOrFail($id);
+
+            $query = $keyword->keywordHistory()->with('domain');
+
+            if (!empty($filters['search'])) {
+                $search = $filters['search'];
+                $query->where(function ($q) use ($search) {
+                    $q->where('report_id', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%");
+                });
+            }
+
+            $history = $query->orderByDesc('created_at')->paginate($perPage);
+
             return response()->json([
                 'success' => true,
                 'data' => [
                     'keyword' => $keyword,
-                    'history' => $keyword->keywordHistory 
+                    'history' => $history,
                 ]
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -52,10 +65,11 @@ class KeywordService extends BaseService
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'An unexpected error occurred.'
+                'message' => $e->getMessage()
             ], 500);
         }
     }
+
 
 
 

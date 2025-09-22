@@ -59,8 +59,14 @@ class KeywordController extends BaseController
         }
     }
 
-    public function keywordHistory($id){
+    public function keywordHistory(Request $request, $id)
+    {
+        $perPage = $request->get('per_page', 10);
 
-        return $this->service->getKeywordHistory($id);
+        $filters = [
+            'search'          => $request->get('search'),
+            'status'          => $request->get('status'),
+        ];
+        return $this->service->getKeywordHistory($id, $perPage, $filters);
     }
 }
