@@ -147,12 +147,12 @@
                 {{ keywordData.llm_type?.toUpperCase() || "UNKNOWN" }}
               </VChip>
               <VChip :color="
-                  keywordData.domain_found_in_response ? 'success' : 'error'
+                  keywordData.domain_found_in_response == 1 ? 'success' : 'error'
                 " variant="flat" size="small">
                 <VIcon :icon="
-                    keywordData.domain_found_in_response
-                      ? 'tabler-check'
-                      : 'tabler-x'
+                    keywordData.domain_found_in_response == 1
+                      ? 'tabler-circle-check'
+                      : 'tabler-circle-x'
                   " class="me-1" size="28" />
               </VChip>
             </div>
