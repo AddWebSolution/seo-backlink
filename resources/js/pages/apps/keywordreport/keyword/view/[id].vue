@@ -151,8 +151,8 @@
                 " variant="flat" size="small">
                 <VIcon :icon="
                     keywordData.domain_found_in_response == 1
-                      ? 'tabler-circle-check'
-                      : 'tabler-circle-x'
+                      ? 'tabler-check'
+                      : 'tabler-x'
                   " class="me-1" size="28" />
               </VChip>
             </div>
