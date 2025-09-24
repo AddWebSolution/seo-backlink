@@ -30,7 +30,7 @@ class KeywordReport extends BaseModel
 
     public function getSuccessCount(): int
     {
-        return $this->keywords()->where('status', '3')->count();
+        return $this->keywords()->where('domain_found_in_response',1)->count();
     }
 
     public function getDomains()
@@ -52,7 +52,7 @@ class KeywordReport extends BaseModel
 
     public function getFailCount(): int
     {
-        return $this->keywords()->where('status', '2')->count();
+        return $this->keywords()->where('domain_found_in_response', 0)->count();
     }
 
     public function getDomainsCount(): int

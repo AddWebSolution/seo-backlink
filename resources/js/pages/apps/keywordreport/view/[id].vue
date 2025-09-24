@@ -254,21 +254,19 @@ const headers = computed(() => [
     key: "keyword.keyword",
     align: "center",
     sortable: true,
-    width: "100px",
+    width: "180px",
   },
   {
     title: "Domain",
     key: "domain.title",
-    align: "center",
     sortable: true,
-    width: "120px",
+    width: "80px",
   },
   {
     title: "LLM Model",
     key: "llm_type",
-    align: "center",
     sortable: true,
-    width: "80px",
+    width: "40px",
   },
   {
     title: "Domain Found",
@@ -284,20 +282,20 @@ const headers = computed(() => [
   //   sortable: true,
   //   width: "100px",
   // },
-  {
-    title: "Highlights",
-    key: "highlights",
-    align: "center",
-    sortable: true,
-    width: "100px",
-  },
-  {
-    title: "Status",
-    key: "status",
-    align: "center",
-    sortable: true,
-    width: "100px",
-  },
+  // {
+  //   title: "Highlights",
+  //   key: "highlights",
+  //   align: "center",
+  //   sortable: true,
+  //   width: "100px",
+  // },
+  // {
+  //   title: "Status",
+  //   key: "status",
+  //   align: "center",
+  //   sortable: true,
+  //   width: "100px",
+  // },
   {
     title: "Actions",
     key: "actions",
@@ -574,10 +572,10 @@ const serverItems = computed(() => ({
         <VDivider class="mt-4" />
 
         <!-- Data Table -->
-        <VDataTableServer v-model:items-per-page="uiState.itemsPerPage" v-model:page="uiState.page"
+        <VDataTableServer v-model:items-per-page="uiState.itemsPerPage" v-model:page="uiState.page" show-select
           v-model:sort-by="uiState.sortBy" :headers="headers" :items="serverItems.items"
-          :items-length="serverItems.total" loading-text="Fetching reports, please wait..." :loading="isLoading"
-          :items-per-page-options="[
+          v-model:model-value="selectedRows" :items-length="serverItems.total"
+          loading-text="Fetching reports, please wait..." :loading="isLoading" :items-per-page-options="[
             { value: 5, title: '5' },
             { value: 10, title: '10' },
             { value: 25, title: '25' },
@@ -586,8 +584,19 @@ const serverItems = computed(() => ({
             { value: 500, title: '500' },
           ]" class="reports-table">
 
+
+          <template #item.llm_type="{ item }">
+            <div class="d-flex align-center">
+              <VIcon icon="tabler-brain" size="20" class="me-1" color="info" />
+              <span class=" font-weight-medium">
+                {{ item.llm_type.toUpperCase() }}
+              </span>
+            </div>
+          </template>
+          
           <template #item.domain_found_in_response="{ item }">
-            <VIcon :icon="item.domain_found_in_response == 1 ? 'tabler-rosette-discount-check-filled' : 'tabler-rosette-discount-x-filled'"
+            <VIcon
+              :icon="item.domain_found_in_response == 1 ? 'tabler-circle-check-filled' : 'tabler-xbox-x-filled'"
               size="30" class="me-1" :color="item.domain_found_in_response == 1 ? 'success' : 'error'" />
           </template>
 
