@@ -28,21 +28,17 @@
                 <VIcon :icon="getStatusIcon(keywordData.status)" class="me-2" />
                 <span class="text-capitalize">{{
                   getStatusText(keywordData.status)
-                }}</span>
+                  }}</span>
               </VChip>
             </div>
           </VCol>
 
           <!-- Right Column: Inline Back Button -->
           <VCol cols="12" md="4" class="d-flex justify-end">
-            <VBtn
-              color="primary"
-              variant="flat"
-              :to="{
+            <VBtn color="primary" variant="flat" :to="{
                 name: 'apps-keywordreport-view',
                 params: { id: keywordData.report_id },
-              }"
-            >
+              }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Report Details
             </VBtn>
@@ -56,12 +52,7 @@
       <VCard class="mb-6" elevation="2">
         <VCardText class="text-center py-16">
           <div class="d-flex flex-column align-center">
-            <VProgressCircular
-              indeterminate
-              color="primary"
-              size="64"
-              width="6"
-            />
+            <VProgressCircular indeterminate color="primary" size="64" width="6" />
             <h6 class="text-h6 mt-6 mb-2">Loading keyword data details...</h6>
             <p class="text-body-2 text-medium-emphasis mb-0">
               Please wait while we fetch the information
@@ -76,19 +67,10 @@
       <!-- Status Overview Cards -->
       <VRow class="mb-8">
         <VCol cols="12" md="3">
-          <VCard
-            elevation="2"
-            class="h-100"
-            color="primary"
-            variant="tonal"
-          >
+          <VCard elevation="2" class="h-100" color="primary" variant="tonal">
             <VCardText class="pa-6 text-center">
-              <VAvatar
-                size="56"
-                color="primary"
-                class="mb-3"
-              >
-                <VIcon icon="tabler-key" size="28" ></VIcon>
+              <VAvatar size="56" color="primary" class="mb-3">
+                <VIcon icon="tabler-key" size="28"></VIcon>
               </VAvatar>
               <p class="text-body-2 text-medium-emphasis mb-1">Keyword</p>
               <h5 class="text-h5 font-weight-bold">
@@ -99,18 +81,9 @@
         </VCol>
 
         <VCol cols="12" md="3">
-          <VCard
-            elevation="2"
-            class="h-100"
-            :color="getLLMColor(keywordData.llm_type)"
-            variant="tonal"
-          >
+          <VCard elevation="2" class="h-100" :color="getLLMColor(keywordData.llm_type)" variant="tonal">
             <VCardText class="pa-6 text-center">
-              <VAvatar
-                size="56"
-                :color="getLLMColor(keywordData.llm_type)"
-                class="mb-3"
-              >
+              <VAvatar size="56" :color="getLLMColor(keywordData.llm_type)" class="mb-3">
                 <VIcon icon="tabler-brain" size="28" />
               </VAvatar>
               <p class="text-body-2 text-medium-emphasis mb-1">LLM Type</p>
@@ -121,53 +94,27 @@
           </VCard>
         </VCol>
 
+
         <VCol cols="12" md="3">
-          <VCard
-            elevation="2"
-            class="h-100"
-            :color="
-              keywordData.domain_found_in_response ? 'success' : 'warning'
-            "
-            variant="tonal"
-          >
+          <VCard elevation="2" class="h-100" :color="keywordData.domain_found_in_response == 1 ? 'success' : 'error'"
+            variant="tonal">
             <VCardText class="pa-6 text-center">
-              <VAvatar
-                size="56"
-                :color="
-                  keywordData.domain_found_in_response ? 'success' : 'warning'
-                "
-                class="mb-3"
-              >
-                <VIcon
-                  :icon="
-                    keywordData.domain_found_in_response
-                      ? 'tabler-check'
-                      : 'tabler-alert'
-                  "
-                  size="28"
-                />
+              <VAvatar size="56" :color="keywordData.domain_found_in_response == 1 ? 'success' : 'error'" class="mb-3">
+                <VIcon :icon="keywordData.domain_found_in_response == 1 ? 'tabler-circle-check' : 'tabler-circle-x'"
+                  size="28" />
               </VAvatar>
               <p class="text-body-2 text-medium-emphasis mb-1">Domain Found</p>
               <h5 class="text-h5 font-weight-bold">
-                {{ keywordData.domain_found_in_response ? "Yes" : "No" }}
+                {{ keywordData.domain_found_in_response ==1 ? "Yes" : "No" }}
               </h5>
             </VCardText>
           </VCard>
         </VCol>
 
         <VCol cols="12" md="3">
-          <VCard
-            elevation="2"
-            class="h-100"
-            :color="keywordData.created_at ? 'info' : 'grey'"
-            variant="tonal"
-          >
+          <VCard elevation="2" class="h-100" :color="keywordData.created_at ? 'info' : 'grey'" variant="tonal">
             <VCardText class="pa-6 text-center">
-              <VAvatar
-                size="56"
-                :color="keywordData.created_at ? 'info' : 'grey'"
-                class="mb-3"
-              >
+              <VAvatar size="56" :color="keywordData.created_at ? 'info' : 'grey'" class="mb-3">
                 <VIcon icon="tabler-clock" size="28" />
               </VAvatar>
               <p class="text-body-2 text-medium-emphasis mb-1">Created</p>
@@ -195,39 +142,23 @@
         <VCardText class="pa-6">
           <div class="llm-response-container">
             <div class="response-header mb-4">
-              <VChip
-                :color="getLLMColor(keywordData.llm_type)"
-                variant="elevated"
-                size="small"
-                class="me-2"
-              >
+              <VChip :color="getLLMColor(keywordData.llm_type)" variant="elevated" size="small" class="me-2">
                 <VIcon icon="tabler-brain" class="me-1" size="16" />
                 {{ keywordData.llm_type?.toUpperCase() || "UNKNOWN" }}
               </VChip>
-              <VChip
-                :color="
-                  keywordData.domain_found_in_response ? 'success' : 'warning'
-                "
-                variant="flat"
-                size="small"
-              >
-                <VIcon
-                  :icon="
-                    keywordData.domain_found_in_response
+              <VChip :color="
+                  keywordData.domain_found_in_response == 1 ? 'success' : 'error'
+                " variant="flat" size="small">
+                <VIcon :icon="
+                    keywordData.domain_found_in_response == 1
                       ? 'tabler-check'
                       : 'tabler-x'
-                  "
-                  class="me-1"
-                  size="28"
-                />
+                  " class="me-1" size="28" />
               </VChip>
             </div>
 
             <div class="response-content pa-4 rounded">
-              <div
-                class="formatted-response"
-                v-html="formatLLMResponse(keywordData.llm_response)"
-              ></div>
+              <div class="formatted-response" v-html="formatLLMResponse(keywordData.llm_response)"></div>
             </div>
           </div>
         </VCardText>
@@ -247,31 +178,9 @@
         <VDivider />
 
         <VCardText class="pa-6">
-          <div class="highlights-container">
-            <div v-if="getHighlights(keywordData.highlights)?.length > 0">
-              <VChip
-                v-for="(highlight, index) in getHighlights(
-                  keywordData.highlights
-                )"
-                :key="index"
-                color="orange"
-                variant="outlined"
-                size="default"
-                class="me-2 mb-2"
-              >
-                <VIcon icon="tabler-star-filled" class="me-1" size="16" />
-                {{ highlight }}
-              </VChip>
+           <div class="response-content pa-4 rounded">
+              <div class="formatted-response" v-html="formatLLMResponse(keywordData.highlights)"></div>
             </div>
-            <div v-else class="text-center py-8">
-              <VAvatar size="64" color="grey-lighten-2" class="mb-4 mx-auto">
-                <VIcon icon="tabler-highlight-off" size="32" />
-              </VAvatar>
-              <p class="text-body-1 text-medium-emphasis">
-                No highlights available for this keyword data
-              </p>
-            </div>
-          </div>
         </VCardText>
       </VCard>
 
@@ -293,15 +202,8 @@
             <VCol cols="12" md="6">
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
-                  <VIcon
-                    icon="tabler-file-report"
-                    class="me-2 text-primary"
-                    size="20"
-                  />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Report ID</span
-                  >
+                  <VIcon icon="tabler-file-report" class="me-2 text-primary" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Report ID</span>
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
                   {{ keywordData.report_id || "Not specified" }}
@@ -310,15 +212,8 @@
 
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
-                  <VIcon
-                    icon="tabler-key"
-                    class="me-2 text-success"
-                    size="20"
-                  />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Keyword</span
-                  >
+                  <VIcon icon="tabler-key" class="me-2 text-success" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Keyword</span>
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
                   {{ keywordData.keyword.keyword || "Not specified" }}
@@ -330,10 +225,7 @@
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
                   <VIcon icon="tabler-world" class="me-2 text-info" size="20" />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Domain</span
-                  >
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Domain</span>
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
                   {{ keywordData.domain.title || "Not specified" }}
@@ -342,22 +234,11 @@
 
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
-                  <VIcon
-                    icon="tabler-brain"
-                    class="me-2 text-deep-purple"
-                    size="20"
-                  />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >LLM Model</span
-                  >
+                  <VIcon icon="tabler-brain" class="me-2 text-deep-purple" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">LLM Model</span>
                 </div>
                 <div class="ml-7">
-                  <VChip
-                    :color="getLLMColor(keywordData.llm_type)"
-                    variant="elevated"
-                    size="small"
-                  >
+                  <VChip :color="getLLMColor(keywordData.llm_type)" variant="elevated" size="small">
                     {{ keywordData.llm_type?.toUpperCase() || "UNKNOWN" }}
                   </VChip>
                 </div>
@@ -385,35 +266,21 @@
             <VCol cols="12" md="6">
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
-                  <VIcon
-                    icon="tabler-clock-play"
-                    class="me-2 text-success"
-                    size="20"
-                  />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Processed At</span
-                  >
+                  <VIcon icon="tabler-clock-play" class="me-2 text-success" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Processed At</span>
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
                   {{
-                    formatDateTime(keywordData.processed_at) ||
-                    "Not processed yet"
+                  formatDateTime(keywordData.processed_at) ||
+                  "Not processed yet"
                   }}
                 </p>
               </div>
 
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
-                  <VIcon
-                    icon="tabler-calendar-plus"
-                    class="me-2 text-purple"
-                    size="20"
-                  />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Created At</span
-                  >
+                  <VIcon icon="tabler-calendar-plus" class="me-2 text-purple" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Created At</span>
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
                   {{ formatDateTime(keywordData.created_at) || "Not recorded" }}
@@ -424,15 +291,8 @@
             <VCol cols="12" md="6">
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
-                  <VIcon
-                    icon="tabler-calendar-event"
-                    class="me-2 text-orange"
-                    size="20"
-                  />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Updated At</span
-                  >
+                  <VIcon icon="tabler-calendar-event" class="me-2 text-orange" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Updated At</span>
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
                   {{ formatDateTime(keywordData.updated_at) || "Not recorded" }}
@@ -441,15 +301,8 @@
 
               <div class="info-item mb-6" v-if="keywordData.deleted_at">
                 <div class="d-flex align-center mb-2">
-                  <VIcon
-                    icon="tabler-calendar-x"
-                    class="me-2 text-error"
-                    size="20"
-                  />
-                  <span
-                    class="text-body-2 font-weight-medium text-high-emphasis"
-                    >Deleted At</span
-                  >
+                  <VIcon icon="tabler-calendar-x" class="me-2 text-error" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Deleted At</span>
                 </div>
                 <p class="text-body-1 mb-0 ml-7">
                   {{ formatDateTime(keywordData.deleted_at) }}
@@ -472,11 +325,7 @@
           The keyword data you're looking for doesn't exist or may have been
           deleted. Please check the ID and try again.
         </p>
-        <VBtn
-          color="primary"
-          size="large"
-          :to="{ name: 'apps-keyword  -list' }"
-        >
+        <VBtn color="primary" size="large" :to="{ name: 'apps-keyword  -list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Keyword Data
         </VBtn>
@@ -529,6 +378,15 @@ const getStatusIcon = (status) => {
     default:
       return IconClock; // Pending
   }
+};
+
+
+const parseHighlight = (highlight) => {
+  const parts = highlight.split(" - ");
+  return {
+    title: parts[0]?.trim() || highlight,
+    url: parts[1]?.trim() || ""
+  };
 };
 
 const getStatusText = (status) => {
@@ -594,7 +452,7 @@ const formatLLMResponse = (response) => {
 const getLLMColor = (llmType) => {
   switch (llmType?.toLowerCase()) {
     case "gpt":
-      return "error";
+      return "secondary";
     case "gemini":
       return "info";
     case "cohere":

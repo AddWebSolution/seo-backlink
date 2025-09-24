@@ -6,7 +6,7 @@ import { ref, computed, watch, onMounted } from "vue";
 const headers = [
   { title: "ID", key: "id", width: "80px" },
   { title: "Run ID", key: "run_id", width: "120px" },
-  { title: "Run At", key: "run_at", width: "160px" },
+  // { title: "Run At", key: "run_at", width: "160px" },
   { title: "Domain Count", key: "domain_count", width: "130px" },
   { title: "Total Keywords", key: "total_keywords", width: "140px" },
   { title: "Accepted", key: "accepted_keywords", width: "120px" },
@@ -520,11 +520,11 @@ const applyFilters = async () => {
         </div>
       </template>
 
-      <template #item.rejected_backlinks="{ item }">
+      <template #item.rejected_keywords="{ item }">
         <div class="d-flex align-center">
           <VIcon icon="tabler-x" size="16" class="me-2 text-error" />
           <span class="font-weight-bold text-error">{{
-            (item.rejected_backlinks || 0).toLocaleString()
+            (item.rejected_keywords || 0).toLocaleString()
           }}</span>
         </div>
       </template>

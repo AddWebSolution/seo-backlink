@@ -37,12 +37,40 @@ class ClientDomainController extends BaseController
         ]);
     }
 
-    public function domainImport(Request $request){
+    public function domainImport(Request $request)
+    {
+        try {
+            $file = $request->file('file');
 
-        $file = $request->input('file');
+            if (!$file || !$file->isValid()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid file upload',
+                    'data'    => null
+                ], 422);
+            }
 
-        return $this->service->domainImport($file);
+            $result = $this->service->domainImport($file->getPathname());
+
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'data'    => [
+                    'imported' => $result['success'],
+                    'failed'  => $result['failed']
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Domain import failed. Please check the file and try again.',
+                'data'    => null,
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
+
+
 
     public function domainImportTemplateDownload(Request $request){
 

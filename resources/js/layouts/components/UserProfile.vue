@@ -138,17 +138,17 @@ const userProfileList = [
 
               <div>
                 <h6 class="text-h6 font-weight-medium">
-                  {{ userData.fullName || userData.username }}
+                  Super Admin
                 </h6>
                 <VListItemSubtitle class="text-capitalize text-disabled">
-                  {{ userData.role }}
+                  Administrator
                 </VListItemSubtitle>
               </div>
             </div>
           </VListItem>
 
           <PerfectScrollbar :options="{ wheelPropagation: false }">
-            <template
+            <!-- <template
               v-for="item in userProfileList"
               :key="item.title"
             >
@@ -181,7 +181,7 @@ const userProfileList = [
                 v-else
                 class="my-2"
               />
-            </template>
+            </template> -->
 
             <div class="px-4 py-2">
               <VBtn

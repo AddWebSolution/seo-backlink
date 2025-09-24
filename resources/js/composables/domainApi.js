@@ -97,8 +97,7 @@ export function useDomainApi() {
       });
 
       if (result.error.value || result.statusCode.value >= 400) {
-        const errorMsg = result.data.value?.message || "Import failed";
-        showAlert(errorMsg, "error");
+        const errorMsg = result.data.value?.message || "Import dsa failed";
         return { success: false, message: errorMsg };
       }
 

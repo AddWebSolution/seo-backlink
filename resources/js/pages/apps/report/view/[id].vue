@@ -676,17 +676,17 @@ const serverItems = computed(() => ({
 
           <!-- Actions Column -->
           <template #item.actions="{ item }">
-            <div class="d-flex justify-center">
-              <VBtn :to="{
-                  name: 'apps-report-backlink-view',
-                  params: { id: item.id },
-                }" icon variant="text" size="small" color="primary">
-                <VIcon icon="tabler-eye" size="26" />
-                <VTooltip activator="parent" location="top">
-                  View Details
-                </VTooltip>
-              </VBtn>
-            </div>
+            <VTooltip text="View Details">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small">
+                <router-link
+                  :to="{ name: 'apps-report-backlink-view', params: { id: item.id } }"
+                >
+                  <VIcon icon="tabler-eye" size="24" />
+                </router-link>
+              </IconBtn>
+            </template>
+          </VTooltip>
           </template>
 
           <!-- No data slot -->

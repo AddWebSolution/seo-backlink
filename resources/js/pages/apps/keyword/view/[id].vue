@@ -1,36 +1,335 @@
+<script setup>
+import { computed, onMounted, watch, ref } from "vue";
+import { useKeywordApi } from "@/composables/KeywordApi.js";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const keywordId = computed(() => route.params.id);
+
+const { KeywordHistory, loading, error, fetchKeywordHistory, showAlert } =
+  useKeywordApi();
+
+// Table state
+const page = ref(1);
+const keywordData = ref([]);
+const itemsPerPage = ref(10);
+const search = ref("");
+const tableLoading = ref(false);
+const reportDetailsDialog = ref(false);
+const selectedReport = ref(null);
+
+// Data table headers
+const headers = [
+  { title: "Report ID", key: "report_id", sortable: true, width: "120px" },
+  { title: "Status", key: "status", sortable: true, width: "120px" },
+  { title: "LLM Models", key: "llm_models", align:"start", sortable: false, width: "180px" },
+  { title: "Success Rate", key: "success_rate", sortable: false, width: "150px" },
+  { title: "Created", key: "created_at", sortable: true, width: "200px" },
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false,
+    width: "80px",
+    align: "center",
+  },
+];
+
+const viewReportDetails = (report) => {
+  console.log("selected report", report);
+  selectedReport.value = report;
+  reportDetailsDialog.value = true;
+};
+
+const handleRetry = async () => {
+  if (keywordId.value) {
+    await loadReportData();
+  }
+};
+
+// Fixed computed properties
+const historyItems = computed(() => {
+  if (!KeywordHistory.value?.history?.data) return [];
+  
+  const reports = {};
+  
+  KeywordHistory.value.history.data.forEach(item => {
+    const reportId = item.report_id;
+    if (!reports[reportId]) {
+      reports[reportId] = {
+        id: reportId,
+        report_id: reportId,
+        created_at: item.created_at,
+        keyword_data: [],
+        status: 1 
+      };
+    }
+    reports[reportId].keyword_data.push(item);
+  });
+
+  return Object.values(reports).map(report => {
+    const successCount = report.keyword_data.filter(data => data.domain_found_in_response).length;
+    const totalCount = report.keyword_data.length;
+    
+    if (successCount === totalCount && totalCount > 0) {
+      report.status = 3; // success
+    } else if (successCount > 0) {
+      report.status = 2; // partial success
+    } else {
+      report.status = 1; // failed/pending
+    }
+    
+    report.success_rate = `${successCount}/${totalCount}`;
+    report.llm_models = report.keyword_data.map(data => data.llm_type).join(', ');
+    
+    return report;
+  }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+});
+
+const latestReport = computed(() => {
+  if (!historyItems.value.length) return null;
+  return historyItems.value[0]; 
+});
+
+const totalReports = computed(() => historyItems.value.length);
+
+const keywordText = computed(() => KeywordHistory?.value?.keyword?.keyword || "");
+
+const getLatestReportSummary = (report) => {
+  if (!report?.keyword_data) return { total: 0, success: 0, models: [] };
+  
+  const total = report.keyword_data.length;
+  const success = report.keyword_data.filter(data => data.domain_found_in_response).length;
+  const models = [...new Set(report.keyword_data.map(data => data.llm_type))];
+  
+  return { total, success, models };
+};
+
+// Helper functions
+const getStatusColor = (status) => {
+  switch (status) {
+    case 3:
+      return "success";
+    case 2:
+      return "warning";
+    case 1:
+    default:
+      return "error";
+  }
+};
+
+const getStatusIcon = (status) => {
+  switch (status) {
+    case 3:
+      return "tabler-check";
+    case 2:
+      return "tabler-alert-triangle";
+    case 1:
+    default:
+      return "tabler-x";
+  }
+};
+
+const getStatusText = (status) => {
+  switch (status) {
+    case 3:
+      return "Success";
+    case 2:
+      return "Partial";
+    case 1:
+    default:
+      return "Failed";
+  }
+};
+
+const getLLMIcon = (llmType) => {
+  switch (llmType?.toLowerCase()) {
+    case 'gpt':
+      return 'tabler-brand-openai';
+    case 'gemini':
+      return 'tabler-brand-google';
+    case 'cohere':
+      return 'tabler-robot';
+    default:
+      return 'tabler-brain';
+  }
+};
+
+const getLLMColor = (llmType) => {
+  switch (llmType?.toLowerCase()) {
+    case 'gpt':
+      return 'secondary';
+    case 'gemini':
+      return 'info';
+    case 'cohere':
+      return 'warning';
+    default:
+      return 'primary';
+  }
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  try {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch (e) {
+    return "Invalid Date";
+  }
+};
+
+const formatTime = (dateString) => {
+  if (!dateString) return "N/A";
+  try {
+    return new Date(dateString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (e) {
+    return "Invalid Time";
+  }
+};
+
+const formatDateTime = (dateString) => {
+  if (!dateString) return "N/A";
+  try {
+    return new Date(dateString).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (e) {
+    return "Invalid Date";
+  }
+};
+
+const formatLLMResponse = (response) => {
+  if (!response) return "No response available";
+
+  try {
+    // Handle JSON responses
+    if (typeof response === "object") {
+      response = JSON.stringify(response, null, 2);
+    }
+
+    let formattedResponse = response
+      // Headers
+      .replace(/^### (.*$)/gm, "<h5 class='mb-2 mt-3'>$1</h5>")
+      .replace(/^## (.*$)/gm, "<h4 class='mb-2 mt-3'>$1</h4>")
+      .replace(/^# (.*$)/gm, "<h3 class='mb-2 mt-3'>$1</h3>")
+      // Bold and italic
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/__(.*?)__/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/_(.*?)_/g, "<em>$1</em>")
+      // Lists
+      .replace(/^[\-\*\+] (.*)$/gm, "<li class='ml-4'>$1</li>")
+      .replace(/^\d+\. (.*)$/gm, "<li class='ml-4'>$1</li>")
+      // Links
+      .replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary">$1</a>'
+      )
+      // Code
+      .replace(
+        /```([^`]+)```/g,
+        "<pre class='code-block pa-3 mb-2'><code>$1</code></pre>"
+      )
+      .replace(/`([^`]+)`/g, "<code class='inline-code'>$1</code>")
+      // Paragraphs
+      .replace(/\n\n+/g, "</p><p class='mb-2'>")
+      .replace(/\n/g, "<br>");
+
+    // Wrap in paragraph if not already formatted
+    if (
+      !formattedResponse.includes("<p>") &&
+      !formattedResponse.includes("<h")
+    ) {
+      formattedResponse = "<p class='mb-2'>" + formattedResponse + "</p>";
+    }
+
+    // Wrap lists in ul tags
+    formattedResponse = formattedResponse.replace(
+      /(<li.*?<\/li>)/gs,
+      (match) => {
+        return `<ul class='mb-2'>${match}</ul>`;
+      }
+    );
+
+    return formattedResponse;
+  } catch {
+    return response;
+  }
+};
+
+const loadReportData = async () => {
+  try {
+    tableLoading.value = true;
+    await fetchKeywordHistory(keywordId.value);
+  } catch (err) {
+    console.error("Failed to load report:", err);
+  } finally {
+    tableLoading.value = false;
+  }
+};
+
+onMounted(async () => {
+  await loadReportData();
+});
+</script>
+
 <template>
   <div>
     <!-- Header Section -->
-    <VCard class="mb-6 overflow-hidden" elevation="3" color="grey-lighten-5">
+    <VCard class="mb-6 overflow-hidden" elevation="3">
       <VCardText class="pa-8">
         <VRow align="center" justify="space-between" class="mb-4">
           <VCol cols="12" md="8">
             <div class="d-flex align-center mb-4">
-              <VAvatar color="primary" size="48" class="me-4">
-                <VIcon icon="tabler-key" size="24" />
+              <VAvatar color="white" size="56" class="me-4 elevation-3">
+                <VIcon icon="tabler-key" size="28" color="primary" />
               </VAvatar>
               <div>
-                <h1 class="text-h3 font-weight-bold mb-2">{{ keywordText }}</h1>
-                <p class="text-subtitle-1 text-medium-emphasis mb-0">Keyword Analysis Timeline</p>
+                <h1 class="text-h4 font-weight-bold mb-2">{{ keywordText.toUpperCase() }}</h1>
+                <p class="text-subtitle-1 mb-0">
+                  Comprehensive Keyword Analysis Timeline
+                </p>
               </div>
             </div>
             <div class="d-flex align-center gap-3 flex-wrap">
-              <VChip color="primary" variant="elevated" size="large">
-                <VIcon icon="tabler-history" class="me-2" />
-                {{ totalReports }} Total Reports
+              <VChip
+                color="primary"
+                variant="flat"
+                size="large"
+                class="elevation-2"
+              >
+                <VIcon icon="tabler-chart-bar" class="me-2" />
+                <span class="font-weight-medium"
+                  >{{ totalReports }} Total Reports</span
+                >
               </VChip>
-              <VChip color="success" variant="flat" size="large" v-if="latestReport">
-                <VIcon icon="tabler-clock" class="me-2" />
+              <VChip
+                color="primary"
+                variant="flat"
+                size="large"
+                class="elevation-2"
+                v-if="latestReport"
+              >
+                <VIcon icon="tabler-clock-check" class="me-2" />
                 Last Updated: {{ formatDate(latestReport.created_at) }}
               </VChip>
             </div>
           </VCol>
           <VCol cols="12" md="4" class="d-flex justify-end">
             <VBtn
-              color="primary"
               variant="flat"
               size="large"
               :to="{ name: 'apps-keyword-list' }"
+              class="elevation-3"
             >
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Keywords
@@ -45,7 +344,12 @@
       <VCard class="mb-6" elevation="2">
         <VCardText class="text-center py-16">
           <div class="d-flex flex-column align-center">
-            <VProgressCircular indeterminate color="primary" size="64" width="6" />
+            <VProgressCircular
+              indeterminate
+              color="primary"
+              size="64"
+              width="6"
+            />
             <h6 class="text-h6 mt-6 mb-2">Loading keyword history...</h6>
             <p class="text-body-2 text-medium-emphasis mb-0">
               Fetching latest reports and analysis data
@@ -59,12 +363,22 @@
     <template v-else-if="error">
       <VCard elevation="2" class="mb-6">
         <VCardText class="text-center py-16">
-          <VAvatar size="120" color="error" variant="tonal" class="mb-6 mx-auto">
+          <VAvatar
+            size="120"
+            color="error"
+            variant="tonal"
+            class="mb-6 mx-auto"
+          >
             <VIcon icon="tabler-alert-circle" size="64" />
           </VAvatar>
           <h4 class="text-h4 mb-4">Failed to Load History</h4>
-          <p class="text-body-1 text-medium-emphasis mb-6 max-width-400 mx-auto">
-            {{ error || 'There was an error loading the keyword history. Please try again.' }}
+          <p
+            class="text-body-1 text-medium-emphasis mb-6 max-width-400 mx-auto"
+          >
+            {{
+              error ||
+              "There was an error loading the keyword history. Please try again."
+            }}
           </p>
           <VBtn color="primary" size="large" @click="handleRetry">
             <VIcon icon="tabler-refresh" class="me-2" />
@@ -75,215 +389,116 @@
     </template>
 
     <!-- Content when data is loaded -->
-    <template v-else-if="historyItems.length > 0">
-      
-      <!-- Latest Report Card with All LLM Responses -->
-      <VCard elevation="4" class="mb-8 latest-report-card" v-if="latestReport">
-        <VCardTitle class="pa-6 pb-4 bg-gradient-primary text-white">
-          <div class="d-flex align-center justify-space-between">
-            <div class="d-flex align-center">
-              <VAvatar color="white" variant="flat" size="56" class="me-4">
-                <VIcon icon="tabler-star-filled" color="primary" size="28" />
-              </VAvatar>
-              <div>
-                <h3 class="text-h3 mb-2">Latest Analysis Report</h3>
-                <p class="text-body-1 mb-0 opacity-90">
-                  Report ID: #{{ latestReport.report_id || latestReport.id }}
-                </p>
-              </div>
+    <template v-else>
+      <!-- Latest Report Card -->
+      <VCard elevation="3" class="mb-6" v-if="latestReport">
+        <VCardTitle class="pa-4 pb-4">
+          <div class="d-flex align-center">
+            <VAvatar variant="flat" size="48" class="me-4">
+              <VIcon icon="tabler-star" size="24" />
+            </VAvatar>
+            <div>
+              <h4 class="text-h4 mb-1">Latest Report</h4>
+              <p class="text-body-2 mb-0">
+                Most recent analysis for this keyword
+              </p>
             </div>
-            <VChip color="white" variant="flat" size="large">
-              <VIcon icon="tabler-calendar" class="me-2" />
-              {{ formatDateTime(latestReport.created_at) }}
-            </VChip>
           </div>
         </VCardTitle>
 
-        <VDivider />
-
-        <!-- Report Overview Stats -->
-        <VCardText class="pa-6 pb-4">
-          <VRow class="mb-6">
+        <VCardText class="pa-4">
+          <VRow class="mb-4">
             <VCol cols="12" md="3">
-              <VCard elevation="2" color="primary" variant="tonal" class="text-center pa-4">
-                <VAvatar size="48" color="primary" class="mb-3 mx-auto">
-                  <VIcon icon="tabler-flag" size="24" />
-                </VAvatar>
-                <p class="text-caption text-medium-emphasis mb-1">Status</p>
-                <h6 class="text-h6 font-weight-bold">
-                  {{ getStatusText(latestReport.status) }}
-                </h6>
-              </VCard>
+              <div class="stat-card">
+                <VIcon
+                  icon="tabler-file-report"
+                  size="32"
+                  color="primary"
+                  class="mb-3"
+                />
+                <h5 class="text-h5 font-weight-bold mb-1">
+                  Report #{{ latestReport.report_id }}
+                </h5>
+                <p class="text-body-2 text-medium-emphasis">Report ID</p>
+              </div>
             </VCol>
             <VCol cols="12" md="3">
-              <VCard elevation="2" color="info" variant="tonal" class="text-center pa-4">
-                <VAvatar size="48" color="info" class="mb-3 mx-auto">
-                  <VIcon icon="tabler-brain" size="24" />
-                </VAvatar>
-                <p class="text-caption text-medium-emphasis mb-1">LLM Models</p>
-                <h6 class="text-h6 font-weight-bold">
-                  {{ llmResponsesCount }} Responses
-                </h6>
-              </VCard>
+              <div class="stat-card">
+                <VIcon
+                  icon="tabler-clock"
+                  size="32"
+                  color="info"
+                  class="mb-3"
+                />
+                <h5 class="text-h5 font-weight-bold mb-1">
+                  {{ formatDate(latestReport.created_at) }}
+                </h5>
+                <p class="text-body-2 text-medium-emphasis">
+                  {{ formatTime(latestReport.created_at) }}
+                </p>
+              </div>
             </VCol>
             <VCol cols="12" md="3">
-              <VCard elevation="2" :color="domainFoundCount > 0 ? 'success' : 'warning'" variant="tonal" class="text-center pa-4">
-                <VAvatar size="48" :color="domainFoundCount > 0 ? 'success' : 'warning'" class="mb-3 mx-auto">
-                  <VIcon :icon="domainFoundCount > 0 ? 'tabler-check' : 'tabler-alert'" size="24" />
-                </VAvatar>
-                <p class="text-caption text-medium-emphasis mb-1">Domain Found</p>
-                <h6 class="text-h6 font-weight-bold">
-                  {{ domainFoundCount }}/{{ llmResponsesCount }}
-                </h6>
-              </VCard>
+              <div class="stat-card">
+                <VIcon
+                  :icon="getStatusIcon(latestReport.status)"
+                  size="32"
+                  :color="getStatusColor(latestReport.status)"
+                  class="mb-3"
+                />
+                <h5 class="text-h5 font-weight-bold mb-1">
+                  {{ getLatestReportSummary(latestReport).success }}/{{ getLatestReportSummary(latestReport).total }}
+                </h5>
+                <p class="text-body-2 text-medium-emphasis">Success Rate</p>
+              </div>
             </VCol>
             <VCol cols="12" md="3">
-              <VCard elevation="2" color="deep-purple" variant="tonal" class="text-center pa-4">
-                <VAvatar size="48" color="deep-purple" class="mb-3 mx-auto">
-                  <VIcon icon="tabler-world" size="24" />
-                </VAvatar>
-                <p class="text-caption text-medium-emphasis mb-1">Domain Authority</p>
-                <h6 class="text-h6 font-weight-bold">
-                  {{ latestReport.domain?.domain_authority || "N/A" }}
-                </h6>
-              </VCard>
+              <div class="stat-card">
+                <VIcon
+                  icon="tabler-brain"
+                  size="32"
+                  color="secondary"
+                  class="mb-3"
+                />
+                <h5 class="text-h5 font-weight-bold mb-1">
+                  {{ getLatestReportSummary(latestReport).total }}
+                </h5>
+                <p class="text-body-2 text-medium-emphasis">LLM Models</p>
+              </div>
             </VCol>
           </VRow>
-        </VCardText>
 
-        <VDivider />
-
-        <!-- All LLM Responses for Latest Report -->
-        <VCardText class="pa-6">
-          <div class="d-flex align-center mb-6">
-            <VIcon icon="tabler-message-circle-2" size="24" class="me-3" />
-            <h4 class="text-h4">LLM Responses</h4>
+          <!-- LLM Models Summary -->
+          <VDivider class="my-4" />
+          <div class="mb-4">
+            <h6 class="text-h6 mb-3">LLM Models Tested</h6>
+            <div class="d-flex gap-2 flex-wrap">
+              <VChip
+                v-for="model in getLatestReportSummary(latestReport).models"
+                :key="model"
+                :color="getLLMColor(model)"
+                variant="tonal"
+                size="small"
+              >
+                <VIcon :icon="getLLMIcon(model)" class="me-1" size="16" />
+                {{ model.toUpperCase() }}
+              </VChip>
+            </div>
           </div>
 
-          <VRow>
-            <!-- GPT Response -->
-            <VCol cols="12" lg="4" v-if="latestReport.gpt_response">
-              <VCard elevation="3" class="llm-response-card h-100">
-                <VCardTitle class="pa-4 pb-3 bg-error text-white">
-                  <div class="d-flex align-center">
-                    <VAvatar color="white" variant="flat" size="32" class="me-3">
-                      <VIcon icon="tabler-brain" color="error" size="18" />
-                    </VAvatar>
-                    <span class="text-h6">GPT Response</span>
-                  </div>
-                </VCardTitle>
-                <VDivider />
-                <VCardText class="pa-4">
-                  <div class="mb-3">
-                    <VChip :color="latestReport.gpt_domain_found ? 'success' : 'error'" variant="flat" size="small">
-                      <VIcon :icon="latestReport.gpt_domain_found ? 'tabler-check' : 'tabler-x'" class="me-1" size="14" />
-                      {{ latestReport.gpt_domain_found ? "Domain Found" : "Domain Not Found" }}
-                    </VChip>
-                  </div>
-                  <div class="response-content">
-                    <div class="formatted-response" v-html="formatLLMResponse(latestReport.gpt_response)"></div>
-                  </div>
-                </VCardText>
-              </VCard>
-            </VCol>
+          <VDivider class="my-4" />
 
-            <!-- Gemini Response -->
-            <VCol cols="12" lg="4" v-if="latestReport.gemini_response">
-              <VCard elevation="3" class="llm-response-card h-100">
-                <VCardTitle class="pa-4 pb-3 bg-info text-white">
-                  <div class="d-flex align-center">
-                    <VAvatar color="white" variant="flat" size="32" class="me-3">
-                      <VIcon icon="tabler-brain" color="info" size="18" />
-                    </VAvatar>
-                    <span class="text-h6">Gemini Response</span>
-                  </div>
-                </VCardTitle>
-                <VDivider />
-                <VCardText class="pa-4">
-                  <div class="mb-3">
-                    <VChip :color="latestReport.gemini_domain_found ? 'success' : 'error'" variant="flat" size="small">
-                      <VIcon :icon="latestReport.gemini_domain_found ? 'tabler-check' : 'tabler-x'" class="me-1" size="14" />
-                      {{ latestReport.gemini_domain_found ? "Domain Found" : "Domain Not Found" }}
-                    </VChip>
-                  </div>
-                  <div class="response-content">
-                    <div class="formatted-response" v-html="formatLLMResponse(latestReport.gemini_response)"></div>
-                  </div>
-                </VCardText>
-              </VCard>
-            </VCol>
-
-            <!-- Cohere Response -->
-            <VCol cols="12" lg="4" v-if="latestReport.cohere_response">
-              <VCard elevation="3" class="llm-response-card h-100">
-                <VCardTitle class="pa-4 pb-3 bg-warning text-white">
-                  <div class="d-flex align-center">
-                    <VAvatar color="white" variant="flat" size="32" class="me-3">
-                      <VIcon icon="tabler-brain" color="warning" size="18" />
-                    </VAvatar>
-                    <span class="text-h6">Cohere Response</span>
-                  </div>
-                </VCardTitle>
-                <VDivider />
-                <VCardText class="pa-4">
-                  <div class="mb-3">
-                    <VChip :color="latestReport.cohere_domain_found ? 'success' : 'error'" variant="flat" size="small">
-                      <VIcon :icon="latestReport.cohere_domain_found ? 'tabler-check' : 'tabler-x'" class="me-1" size="14" />
-                      {{ latestReport.cohere_domain_found ? "Domain Found" : "Domain Not Found" }}
-                    </VChip>
-                  </div>
-                  <div class="response-content">
-                    <div class="formatted-response" v-html="formatLLMResponse(latestReport.cohere_response)"></div>
-                  </div>
-                </VCardText>
-              </VCard>
-            </VCol>
-          </VRow>
-
-          <!-- Domain Information -->
-          <VCard elevation="2" color="teal" variant="tonal" class="mt-6">
-            <VCardTitle class="pa-4 pb-3">
-              <VIcon icon="tabler-world" class="me-2" />
-              Domain Information
-            </VCardTitle>
-            <VDivider />
-            <VCardText class="pa-4">
-              <VRow>
-                <VCol cols="12" md="3">
-                  <div class="info-item">
-                    <p class="text-caption text-medium-emphasis mb-1">Domain Title</p>
-                    <p class="text-body-2 font-weight-medium">
-                      {{ latestReport.domain?.title || "Not specified" }}
-                    </p>
-                  </div>
-                </VCol>
-                <VCol cols="12" md="3">
-                  <div class="info-item">
-                    <p class="text-caption text-medium-emphasis mb-1">Target URL</p>
-                    <p class="text-body-2 font-weight-medium">
-                      {{ latestReport.domain?.target_url || "Not specified" }}
-                    </p>
-                  </div>
-                </VCol>
-                <VCol cols="12" md="3">
-                  <div class="info-item">
-                    <p class="text-caption text-medium-emphasis mb-1">Country</p>
-                    <p class="text-body-2 font-weight-medium">
-                      {{ latestReport.domain?.country || "N/A" }}
-                    </p>
-                  </div>
-                </VCol>
-                <VCol cols="12" md="3">
-                  <div class="info-item">
-                    <p class="text-caption text-medium-emphasis mb-1">Total Price</p>
-                    <p class="text-body-2 font-weight-medium">
-                      ${{ latestReport.domain?.total_price || "N/A" }}
-                    </p>
-                  </div>
-                </VCol>
-              </VRow>
-            </VCardText>
-          </VCard>
+          <div class="d-flex justify-center">
+            <VBtn
+              color="primary"
+              variant="flat"
+              size="large"
+              @click="viewReportDetails(latestReport)"
+            >
+              <VIcon icon="tabler-eye" class="me-2" />
+              View Full Report Details
+            </VBtn>
+          </div>
         </VCardText>
       </VCard>
 
@@ -302,479 +517,296 @@
                 </p>
               </div>
             </div>
-            <VChip color="indigo" variant="flat" size="large">
-              {{ historicalReports.length }} Previous Reports
-            </VChip>
           </div>
         </VCardTitle>
 
         <VDivider />
 
-        <VCardText class="pa-6">
-          <VDataTableServer
-            v-model:items-per-page="itemsPerPage"
-            v-model:page="page"
-            :headers="headers"
-            :items="historicalReports"
-            :items-length="totalItems"
-            :loading="tableLoading"
-            class="elevation-1"
-            item-value="id"
-            :search="search"
-          >
-            <!-- Search slot -->
-            <template v-slot:top>
-              <VToolbar flat>
-                <VToolbarTitle>Report History</VToolbarTitle>
-                <VDivider class="mx-4" inset vertical></VDivider>
-                <VSpacer></VSpacer>
-                <VTextField
-                  v-model="search"
-                  append-icon="tabler-search"
-                  label="Search reports..."
-                  single-line
-                  hide-details
-                  variant="outlined"
-                  density="compact"
-                  style="max-width: 300px;"
-                ></VTextField>
-              </VToolbar>
-            </template>
+        <VDataTableServer
+          v-model:items-per-page="itemsPerPage"
+          v-model:page="page"
+          :headers="headers"
+          :items="historyItems"
+          :items-length="totalReports"
+          :loading="tableLoading"
+          class="elevation-1"
+          item-value="id"
+          :search="search"
+          hover
+        >
+          <!-- Report ID Column -->
+          <template v-slot:item.report_id="{ item }">
+            <VChip
+              color="primary"
+              variant="tonal"
+              size="small"
+              class="font-weight-medium"
+            >
+              #{{ item.report_id }}
+            </VChip>
+          </template>
 
-            <!-- Custom columns -->
-            <template v-slot:item.report_id="{ item }">
-              <VChip color="primary" variant="flat" size="small">
-                #{{ item.report_id || item.id }}
-              </VChip>
-            </template>
+          <!-- Status Column -->
+          <template v-slot:item.status="{ item }">
+            <VChip
+              :color="getStatusColor(item.status)"
+              variant="flat"
+              size="small"
+            >
+              <VIcon
+                :icon="getStatusIcon(item.status)"
+                class="me-1"
+                size="20"
+              />
+            </VChip>
+          </template>
 
-            <template v-slot:item.status="{ item }">
-              <VChip 
-                :color="getStatusColor(item.status)" 
-                variant="flat" 
-                size="small"
+          <!-- LLM Models Column -->
+          <template v-slot:item.llm_models="{ item }">
+            <div class="d-flex gap-1 flex-wrap">
+              <VChip
+                v-for="model in getLatestReportSummary(item).models"
+                :key="model"
+                :color="getLLMColor(model)"
+                variant="tonal"
+                size="x-small"
               >
-                <VIcon :icon="getStatusIcon(item.status)" class="me-1" size="14" />
-                {{ getStatusText(item.status) }}
+                <VIcon :icon="getLLMIcon(model)" size="20" class="me-1" />
               </VChip>
-            </template>
+            </div>
+          </template>
 
-            <template v-slot:item.llm_responses="{ item }">
-              <div class="d-flex gap-1 flex-wrap">
-                <VChip 
-                  v-if="item.gpt_response" 
-                  color="error" 
-                  variant="outlined" 
-                  size="x-small"
-                >
-                  GPT
-                </VChip>
-                <VChip 
-                  v-if="item.gemini_response" 
-                  color="info" 
-                  variant="outlined" 
-                  size="x-small"
-                >
-                  Gemini
-                </VChip>
-                <VChip 
-                  v-if="item.cohere_response" 
-                  color="warning" 
-                  variant="outlined" 
-                  size="x-small"
-                >
-                  Cohere
-                </VChip>
-              </div>
-            </template>
+          <!-- Success Rate Column -->
+          <template v-slot:item.success_rate="{ item }">
+            <VChip
+              :color="getStatusColor(item.status)"
+              variant="tonal"
+              size="small"
+            >
+              {{ item.success_rate }}
+            </VChip>
+          </template>
 
-            <template v-slot:item.domain_found="{ item }">
-              <div class="d-flex gap-1">
-                <VIcon 
-                  v-if="item.gpt_domain_found" 
-                  icon="tabler-check" 
-                  color="success" 
-                  size="16"
-                />
-                <VIcon 
-                  v-if="item.gemini_domain_found" 
-                  icon="tabler-check" 
-                  color="success" 
-                  size="16"
-                />
-                <VIcon 
-                  v-if="item.cohere_domain_found" 
-                  icon="tabler-check" 
-                  color="success" 
-                  size="16"
-                />
-                <span class="text-caption text-medium-emphasis ms-2">
-                  {{ getDomainFoundCount(item) }}/{{ getLLMResponseCount(item) }}
-                </span>
-              </div>
-            </template>
+          <!-- Created Date Column -->
+          <template v-slot:item.created_at="{ item }">
+              <p class="text-body-2 mb-0 font-weight-medium">
+                {{ formatDate(item.created_at) }}
+              </p>
+              <p class="text-caption text-medium-emphasis mb-0">
+                {{ formatTime(item.created_at) }}
+              </p>
+          </template>
 
-            <template v-slot:item.created_at="{ item }">
-              <div>
-                <p class="text-body-2 mb-0">{{ formatDate(item.created_at) }}</p>
-                <p class="text-caption text-medium-emphasis mb-0">
-                  {{ formatTime(item.created_at) }}
-                </p>
-              </div>
-            </template>
-
-            <template v-slot:item.actions="{ item }">
-              <VBtn
-                icon="tabler-eye"
-                variant="text"
-                size="small"
-                @click="viewReportDetails(item)"
+          <!-- Actions Column -->
+          <template v-slot:item.actions="{ item }">
+            <VBtn
+              icon
+              variant="text"
+              size="small"
+              @click="viewReportDetails(item)"
+              color="primary"
+            >
+              <VIcon icon="tabler-eye" />
+              <VTooltip activator="parent" location="top"
+                >View Details</VTooltip
               >
-              </VBtn>
-            </template>
-          </VDataTableServer>
-        </VCardText>
-      </VCard>
-    </template>
+            </VBtn>
+          </template>
 
-    <!-- No Data State -->
-    <template v-else>
-      <VCard elevation="2" class="mb-6">
-        <VCardText class="text-center py-16">
-          <VAvatar size="120" color="grey-lighten-2" class="mb-6 mx-auto">
-            <VIcon icon="tabler-history-off" size="64" />
-          </VAvatar>
-          <h4 class="text-h4 mb-4">No History Available</h4>
-          <p class="text-body-1 text-medium-emphasis mb-6 max-width-400 mx-auto">
-            No keyword history records found for this keyword.
-          </p>
-          <VBtn
-            color="primary"
-            size="large"
-            :to="{ name: 'apps-keyword-list' }"
-          >
-            <VIcon icon="tabler-arrow-left" class="me-2" />
-            Back to Keywords
-          </VBtn>
-        </VCardText>
+          <!-- Loading slot -->
+          <template v-slot:loading>
+            <VProgressLinear indeterminate color="primary" height="3" />
+          </template>
+
+          <!-- No data slot -->
+          <template v-slot:no-data>
+            <div class="text-center py-8">
+              <VIcon
+                icon="tabler-database-off"
+                size="48"
+                color="grey"
+                class="mb-4"
+              />
+              <p class="text-body-1 text-medium-emphasis">No reports found</p>
+            </div>
+          </template>
+
+          <!-- <template #bottom>
+        <TablePagination
+          v-model:page="pagination.page"
+          :items-per-page="pagination.itemsPerPage"
+          :total-items="totalKeywords"
+        />
+      </template> -->
+        </VDataTableServer>
       </VCard>
     </template>
 
     <!-- Report Details Dialog -->
-    <VDialog v-model="reportDetailsDialog" max-width="1200" persistent>
-      <VCard v-if="selectedReport">
-        <VCardTitle class="pa-4">
+    <VDialog
+      v-model="reportDetailsDialog"
+      max-width="1400"
+      persistent
+      scrollable
+    >
+      <VCard v-if="selectedReport" elevation="8">
+        <VCardTitle class="pa-5">
           <div class="d-flex align-center justify-space-between w-100">
-            <h4 class="text-h4">Report Details - #{{ selectedReport.report_id || selectedReport.id }}</h4>
-            <VBtn icon="tabler-x" variant="text" @click="reportDetailsDialog = false"></VBtn>
+            <div class="d-flex align-center">
+              <VAvatar color="white" size="40" class="me-3">
+                <VIcon icon="tabler-file-report" color="primary" />
+              </VAvatar>
+              <div>
+                <h4 class="text-h5">
+                  Report Details - #{{ selectedReport.report_id }}
+                </h4>
+                <p class="text-caption mb-0">
+                  Created: {{ formatDateTime(selectedReport.created_at) }}
+                </p>
+              </div>
+            </div>
+            <VBtn
+              icon="tabler-x"
+              variant="text"
+              color="white"
+              @click="reportDetailsDialog = false"
+            ></VBtn>
           </div>
         </VCardTitle>
-        
+
         <VDivider />
-        
-        <VCardText class="pa-6" style="max-height: 600px; overflow-y: auto;">
+
+        <VCardText class="pa-6" style="max-height: 70vh; overflow-y: auto">
+          <!-- Report Metadata -->
+          <VRow class="mb-4">
+            <VCol cols="12">
+              <div class="d-flex gap-3 flex-wrap mb-4">
+                <!-- <VChip
+                  :color="getStatusColor(selectedReport.status)"
+                  variant="flat"
+                >
+                  <VIcon
+                    :icon="getStatusIcon(selectedReport.status)"
+                    class="me-1"
+                    size="16"
+                  />
+                  Status: {{ getStatusText(selectedReport.status) }}
+                </VChip> -->
+                <VChip color="primary" variant="tonal">
+                  <VIcon icon="tabler-brain" class="me-1" size="16" />
+                  {{ getLatestReportSummary(selectedReport).total }} LLM Models
+                </VChip>
+                <VChip color="success" variant="tonal">
+                  <VIcon icon="tabler-target" class="me-1" size="16" />
+                  {{ getLatestReportSummary(selectedReport).success }}/{{ getLatestReportSummary(selectedReport).total }} Success Rate
+                </VChip>
+              </div>
+            </VCol>
+          </VRow>
+
+          <!-- LLM Responses -->
           <VRow>
-            <VCol cols="12" md="4" v-if="selectedReport.gpt_response">
-              <VCard elevation="2" class="mb-4">
-                <VCardTitle class="pa-3 bg-error text-white text-body-1">
-                  <VIcon icon="tabler-brain" class="me-2" />
-                  GPT Response
+            <VCol 
+              cols="12" 
+              :md="selectedReport.keyword_data?.length === 1 ? 12 : selectedReport.keyword_data?.length === 2 ? 6 : 4"
+              v-for="keywordData in selectedReport.keyword_data"
+              :key="keywordData.id"
+            >
+              <VCard elevation="3" class="llm-response-card h-100">
+                <VCardTitle :class="`pa-4 bg-${getLLMColor(keywordData.llm_type)}`">
+                  <div class="d-flex align-center justify-space-between">
+                    <div class="d-flex align-center">
+                      <VIcon :icon="getLLMIcon(keywordData.llm_type)" class="me-2" />
+                      <span class="font-weight-medium text-sm">
+                        {{ keywordData.llm_type?.toUpperCase() }} Response
+                      </span>
+                    </div>
+                    <VChip
+                      :color="keywordData.domain_found_in_response ? 'success' : 'error'"
+                      size="small"
+                      variant="flat"
+                    >
+                      <VIcon 
+                        :icon="keywordData.domain_found_in_response ? 'tabler-check' : 'tabler-x'" 
+                        size="14" 
+                        class="me-1" 
+                      />
+                      {{ keywordData.domain_found_in_response ? 'Found' : 'Not Found' }}
+                    </VChip>
+                  </div>
                 </VCardTitle>
-                <VCardText class="pa-3">
-                  <div class="formatted-response small-text" v-html="formatLLMResponse(selectedReport.gpt_response)"></div>
-                </VCardText>
-              </VCard>
-            </VCol>
-            
-            <VCol cols="12" md="4" v-if="selectedReport.gemini_response">
-              <VCard elevation="2" class="mb-4">
-                <VCardTitle class="pa-3 bg-info text-white text-body-1">
-                  <VIcon icon="tabler-brain" class="me-2" />
-                  Gemini Response
-                </VCardTitle>
-                <VCardText class="pa-3">
-                  <div class="formatted-response small-text" v-html="formatLLMResponse(selectedReport.gemini_response)"></div>
-                </VCardText>
-              </VCard>
-            </VCol>
-            
-            <VCol cols="12" md="4" v-if="selectedReport.cohere_response">
-              <VCard elevation="2" class="mb-4">
-                <VCardTitle class="pa-3 bg-warning text-white text-body-1">
-                  <VIcon icon="tabler-brain" class="me-2" />
-                  Cohere Response
-                </VCardTitle>
-                <VCardText class="pa-3">
-                  <div class="formatted-response small-text" v-html="formatLLMResponse(selectedReport.cohere_response)"></div>
+                <VCardText class="pa-4">
+                  <div
+                    class="formatted-response"
+                    v-html="formatLLMResponse(keywordData.llm_response)"
+                  ></div>
                 </VCardText>
               </VCard>
             </VCol>
           </VRow>
+
+          <!-- No Responses Message -->
+          <VAlert
+            v-if="!selectedReport.keyword_data?.length"
+            type="info"
+            variant="tonal"
+            class="mt-4"
+          >
+            <VIcon icon="tabler-info-circle" class="me-2" />
+            No LLM responses available for this report.
+          </VAlert>
         </VCardText>
+
+        <VDivider />
+
+        <VCardActions class="pa-4">
+          <VSpacer />
+          <VBtn
+            color="primary"
+            variant="text"
+            @click="reportDetailsDialog = false"
+          >
+            Close
+          </VBtn>
+        </VCardActions>
       </VCard>
     </VDialog>
   </div>
 </template>
 
-<script setup>
-import { computed, onMounted, watch, ref } from 'vue';
-import { useKeywordApi } from '@/composables/KeywordApi.js';
-import { useRoute } from "vue-router";
+<style scoped>
+.stat-card {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
 
-const route = useRoute();
-const keywordId = computed(() => route.params.id);
+.llm-response-card {
+  height: 100%;
+}
 
-const {
-  KeywordHistory,
-  loading,
-  error,
-  fetchKeywordHistory,
-  showAlert
-} = useKeywordApi();
+.formatted-response {
+  max-height: 300px;
+  overflow-y: auto;
+}
 
-// Table state
-const page = ref(1);
-const itemsPerPage = ref(10);
-const search = ref('');
-const tableLoading = ref(false);
-const reportDetailsDialog = ref(false);
-const selectedReport = ref(null);
+.formatted-response h3,
+.formatted-response h4,
+.formatted-response h5 {
+  color: rgb(var(--v-theme-primary));
+}
 
-// Data table headers
-const headers = [
-  { title: 'Report ID', key: 'report_id', sortable: true, width: '120px' },
-  { title: 'Status', key: 'status', sortable: true, width: '120px' },
-  { title: 'LLM Models', key: 'llm_responses', sortable: false, width: '150px' },
-  { title: 'Domain Found', key: 'domain_found', sortable: false, width: '120px' },
-  { title: 'Created', key: 'created_at', sortable: true, width: '140px' },
-  { title: 'Actions', key: 'actions', sortable: false, width: '80px', align: 'center' }
-];
+.formatted-response pre {
+  background-color: rgba(var(--v-theme-surface), 0.8);
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
 
-// Watch for route changes
-watch(keywordId, async (newId, oldId) => {
-  if (newId && newId !== oldId) {
-    await loadReportData();
-  }
-});
-
-// Load data on mount
-onMounted(async () => {
-  if (keywordId.value) {
-    await loadReportData();
-  }
-});
-
-const loadReportData = async () => {
-  try {
-    await fetchKeywordHistory(keywordId.value);
-  } catch (err) {
-    console.error("Failed to load report:", err);
-  }
-};
-
-const handleRetry = async () => {
-  if (keywordId.value) {
-    await loadReportData();
-  }
-};
-
-const keywordData = computed(() => {
-  return KeywordHistory.value || { keyword: {}, history: [] };
-});
-
-const historyItems = computed(() => {
-  const data = keywordData.value;
-  if (data.keyword?.keyword_history) {
-    return data.keyword.keyword_history;
-  }
-  if (data.history) {
-    return data.history;
-  }
-  if (Array.isArray(data)) {
-    return data;
-  }
-  
-  return [];
-});
-
-console.log('hist',historyItems.value);
-
-const sortedHistoryItems = computed(() => {
-  const items = historyItems.value;
-  if (!Array.isArray(items)) return [];
-  
-  return [...items].sort((a, b) => {
-    const dateA = new Date(a.created_at || 0);
-    const dateB = new Date(b.created_at || 0);
-    return dateB - dateA;
-  });
-});
-
-// Latest report (highest report ID)
-const latestReport = computed(() => {
-  if (!sortedHistoryItems.value.length) return null;
-  
-  return sortedHistoryItems.value.reduce((latest, current) => {
-    const currentReportId = parseInt(current.report_id || current.id || 0);
-    const latestReportId = parseInt(latest.report_id || latest.id || 0);
-    return currentReportId > latestReportId ? current : latest;
-  });
-});
-
-// Historical reports (all except the latest)
-const historicalReports = computed(() => {
-  if (!latestReport.value) return sortedHistoryItems.value;
-  
-  const latestId = latestReport.value.report_id || latestReport.value.id;
-  return sortedHistoryItems.value.filter(item => 
-    (item.report_id || item.id) !== latestId
-  );
-});
-
-const totalReports = computed(() => sortedHistoryItems.value.length);
-const totalItems = computed(() => historicalReports.value.length);
-
-const keywordText = computed(() => {
-  const data = keywordData.value;
-  return data.keyword?.keyword || data.keyword_text || 'Unknown Keyword';
-});
-
-// Count LLM responses for latest report
-const llmResponsesCount = computed(() => {
-  if (!latestReport.value) return 0;
-  let count = 0;
-  if (latestReport.value.gpt_response) count++;
-  if (latestReport.value.gemini_response) count++;
-  if (latestReport.value.cohere_response) count++;
-  return count;
-});
-
-// Count domains found in latest report
-const domainFoundCount = computed(() => {
-  if (!latestReport.value) return 0;
-  let count = 0;
-  if (latestReport.value.gpt_domain_found) count++;
-  if (latestReport.value.gemini_domain_found) count++;
-  if (latestReport.value.cohere_domain_found) count++;
-  return count;
-});
-
-// Helper functions
-const getStatusColor = (status) => {
-  switch (status) {
-    case 3: return "success";
-    case 2: return "error";
-    case 1:
-    default: return "warning";
-  }
-};
-
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 3: return "tabler-check";
-    case 2: return "tabler-x";
-    case 1:
-    default: return "tabler-clock";
-  }
-};
-
-const getStatusText = (status) => {
-  switch (status) {
-    case 3: return "Success";
-    case 2: return "Failed";
-    case 1:
-    default: return "Pending";
-  }
-};
-
-const getLLMResponseCount = (item) => {
-  let count = 0;
-  if (item.gpt_response) count++;
-  if (item.gemini_response) count++;
-  if (item.cohere_response) count++;
-  return count;
-};
-
-const getDomainFoundCount = (item) => {
-  let count = 0;
-  if (item.gpt_domain_found) count++;
-  if (item.gemini_domain_found) count++;
-  if (item.cohere_domain_found) count++;
-  return count;
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  try {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    });
-  } catch (e) {
-    return "Invalid Date";
-  }
-};
-
-const formatTime = (dateString) => {
-  if (!dateString) return "N/A";
-  try {
-    return new Date(dateString).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  } catch (e) {
-    return "Invalid Time";
-  }
-};
-
-const formatDateTime = (dateString) => {
-  if (!dateString) return "N/A";
-  try {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  } catch (e) {
-    return "Invalid Date";
-  }
-};
-
-const formatLLMResponse = (response) => {
-  if (!response) return "No response available";
-
-  try {
-    let formattedResponse = response
-      .replace(/^### (.*$)/gm, "<h3>$1</h3>")
-      .replace(/^## (.*$)/gm, "<h2>$1</h2>")
-      .replace(/^# (.*$)/gm, "<h1>$1</h1>")
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/__(.*?)__/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      .replace(/_(.*?)_/g, "<em>$1</em>")
-      .replace(/^[\-\*\+] (.*)$/gm, "<li>$1</li>")
-      .replace(/^\d+\. (.*)$/gm, "<li>$1</li>")
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-      .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\n\n+/g, "</p><p>")
-      .replace(/\n/g, "<br>");
-
-    if (!formattedResponse.includes("<p>") && !formattedResponse.includes("<h")) {
-      formattedResponse = "<p>" + formattedResponse + "</p>";
-    }
-
-    return formattedResponse;
-  } catch (e) {
-    return response;
-  }
-};
-
-const viewReportDetails = (item) => {
-  selectedReport.value = item;
-  reportDetailsDialog.value = true;
-};
-
-</script>
+.formatted-response code.inline-code {
+  background-color: rgba(var(--v-theme-primary), 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+</style>

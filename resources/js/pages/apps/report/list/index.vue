@@ -463,15 +463,15 @@ const applyFilters = async () => {
 
     <!-- Enhanced Data Table -->
     <VDataTableServer
-      :page="page"
-      :items-per-page="itemsPerPage"
+      v-model:page="pagination.page"
+      v-model:items-per-page="pagination.itemsPerPage"
       v-model:model-value="selectedRows"
       :headers="headers"
       show-select
       :items="reportsWithStats"
       :loading="loading"
       loading-text="Fetching reports, please wait..."
-      :items-length="totalReports"
+      :items-length="pagination.total"
       class="reports-table"
       hover
       @update:options="updateOptions"
