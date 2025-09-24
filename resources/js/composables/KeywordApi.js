@@ -50,6 +50,7 @@ export function useKeywordApi() {
       const body = {
         ...filters,
       };
+      console.log('apicall',body);
       const result = await useApi(
         createUrl("api/keyword/get", { query: body }),
         {

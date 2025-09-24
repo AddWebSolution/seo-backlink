@@ -17,10 +17,10 @@ class KeywordReportResource extends JsonResource
         return [
             'id'       => $this->id,
             'run_id'   => $this->run_id,
-            'domain_count'   => $this->getDomainsCount(),
-            'total_keywords'   => $this->getKeywordsCount(),
-            'accepted_keywords'   => $this->getSuccessCount(),
-            'rejected_keywords'   => $this->getFailCount(),
+            'domain_count'   => $this->getDomainsCount() ?  $this->getDomainsCount() : $this->domain_count,
+            'total_keywords'   => $this->getKeywordsCount() ? $this->getKeywordsCount() : $this->total_keywords,
+            'accepted_keywords'   => $this->getSuccessCount() ? $this->getSuccessCount() : $this->success,
+            'rejected_keywords'   => $this->getFailCount() ? $this->getFailCount() : $this->fail,
             'keywords' => $this->keywords,
         ];
     }

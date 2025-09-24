@@ -17,6 +17,10 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::post('store', [KeywordController::class, 'store'])->name('store');
 			//});
 
+
+			Route::post('list', [KeywordController::class, 'keywordList'])->name('keywordList');
+
+
 			Route::get('import/template/download', [KeywordController::class, 'keywordImportTemplateDownload']);
 
 			Route::post('import', [KeywordController::class, 'keywordImport']);

@@ -9,6 +9,7 @@ use App\Modules\Keyword\Services\KeywordService;
 use App\Modules\Keyword\Http\Resources\KeywordResource;
 use App\Modules\Keyword\Http\Requests\StoreKeywordRequest;
 use App\Modules\Keyword\Http\Requests\UpdateKeywordRequest;
+use App\Modules\Keyword\Models\Keyword;
 
 class KeywordController extends BaseController
 {   
@@ -58,6 +59,37 @@ class KeywordController extends BaseController
             ], 500);
         }
     }
+
+    public function keywordList()
+    {   
+        $keywords = Keyword::with('domain:id,title,target_url')
+            ->where('status', 1)
+            ->orderBy('client_domain_id')
+            ->get()
+            ->groupBy('client_domain_id')
+            ->map(function ($group, $domainId) {
+                $domain = $group->first()->domain;
+
+                return [
+                    'domain_id'   => $domain?->id,
+                    'domain'      => $domain?->title,
+                    'domain_url'  => $domain?->target_url,
+                    'keywords'    => $group->map(function ($keyword) {
+                        return [
+                            'id'      => $keyword->id,
+                            'keyword' => $keyword->keyword,
+                        ];
+                    })->values(),
+                ];
+            })->values();
+
+        return response()->json([
+            'success'  => true,
+            'domains'  => $keywords,
+        ]);
+    }
+
+
 
     public function keywordHistory(Request $request, $id)
     {

@@ -276,6 +276,15 @@ const itemsPerPage = computed({
 const updateOptions = async (options) => {
   pagination.value.itemsPerPage = options.itemsPerPage;
   pagination.value.page = options.page;
+
+  // Sorting
+  if (options.sortBy && options.sortBy.length > 0) {
+    sortBy.value = options.sortBy[0];       
+    orderBy.value = options.sortDesc[0] ? "desc" : "asc";
+  } else {
+    sortBy.value = null;
+    orderBy.value = null;
+  }
   await loadKeywords();
 };
 

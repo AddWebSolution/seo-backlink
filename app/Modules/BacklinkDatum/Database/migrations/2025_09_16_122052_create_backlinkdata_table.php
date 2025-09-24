@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('from_url')->nullable();
             $table->string('anchor')->nullable();
             $table->enum('status', ['accepted', 'rejected'])->default('rejected');
-            $table->string('reason')->nullable();
+            $table->text('reason')->nullable();
             $table->json('key_highlights')->nullable();
             $table->timestamp('first_seen')->nullable();
             $table->timestamp('last_seen')->nullable();
