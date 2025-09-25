@@ -37,6 +37,37 @@ export const routes = [
     props: true,
   },
 
+  // Rival Domain
+  {
+    path: "/rivalsdomains/:id",
+    name: "apps-rivaldomain-view",
+    component: () => import("@/pages/apps/rivaldomain/view/[id].vue"),
+    props: true,
+  },
+  {
+    path: "/rivaldomains/:id/edit",
+    name: "apps-rivaldomain-edit",
+    component: () => import("@/pages/apps/rivaldomain/edit/[id].vue"),
+    props: true,
+  },
+
+
+
+  // Client
+  {
+    path: "/clients/:id",
+    name: "apps-client-view",
+    component: () => import("@/pages/apps/client/view/[id].vue"),
+    props: true,
+  },
+  {
+    path: "/clients/:id/edit",
+    name: "apps-client-edit",
+    component: () => import("@/pages/apps/client/edit/[id].vue"),
+    props: true,
+  },
+
+
   // Keyword
   {
     path: "/keywords/:id",

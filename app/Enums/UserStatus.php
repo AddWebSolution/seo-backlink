@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Keyword\Enums;
+namespace App\Enums;
 
-enum KeywordStatus: int
+enum UserStatus: int
 {
     case ACTIVE = 1;
     case INACTIVE = 2;

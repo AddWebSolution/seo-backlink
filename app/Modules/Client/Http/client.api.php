@@ -13,6 +13,12 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::post('get/{id}', [ClientController::class, 'show'])->name('show');
 			//});
 
+			Route::post('list', [ClientController::class, 'clientList'])->name('clientList');
+
+			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport');
+
+			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload');
+
 			//Route::group(['middleware' => ['can:Create Client']], function () {
 			Route::post('store', [ClientController::class, 'store'])->name('store');
 			//});

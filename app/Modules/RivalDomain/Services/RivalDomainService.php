@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Modules\ClientDomain\Services;
+namespace App\Modules\RivalDomain\Services;
 
-use Illuminate\Support\Facades\DB;
 use Addweb\Base\Services\BaseService;
+use App\Modules\RivalDomain\Models\RivalDomain;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -13,9 +14,9 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use App\Modules\ClientDomain\Models\ClientDomain;
 
-class ClientDomainService extends BaseService
+class RivalDomainService extends BaseService
 {
-    public array $searchFields = [
+     public array $searchFields = [
         'title'       => [],
         'source_url'  => [],
         'target_url'  => [],
@@ -31,7 +32,7 @@ class ClientDomainService extends BaseService
 
     public function __construct()
     {
-        $this->object = new ClientDomain();
+        $this->object = new RivalDomain();
     }
 
     public function domainImport($file)

@@ -1,13 +1,14 @@
 <script setup>
 import { onMounted, ref, computed ,unref } from "vue";
-import { useDomainApi } from "@/composables/domainApi.js";
+import { useRivalDomainApi } from "@/composables/rivalDomainApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { flat } from "@/views/demos/components/button/demoCodeButton";
-const { ClientList,fetchClientList } = useClientApi();
+
+const {domainList,fetchDomainList} = useDomainApi();
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Client ID", key: "client_id", align: "center", width: "100px" },
+  { title: "Client Domain ID", key: "client_domain_id", align: "center", width: "100px" },
   { title: "Title", key: "title", align: "center", width: "200px" },
   { title: "Target URL", key: "target_url", align: "center", width: "250px" },
   { title: "DA", key: "domain_authority", align: "center", width: "80px" },
@@ -38,16 +39,16 @@ const headers = [
 ];
 
 const {
-  domains,
+  rivaldomains,
   pagination,
   loading,
   error,
-  fetchDomains,
+  fetchRivalDomains,
   downloadTemplate,
-  importDomains,
-  deleteDomain,
+  importRivalDomains,
+  deleteRivalDomain,
   showAlert,
-} = useDomainApi();
+} = useRivalDomainApi();
 
 // Filters
 const selectedStatus = ref();
@@ -96,9 +97,9 @@ const buildFilters = () => {
   return filters;
 };
 
-const loadDomains = async () => {
+const loadRivalDomains = async () => {
   const filters = buildFilters();
-  await fetchDomains(filters, pagination.value.page);
+  await fetchRivalDomains(filters, pagination.value.page);
 };
 
 const clearAllFilters = async () => {
@@ -108,7 +109,7 @@ const clearAllFilters = async () => {
   selectedCountry.value = "";
   searchQuery.value = "";
   pagination.value.page = 1;
-  await loadDomains();
+  await loadRivalDomains();
   showAlert("Custom message here!", "info");
 };
 
@@ -137,7 +138,7 @@ const getStatusConfig = (status) => {
 
 const applyFilters = async () => {
   page.value = 1;
-  await loadDomains();
+  await loadRivalDomains();
 };
 
 const handleDeleteDomain = async (id) => {
@@ -238,7 +239,7 @@ const itemsPerPage = computed({
   set: (val) => {
     pagination.value.itemsPerPage = val;
     pagination.value.page = 1;
-    // loadDomains();
+    // loadRivalDomains();
   },
 });
 
@@ -255,12 +256,12 @@ const updateOptions = async (options) => {
     orderBy.value = null
   }
 
-  await loadDomains()
+  await loadRivalDomains()
 }
 
 onMounted(async () => {
 
-  await fetchClientList();
+  await fetchDomainList();
 })
 </script>
 
@@ -275,7 +276,7 @@ onMounted(async () => {
               <IconWorldWww stroke="{2}" />
             </VAvatar>
             <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Domain Management</h1>
+              <h1 class="text-h3 font-weight-bold mb-1">Rival Domain Management</h1>
               <p class="text-body-1 text-medium-emphasis mb-0">
                 Manage and monitor your domain portfolio
               </p>
@@ -331,7 +332,7 @@ onMounted(async () => {
             hide-details prepend-inner-icon="tabler-circle-dot" />
         </VCol>
         <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedClient" label="Client" :items="ClientList" item-title="name" item-value="id" variant="outlined" clearable
+          <AppSelect v-model="selectedClient" label="Domain" :items="domainList" item-title="title" item-value="id" variant="outlined" clearable
             hide-details prepend-inner-icon="tabler-circle-dot" />
         </VCol>
         <VCol cols="12" sm="6" md="3">
@@ -343,7 +344,7 @@ onMounted(async () => {
             clearable hide-details prepend-inner-icon="tabler-world" />
         </VCol>
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
-          <VBtn color="primary" variant="flat" block @click="loadDomains">
+          <VBtn color="primary" variant="flat" block @click="loadRivalDomains">
             <VIcon icon="tabler-search" class="me-2" />
             Search
           </VBtn>
@@ -479,7 +480,7 @@ onMounted(async () => {
 
     <!-- Enhanced Data Table -->
     <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows" :headers="headers" show-select :items="domains" :loading="loading"
+      v-model:model-value="selectedRows" :headers="headers" show-select :items="rivaldomains" :loading="loading"
       :items-length="pagination.total" loading-text="Fetching domains, please wait..." class="domain-table" hover
       @update:options="updateOptions">
       <template #item.target_url="{ item }">

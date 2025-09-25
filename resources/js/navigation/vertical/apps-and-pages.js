@@ -1,22 +1,46 @@
 
 export default [
-  { heading: 'SEO Backlink' },
+  { heading: 'Dashboard' },
   {
-    title: 'Domain',
+    title: 'SEO Overview',
+    icon: { icon: 'tabler-dashboard' },
+    to: 'dashboards-analytics',
+  },
+  { heading: 'Clients' },
+  {
+    title: 'Client',
+    icon: { icon: 'tabler-user' },
+    children: [
+      { title: 'Client List', to: 'apps-client-list', icon: { icon: 'tabler-list' } },
+      { title: 'Add Client', to: 'apps-client-add', icon: { icon: 'tabler-circle-plus' } },
+    ],
+  },
+  {
+    title: 'Domains',
     icon: { icon: 'tabler-world' },
     children: [
     { title: 'Domain List', to: 'apps-domain-list', icon: { icon: 'tabler-list' } },
     { title: 'Add Domain', to: 'apps-domain-add',  icon: { icon: 'tabler-circle-plus' } },
   ],
   },
+  { heading: 'Rival Domains' },
   {
-    title: 'Report',
+    title: 'Rival Domain',
+    icon: { icon: 'tabler-world' },
+    children: [
+      { title: 'RivalDomain List', to: 'apps-rivaldomain-list', icon: { icon: 'tabler-list' } },
+      { title: 'Add RivalDomain', to: 'apps-rivaldomain-add', icon: { icon: 'tabler-circle-plus' } },
+    ],
+  },
+  { heading: 'Backlinks' },
+  {
+    title: 'Backlink Report',
     icon: { icon: 'tabler-report' },
     children: [
       { title: 'Report List', to: 'apps-report-list' ,icon: { icon: 'tabler-list' } },
     ],
   },
-   { heading: 'SEO Keyword' },
+  { heading: 'Keywords' },
   {
     title: 'Keyword',
     icon: { icon: 'tabler-key' },

@@ -26,6 +26,19 @@ class ClientController extends BaseController
         ];
     }
 
+    public function clientList()
+    {
+        $clients = Client::select('id', 'name', 'company_name','website','email')
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'clients' => $clients,
+        ]);
+    }
+
     public function updateProfilePic(UploadPicRequest $request, $id)
     {
         $client = Client::findOrFail($id);

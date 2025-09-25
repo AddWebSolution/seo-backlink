@@ -1,24 +1,22 @@
 <?php
 
-namespace App\Modules\ClientDomain\Models;
+namespace App\Modules\RivalDomain\Models;
 
 use Addweb\Base\Model\BaseModel;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\RivalDomain\Observers\RivalDomainObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use App\Modules\ClientDomain\Observers\ClientDomainObserver;
-use Database\Factories\ClientDomainFactory;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
-
-#[ObservedBy([ClientDomainObserver::class])]
-class ClientDomain extends BaseModel
-{   
-    /** @use HasFactory<\Database\Factories\ClientDomainFactory> */
+#[ObservedBy([RivalDomainObserver::class])]
+class RivalDomain extends BaseModel
+{
+     /** @use HasFactory<\Database\Factories\ClientDomainFactory> */
     use HasFactory;
     use SoftDeletes;
 
-    protected $table = 'client_domains';
+    protected $table = 'rival_domains';
 
     protected $guarded = [];
 

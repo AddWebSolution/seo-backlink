@@ -1,19 +1,19 @@
 <script setup>
-import { useDomainApi } from '@/composables/domainApi';
-import { useClientApi } from '@/composables/clientApi';
+import { useRivalDomainApi } from '@/composables/rivalDomainApi';
+import { useDomainApi} from '@/composables/domainApi';
 import { useRouter } from 'vue-router'
 import { IconWorldWww, IconDevicesCog, IconWorldMinus, IconUnlink, IconSeo, IconTag } from '@tabler/icons-vue';
 import { ref, reactive, watch, onMounted } from 'vue'
 
 const router = useRouter()
 
-const { createDomain, loading, error, showAlert } = useDomainApi();
+const { createRivalDomain, loading, error, showAlert } = useRivalDomainApi();
 
-const { ClientList,fetchClientList } = useClientApi();
+const {domainList,fetchDomainList} = useDomainApi();
 
 // Form data
 const form = ref({
-  client_id: '',
+  client_domain_id: '',
   source_url: '',
   title: '',
   target_url: '',
@@ -70,7 +70,7 @@ const saveDraft = () => {
 
 onMounted(async () => {
 
-  await fetchClientList();
+  await fetchDomainList();
   const draft = localStorage.getItem('domain_draft')
   if (draft) {
     const shouldLoad = confirm('A draft was found. Would you like to restore it?')
@@ -81,7 +81,7 @@ onMounted(async () => {
 })
 
 const markFormTouched = () => {
-  state.formTouched = trues
+  state.formTouched = true
 }
 
 
@@ -194,13 +194,13 @@ const submitForm = async () => {
       if (payload[field] === '') payload[field] = null
     })
 
-    await createDomain(payload)
+    await createRivalDomain(payload)
     
     localStorage.removeItem('domain_draft')
     
-    setTimeout(() => {
-      router.push({ name: 'apps-domain-list' })
-    }, 1500)
+    // setTimeout(() => {
+    //   router.push({ name: 'apps-domain-list' })
+    // }, 1500)
 
   } catch (err) {
     console.error('Create domain failed:', err)
@@ -279,7 +279,7 @@ const scrollToSection = (sectionId) => {
                 <IconWorldWww stroke={2} />
               </VAvatar>
               <div>
-                <h1 class="text-h3 font-weight-bold mb-1">Create New Domain</h1>
+                <h1 class="text-h3 font-weight-bold mb-1">Create New Rival Domain</h1>
                 <p class="text-body-1 text-medium-emphasis mb-0">
                   Fill in the domain details below to add a new entry to the system
                 </p>
@@ -371,10 +371,9 @@ const scrollToSection = (sectionId) => {
               <VRow>
 
                 <VCol cols="12" md="3">
-                  <AppSelect v-model="form.client_id" :items="ClientList" item-title="name" item-value="id"
-                    label="Select Client * " variant="outlined" hide-details clearable :loading="loading" required />
+                  <AppSelect v-model="form.client_domain_id" :items="domainList" item-title="title" item-value="id"
+                    label="Select Client Domain * " variant="outlined" hide-details clearable :loading="loading" required />
                 </VCol>
-
 
                 <VCol cols="12" md="3">
                   <AppTextField v-model="form.title" label="Domain Title *" placeholder="Enter a descriptive title"
