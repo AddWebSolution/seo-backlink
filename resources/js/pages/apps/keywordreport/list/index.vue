@@ -20,6 +20,7 @@ const {
   loading, 
   error,
   fetchKeywordReports, 
+  exportKeywordReports,
   showAlert 
 } = useKeywordReportApi()
 
@@ -122,7 +123,7 @@ const handleExportReports = async () => {
   const requestBody = { report_ids: reportIds };
 
   try {
-    const blob = await exportReports(requestBody);
+    const blob = await exportKeywordReports(requestBody);
     const filename = generateBacklinkReportFilename();
 
     const url = URL.createObjectURL(blob);
@@ -147,7 +148,7 @@ const handleExportSingleReport = async (reportId) => {
   const requestBody = { report_ids: [reportId] };
 
   try {
-    const blob = await exportReports(requestBody);
+    const blob = await exportKeywordReports(requestBody);
     const filename = generateBacklinkReportFilename();
 
     const url = URL.createObjectURL(blob);

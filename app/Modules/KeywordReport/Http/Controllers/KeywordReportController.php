@@ -42,4 +42,10 @@ class KeywordReportController extends BaseController
             'domains'       => $result['domains']
         ]);
     }
+
+    public function reportExport(Request $request)
+    {
+        $reportIds = $request->input('report_ids');
+        return $this->service->exportKeywordReport($reportIds);
+    }
 }
