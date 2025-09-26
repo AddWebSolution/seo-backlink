@@ -25,6 +25,18 @@ export const redirects = [
 export const routes = [
   // Domain
   {
+    path: "/client/:id/clientdomain/add",
+    name: "apps-domain-clientdomain-add",
+    component: () => import("@/pages/apps/domain/clientdomain/add/[id].vue"),
+    props: true,
+  },
+  {
+    path: "/client/:id/clientdomain/list",
+    name: "apps-domain-clientdomain-list",
+    component: () => import("@/pages/apps/domain/clientdomain/list/[id].vue"),
+    props: true,
+  },
+  {
     path: "/domains/:id",
     name: "apps-domain-view",
     component: () => import("@/pages/apps/domain/view/[id].vue"),
@@ -38,6 +50,18 @@ export const routes = [
   },
 
   // Rival Domain
+  {
+    path: "/client/:clientId/clientdomain/:domainId/rivaldomain/add",
+    name: "apps-domain-clientdomain-rivaldomain-add",
+    component: () => import("@/pages/apps/domain/clientdomain/[clientId]/rivaldomain/add/[domainId].vue"),
+    props: true,
+  },
+  {
+    path: "/client/:clientId/clientdomain/:domainId/rivaldomain/list",
+    name: "apps-domain-clientdomain-rivaldomain-list",
+    component: () => import("@/pages/apps/domain/clientdomain/[clientId]/rivaldomain/list/[domainId].vue"),
+    props: true,
+  },
   {
     path: "/rivalsdomains/:id",
     name: "apps-rivaldomain-view",

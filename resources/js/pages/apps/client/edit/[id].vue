@@ -1,111 +1,120 @@
 <script setup>
-import { useDomainApi } from '@/composables/domainApi'
-import DomainEditDrawer from '@/views/apps/domain/DomainEditDrawer.vue'
-import { onMounted, ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useClientApi } from '@/composables/clientApi'
 
 const route = useRoute()
-const domainData = ref(null)
-const isEditDrawerActive = ref(false)
+const router = useRouter()
+const { getClientById, updateClient, showAlert } = useClientApi()
 
-const { 
-  currentDomain, 
-  loading, 
-  error, 
-  updateDomain, 
-  showAlert 
-} = useDomainApi()
+const clientData = ref(null)
+const submitting = ref(false)
+const formRef = ref(null)
 
-const fetchDomainById = async (id) => {
-  loading.value = true
-  error.value = null
-  
-  try {
-    const result = await useApi(`api/clientdomain/get/${id}`, { 
-      method: 'POST' 
-    })
-    
-    if (result?.data?.resource) {
-      domainData.value = result.data.resource
-      currentDomain.value = result.data.resource
-    } else {
-      showAlert('Domain not found', 'error')
-    }
-    
-    return result
-  } catch (err) {
-    error.value = err
-    showAlert('Failed to load domain', 'error')
-    throw err
-  } finally {
-    loading.value = false
-  }
+// Validation rules
+const rules = {
+  required: value => !!value || 'This field is required',
+  email: value => !value || /^\S+@\S+\.\S+$/.test(value) || 'Enter a valid email',
+  website: value => !value || /^(https?:\/\/)?([\w\d-]+\.)+\w{2,}(\/.*)?$/.test(value) || 'Enter a valid URL',
+  phone: value => !value || /^\+?[\d\s-]{7,15}$/.test(value) || 'Enter a valid phone number'
 }
 
-onMounted(async () => {
+// Fetch client on mount
+onMounted(async () => {s
   if (route.params.id) {
-    await fetchDomainById(route.params.id)
+    try {
+      const res = await getClientById(route.params.id)
+      if (res?.data?.resource) {
+        clientData.value = { ...res.data.resource }
+      } else {
+        showAlert('Client not found', 'error')
+        router.push({ name: 'apps-client-list' })
+      }
+    } catch (err) {
+      console.error(err)
+      showAlert('Failed to load client data', 'error')
+      router.push({ name: 'apps-client-list' })
+    }
   }
 })
 
-const saveDomain = async (updatedDomain) => {
-  if (!updatedDomain?.id) {
-    showAlert('Invalid domain data', 'error')
-    return
-  }
+// Save client
+const saveClient = async () => {
+  const valid = await formRef.value.validate()
+  if (!valid) return
 
+  submitting.value = true
   try {
-    await updateDomain(updatedDomain.id, updatedDomain)
-    domainData.value = { ...updatedDomain }
-    isEditDrawerActive.value = false
-    
-    await fetchDomainById(updatedDomain.id)
-  } catch (error) {
-    console.error('Save failed:', error)
+    await updateClient(clientData.value.id, clientData.value)
+    showAlert('Client updated successfully!', 'success')
+    router.push({ name: 'apps-client-list' })
+  } catch (err) {
+    console.error(err)
+    showAlert('Failed to save client', 'error')
+  } finally {
+    submitting.value = false
   }
 }
-
-const addSubItem = (value) => {
-  if (!domainData.value) return
-  if (!domainData.value.subItems) domainData.value.subItems = []
-  domainData.value.subItems.push(value)
-}
-
-const removeSubItem = (index) => {
-  if (!domainData.value?.subItems) return
-  domainData.value.subItems.splice(index, 1)
-}
-
-const domain = computed(() => domainData.value || currentDomain.value)
-const isLoading = computed(() => loading.value)
-const hasError = computed(() => error.value)
 </script>
 
 <template>
-  <VRow v-if="domainData">
-    <!-- Left Column: Editable fields -->
-    <VCol cols="12" md="9">
-      <DomainEditDrawer v-model:is-drawer-open="isEditDrawerActive" :domain="domainData" @save="saveDomain" />
-    </VCol>
+  <VCard class="pa-6">
+    <h1 class="text-h4 font-weight-bold mb-4">Edit Client</h1>
 
-    <!-- Right Column: Actions -->
-    <VCol cols="12" md="3">
-      <VCard class="mb-8">
-        <VCardText>
-          <VBtn block color="success" prepend-icon="tabler-save" @click="saveDomain(domainData)">
-            Save Changes
-          </VBtn>
-          <VBtn block color="secondary" prepend-icon="tabler-arrow-back" :to="{ name: 'apps-domain-list' }">
-            Back to List
-          </VBtn>
-        </VCardText>
-      </VCard>
-    </VCol>
-  </VRow>
+    <VForm ref="formRef" @submit.prevent="saveClient">
+      <VRow dense>
+        <VCol cols="12" md="6">
+          <AppTextField v-model="clientData.name" label="Full Name" :rules="[rules.required]" />
+        </VCol>
+        <VCol cols="12" md="6">
+          <AppTextField v-model="clientData.email" label="Email" :rules="[rules.required, rules.email]" />
+        </VCol>
+        <VCol cols="12" md="6">
+          <AppTextField v-model="clientData.company_name" label="Company Name" :rules="[rules.required]" />
+        </VCol>
+        <VCol cols="12" md="6">
+          <AppTextField v-model="clientData.website" label="Website" :rules="[rules.website]" />
+        </VCol>
+        <VCol cols="12" md="6">
+          <AppTextField v-model="clientData.phone" label="Phone Number" :rules="[rules.phone]" />
+        </VCol>
+        <VCol cols="12" md="6">
+          <AppTextField v-model="clientData.industry" label="Industry" />
+        </VCol>
+        <VCol cols="12" md="4">
+          <AppTextField v-model="clientData.city" label="City" />
+        </VCol>
+        <VCol cols="12" md="4">
+          <AppTextField v-model="clientData.state" label="State" />
+        </VCol>
+        <VCol cols="12" md="4">
+          <AppTextField v-model="clientData.zip_code" label="Zip Code" />
+        </VCol>
+        <VCol cols="12" md="6">
+          <AppTextField v-model="clientData.country" label="Country" />
+        </VCol>
+        <VCol cols="12" md="6">
+          <AppSelect
+            v-model="clientData.status"
+            :items="[
+              { title: 'Active', value: 1 },
+              { title: 'Inactive', value: 2 }
+            ]"
+            label="Status"
+          />
+        </VCol>
+      </VRow>
 
-  <section v-else>
-    <VAlert type="error" variant="tonal">
-      Domain with ID {{ route.params.id }} not found!
-    </VAlert>
-  </section>
+      <VCardActions class="mt-4">
+        <VBtn color="primary" :loading="submitting" @click="saveClient">Save Changes</VBtn>
+        <VBtn variant="text" @click="router.push({ name: 'apps-client-list' })">Cancel</VBtn>
+      </VCardActions>
+    </VForm>
+  </VCard>
 </template>
+
+<style scoped>
+.pa-6 {
+  padding: 24px;
+}
+</style>

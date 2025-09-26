@@ -1,98 +1,77 @@
 <script setup>
-import { onMounted, ref, computed, unref } from "vue";
-import { useClientApi } from "@/composables/clientApi";
+import { onMounted, ref, computed ,unref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useRivalDomainApi } from "@/composables/rivalDomainApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { flat } from "@/views/demos/components/button/demoCodeButton";
 
+const {domainList,fetchDomainList} = useDomainApi();
+
+const route = useRoute()
+const router = useRouter()
+
+const clientId = computed(() => route.params.clientId)
+const clientDomainId = computed(() => route.params.domainId)
+
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Name", key: "name", align: "center", width: "70px" },
-  { title: "E-Mail", key: "email", align: "center", width: "40px" },
-  { title: "Company", key: "company_name", align: "center", width: "80px" },
-  { title: "Website", key: "website", align: "center", width: "80px" },
-  { title: "City", key: "city", align: "center", width: "80px" },
-  { title: "Phone", key: "phone", align: "center", width: "100px" },
-  { title: "Country", key: "country", align: "center", width: "100px" },
+  { title: "Client Domain ID", key: "client_domain_id", align: "center", width: "100px" },
+  { title: "Title", key: "title", align: "center", width: "200px" },
+  { title: "Target URL", key: "target_url", align: "center", width: "250px" },
+  { title: "DA", key: "domain_authority", align: "center", width: "80px" },
+  { title: "DR", key: "domain_rating", align: "center", width: "80px" },
+  { title: "Traffic", key: "organic_traffic", align: "center", width: "100px" },
+  { title: "Price", key: "total_price", align: "center", width: "100px" },
   {
-    title: "Status",
-    key: "status",
+    title: "Turnaround",
+    key: "turnaround_time",
     align: "center",
-    width: "30px",
+    width: "120px",
   },
+  { title: "Status", key: "status", align: "center", width: "120px" },
+  {
+    title: "Approval",
+    key: "approval_status", 
+    align: "center",
+    width: "120px",
+  },
+  { title: "Country", key: "country", align: "center", width: "100px" },
   {
     title: "Actions",
     key: "actions",
     sortable: false,
-    width: "40px",
+    align: "center",
+    width: "100px",
   },
 ];
 
 const {
-  clients,
+  rivaldomains,
   pagination,
   loading,
   error,
-  fetchclients,
+  fetchClientRivalDomains,
   downloadTemplate,
-  updateClient,
-  importclients,
-  deleteClient,
+  importRivalDomains,
+  deleteRivalDomain,
   showAlert,
-} = useClientApi();
+} = useRivalDomainApi();
 
 // Filters
 const selectedStatus = ref();
+const selectedClient = ref();
 const selectedApprovalStatus = ref();
 const selectedCountry = ref();
 const searchQuery = ref("");
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
 
-// Edit Dialog State
-const isEditDialogActive = ref(false);
-const selectedClient = ref(null);
-const clientData = ref({
-  id: null,
-  name: '',
-  email: '',
-  company_name: '',
-  website: '',
-  phone: '',
-  industry: '',
-  city: '',
-  state: '',
-  zip_code: '',
-  country: '',
-  status: 1
-});
-const submitting = ref(false);
-const formRef = ref(null);
-
-// Form validation rules
-const rules = {
-  required: value => !!value || 'This field is required',
-  email: value => {
-    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return pattern.test(value) || 'Please enter a valid email address';
-  },
-  website: value => {
-    if (!value) return true; // Optional field
-    const pattern = /^https?:\/\/.+/;
-    return pattern.test(value) || 'Please enter a valid URL (starting with http:// or https://)';
-  },
-  phone: value => {
-    if (!value) return true; // Optional field
-    const pattern = /^[\+]?[0-9\-\(\)\s]+$/;
-    return pattern.test(value) || 'Please enter a valid phone number';
-  }
-};
-
-const showImportResult = ref(false);
+const showImportResult = ref(false)
 const importResult = ref({
   data: {},
   message: '',
   success: false,
-});
+})
 
 // Excel Import Dialog State
 const importDialog = ref(false);
@@ -114,8 +93,10 @@ const buildFilters = () => {
     filters.approval_status = selectedApprovalStatus.value;
   if (selectedCountry.value) filters.country = selectedCountry.value;
   if (searchQuery.value) filters.searchTerm = searchQuery.value;
-  if (sortBy.value) filters.sortField = sortBy.value;
-  if (orderBy.value) filters.sortOrder = orderBy.value;
+  if (selectedClient.value) filters.client_id = selectedClient.value;
+
+  if (sortBy.value) filters.sortField = sortBy.value
+  if (orderBy.value) filters.sortOrder = orderBy.value  
 
   filters.pageNumber = pagination.value.page;
   filters.perPage = pagination.value.itemsPerPage;
@@ -123,65 +104,28 @@ const buildFilters = () => {
   return filters;
 };
 
-const loadClients = async () => {
+const loadRivalDomains = async (id = clientDomainId.value) => {
   const filters = buildFilters();
-  await fetchclients(filters, pagination.value.page);
-};
-
-// Open dialog for a client
-const openEditDialog = (client) => {
-  selectedClient.value = { ...client };
-  clientData.value = {
-    id: client.id,
-    name: client.name || '',
-    email: client.email || '',
-    company_name: client.company_name || '',
-    website: client.website || '',
-    phone: client.phone || '',
-    industry: client.industry || '',
-    city: client.city || '',
-    state: client.state || '',
-    zip_code: client.zip_code || '',
-    country: client.country || '',
-    status: client.status || 1
-  };
-  isEditDialogActive.value = true;
-};
-
-// Save client function
-const saveClient = async () => {
-  if (!formRef.value) return;
-
-  const { valid } = await formRef.value.validate();
-  if (!valid) return;
-
-  submitting.value = true;
-  try {
-    await updateClient(clientData.value.id, clientData.value);
-    showAlert("Client updated successfully!", "success");
-    isEditDialogActive.value = false;
-    await loadClients(); // Refresh the list
-  } catch (error) {
-    console.error('Update failed:', error);
-    showAlert("Failed to update client", "error");
-  } finally {
-    submitting.value = false;
-  }
+  await fetchClientRivalDomains(id,filters, pagination.value.page);
 };
 
 const clearAllFilters = async () => {
   selectedStatus.value = null;
+  selectedClient.value = null;
   selectedApprovalStatus.value = null;
   selectedCountry.value = "";
   searchQuery.value = "";
   pagination.value.page = 1;
-  await loadClients();
+  await loadRivalDomains(clientDomainId.value);
   showAlert("Custom message here!", "info");
 };
 
 const hasActiveFilters = computed(() => {
   return (
     selectedStatus.value ||
+    selectedClient.value ||
+    sortBy.value ||
+    orderBy.value ||
     selectedApprovalStatus.value ||
     selectedCountry.value ||
     searchQuery.value
@@ -200,85 +144,22 @@ const getStatusConfig = (status) => {
 };
 
 const applyFilters = async () => {
-  pagination.value.page = 1;
-  await loadClients();
+  page.value = 1;
+  await loadRivalDomains(clientDomainId.value)
 };
 
-const handleDeleteClient = async (id) => {
+const handleDeleteDomain = async (id) => {
   try {
-    await deleteClient(id);
+    await deleteDomain(id);
     const index = selectedRows.value.findIndex((row) => row === id);
     if (index !== -1) selectedRows.value.splice(index, 1);
-    await loadClients(); // Refresh the list
-    showAlert("Client deleted successfully!", "success");
   } catch (error) {
     console.error("Delete failed:", error);
-    showAlert("Failed to delete client", "error");
   }
 };
 
-// File handling functions for import
-const handleFileChange = (files) => {
-  if (files && files.length > 0) {
-    const file = files[0];
-    validateFile(file);
-  }
-};
-
-const validateFile = (file) => {
-  fileError.value = "";
-  
-  if (!file) return;
-  
-  const allowedTypes = [
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-excel'
-  ];
-  
-  if (!allowedTypes.includes(file.type)) {
-    fileError.value = "Please select a valid Excel file (.xlsx or .xls)";
-    return;
-  }
-  
-  if (file.size > 10 * 1024 * 1024) { // 10MB
-    fileError.value = "File size must be less than 10MB";
-    return;
-  }
-};
-
-const clearFile = () => {
-  selectedFile.value = null;
-  fileError.value = "";
-};
-
-const handleDrop = (e) => {
-  e.preventDefault();
-  isDragOver.value = false;
-  
-  const files = Array.from(e.dataTransfer.files);
-  if (files.length > 0) {
-    selectedFile.value = [files[0]];
-    validateFile(files[0]);
-  }
-};
-
-const handleDragOver = (e) => {
-  e.preventDefault();
-  isDragOver.value = true;
-};
-
-const handleDragEnter = (e) => {
-  e.preventDefault();
-  isDragOver.value = true;
-};
-
-const handleDragLeave = (e) => {
-  e.preventDefault();
-  isDragOver.value = false;
-};
-
-// Import dialog function 
-const handleImportClients = async () => {
+// import dialog function 
+const handleImportDomains = async () => {
   if (!selectedFile.value) {
     showAlert("Please select a file first", "error");
     return;
@@ -287,17 +168,16 @@ const handleImportClients = async () => {
   importing.value = true;
 
   try {
-    const res = await importclients(selectedFile.value);
-    importResult.value = res;
+    const res = await importDomains(selectedFile.value)
+    importResult.value = res.data  
     closeImportDialog();
-    if (res.success) {
+    if (result.success) {
       showImportResult.value = true;
       selectedFile.value = null;
-      await loadClients(); 
     }
-    console.log('showImportResult', showImportResult.value);
+    console.log('showImportResult',showImportResult);
   } catch (err) {
-    showAlert(err, "error");
+    showAlert("Import failed", "error");
   } finally {
     importing.value = false;
   }
@@ -306,7 +186,6 @@ const handleImportClients = async () => {
 const closeImportDialog = () => {
   importDialog.value = false;
   importing.value = false;
-  clearFile();
 };
 
 const formatFileSize = (bytes) => {
@@ -324,7 +203,7 @@ const templateDownload = async () => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", "clients_import_template.xlsx");
+    link.setAttribute("download", "domains_import_template.xlsx");
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -333,22 +212,10 @@ const templateDownload = async () => {
     showAlert("Template downloaded successfully!", "success");
   } catch (err) {
     console.error(err);
-    showAlert("Failed to download template", "error");
   }
 };
 
-// Export function
-const handleExportReports = async () => {
-  try {
-    // Implement your export logic here
-    showAlert("Export functionality to be implemented", "info");
-  } catch (err) {
-    console.error(err);
-    showAlert("Export failed", "error");
-  }
-};
-
-// Computed total clients count
+// Computed total domains count
 const totalDomains = computed(() => pagination.value.total ?? 0);
 
 // Status options
@@ -379,14 +246,26 @@ const itemsPerPage = computed({
   set: (val) => {
     pagination.value.itemsPerPage = val;
     pagination.value.page = 1;
+    // loadRivalDomains();
   },
 });
 
 const updateOptions = async (options) => {
-  pagination.value.itemsPerPage = options.itemsPerPage;
-  pagination.value.page = options.page;
-  await loadClients();
-};
+
+  pagination.value.itemsPerPage = options.itemsPerPage
+  pagination.value.page = options.page
+
+  if (options.sortBy && options.sortBy.length > 0) {
+    sortBy.value = options.sortBy[0].key
+    orderBy.value = options.sortBy[0].order
+  } else {
+    sortBy.value = null
+    orderBy.value = null
+  }
+
+  await loadRivalDomains(clientDomainId.value);
+}
+
 </script>
 
 <template>
@@ -400,12 +279,19 @@ const updateOptions = async (options) => {
               <IconWorldWww stroke="{2}" />
             </VAvatar>
             <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Client Management</h1>
+              <h1 class="text-h3 font-weight-bold mb-1">Client Rival Domain Management</h1>
               <p class="text-body-1 text-medium-emphasis mb-0">
-                Manage and monitor your client portfolio
+                Manage and monitor your domain portfolio
               </p>
             </div>
           </div>
+        </VCol>
+        <VCol cols="12" md="4" class="text-md-end">
+          <VBtn color="primary" variant="flat"
+            @click="router.push({ name: 'apps-domain-clientdomain-list', params: { id: clientId } })">
+            <VIcon icon="tabler-arrow-left" class="me-2" />
+            Back to Clients Domain
+          </VBtn>
         </VCol>
       </VRow>
     </VContainer>
@@ -437,7 +323,7 @@ const updateOptions = async (options) => {
       <!-- Primary Search Bar -->
       <VRow class="mb-4">
         <VCol cols="12">
-          <AppTextField v-model="searchQuery" placeholder="Search by name, email, company, or any client details..."
+          <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
             prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
         </VCol>
       </VRow>
@@ -457,7 +343,7 @@ const updateOptions = async (options) => {
             clearable hide-details prepend-inner-icon="tabler-world" />
         </VCol>
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
-          <VBtn color="primary" variant="flat" block @click="loadClients">
+          <VBtn color="primary" variant="flat" block @click="loadRivalDomains">
             <VIcon icon="tabler-search" class="me-2" />
             Search
           </VBtn>
@@ -470,20 +356,20 @@ const updateOptions = async (options) => {
           <VDivider class="mb-4" />
           <VRow>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Industry" placeholder="Enter industry" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-building" />
+              <AppTextField label="Min Domain Authority" placeholder="0-100" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-trending-up" />
             </VCol>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField label="City" placeholder="Enter city" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-map-pin" />
+              <AppTextField label="Max Price" placeholder="Enter max price" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-currency-dollar" />
             </VCol>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField label="State" placeholder="Enter state" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-map" />
+              <AppTextField label="Min Traffic" placeholder="Monthly visits" variant="outlined" type="number"
+                hide-details prepend-inner-icon="tabler-eye" />
             </VCol>
             <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Zip Code" placeholder="Enter zip code" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-mail" />
+              <AppTextField label="Turnaround Time" placeholder="Max days" variant="outlined" type="number" hide-details
+                prepend-inner-icon="tabler-clock" />
             </VCol>
           </VRow>
         </div>
@@ -491,10 +377,9 @@ const updateOptions = async (options) => {
     </VCardText>
   </VCard>
 
-  <!-- Import Result Card -->
-  <VCard v-if="importResult.message" class="mb-6 pa-6" elevation="1">
+  <VCard v-if="importResult" class="mb-6 pa-6" elevation="1">
     <!-- Summary Row -->
-    <div class="d-flex align-center justify-space-between">
+    <div v-if="importResult.message" class="d-flex align-center justify-space-between">
       <div class="d-flex align-center gap-2">
         <VIcon color="primary" icon="tabler-file-import" />
         <span class="font-weight-medium">{{ importResult.message }}</span>
@@ -511,15 +396,15 @@ const updateOptions = async (options) => {
         <!-- Successful -->
         <div>
           <h4 class="text-subtitle-1 font-weight-bold text-success mb-2">
-            Successful Imports ({{ importResult.data?.imported?.length || 0 }})
+            Successful Imports ({{ importResult.data.imported.length }})
           </h4>
           <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
             <VList density="compact">
-              <VListItem v-for="(client, idx) in importResult.data?.imported || []" :key="'s-' + idx">
-                <VListItemTitle>{{ client }}</VListItemTitle>
+              <VListItem v-for="(domain, idx) in importResult.data.imported" :key="'s-' + idx">
+                <VListItemTitle>{{ domain }}</VListItemTitle>
               </VListItem>
-              <VListItem v-if="!importResult.data?.imported?.length">
-                <VListItemTitle class="text-grey">No clients imported</VListItemTitle>
+              <VListItem v-if="importResult.data.imported.length === 0">
+                <VListItemTitle class="text-grey">No domains imported</VListItemTitle>
               </VListItem>
             </VList>
           </div>
@@ -528,17 +413,17 @@ const updateOptions = async (options) => {
         <!-- Failed -->
         <div class="mt-4">
           <h4 class="text-subtitle-1 font-weight-bold text-error mb-2">
-            Failed Imports ({{ importResult.data?.failed?.length || 0 }})
+            Failed Imports ({{ importResult.data.failed.length }})
           </h4>
           <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
             <VList density="compact">
-              <VListItem v-for="(f, idx) in importResult.data?.failed || []" :key="'f-' + idx">
+              <VListItem v-for="(f, idx) in importResult.data.failed" :key="'f-' + idx">
                 <VListItemTitle>
-                  <span class="text-primary">{{ f.name || f.email || 'N/A' }}</span> — {{ f.reason }}
+                  <span class="text-primary">{{ f.url || 'N/A' }}</span> — {{ f.reason }}
                 </VListItemTitle>
               </VListItem>
-              <VListItem v-if="!importResult.data?.failed?.length">
-                <VListItemTitle class="text-grey">No failed clients</VListItemTitle>
+              <VListItem v-if="importResult.data.failed.length === 0">
+                <VListItemTitle class="text-grey">No failed domains</VListItemTitle>
               </VListItem>
             </VList>
           </div>
@@ -547,14 +432,14 @@ const updateOptions = async (options) => {
     </VExpandTransition>
   </VCard>
 
-  <!-- Results Summary & Actions -->
+  <!-- Results Summary -->
   <VCard elevation="1">
     <div class="d-flex flex-wrap gap-4 ma-6">
       <div class="d-flex align-center text-body-1 font-weight-regular my-4">
         <span class="font-weight-medium text-h6">
           {{ totalDomains }}
         </span>
-        <span class="ml-2">clients found</span>
+        <span class="ml-2">Rival Domains Found</span>
 
         <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
@@ -576,14 +461,19 @@ const updateOptions = async (options) => {
           Import
         </VBtn>
 
-        <!-- Export button -->
+        <!-- <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="templateDownload">
+          Download Template
+        </VBtn> -->
+        <!-- 👉 Export button -->
         <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
-        
-        <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')">
-          Add Client
+        <!-- create domain-->
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push({
+          name: 'apps-domain-clientdomain-rivaldomain-add',
+          params: { clientId: clientId, domainId: clientDomainId }
+        })">
+          Add Rival Domain
         </VBtn>
       </div>
     </div>
@@ -591,35 +481,104 @@ const updateOptions = async (options) => {
     <VDivider class="mt-5 mb-2" />
 
     <!-- Enhanced Data Table -->
-    <VDataTableServer 
-      :page="pagination.page" 
-      :items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows" 
-      :headers="headers" 
-      show-select 
-      :items="clients" 
-      :loading="loading"
-      :items-length="pagination.total" 
-      loading-text="Fetching clients, please wait..." 
-      hover
+    <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
+      v-model:model-value="selectedRows" :headers="headers" show-select :items="rivaldomains" :loading="loading"
+      :items-length="pagination.total" loading-text="Fetching domains, please wait..." class="domain-table" hover
       @update:options="updateOptions">
-      
-      <template #item.website="{ item }">
-        <a v-if="item.website" :href="item.website" target="_blank" class="text-success text-decoration-none text-body-1"
-          :title="item.website">
+      <template #item.target_url="{ item }">
+        <a :href="item.target_url" target="_blank" class="text-success text-decoration-none text-body-1"
+          :title="item.target_url">
           <span class="text-truncate" style="max-width: 200px">
-            {{ item.website }}
+            {{ item.target_url }}
           </span>
           <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
         </a>
-        <span v-else class="text-grey">N/A</span>
+      </template>
+
+      <template #item.domain_authority="{ item }">
+        <VProgressCircular :model-value="item.domain_authority" size="30" width="4" :color="
+            item.domain_authority > 70
+              ? 'success'
+              : item.domain_authority > 40
+              ? 'warning'
+              : 'error'
+          ">
+          <small class="font-weight-medium">{{
+            item.domain_authority ?? 0
+            }}</small>
+        </VProgressCircular>
+      </template>
+
+      <template #item.domain_rating="{ item }">
+        <VProgressCircular :model-value="item.domain_rating" size="30" width="4" :color="
+            item.domain_rating > 70
+              ? 'success'
+              : item.domain_rating > 40
+              ? 'warning'
+              : 'error'
+          ">
+          <small class="font-weight-medium">{{
+            item.domain_rating ?? 0
+            }}</small>
+        </VProgressCircular>
+      </template>
+
+      <template #item.organic_traffic="{ item }">
+        <div class="d-flex align-center">
+          <VIcon icon="tabler-eye" size="16" class="me-1 text-medium-emphasis" />
+          <span class="font-weight-medium">{{
+            item.organic_traffic?.toLocaleString() || "N/A"
+            }}</span>
+        </div>
+      </template>
+
+      <template #item.total_price="{ item }">
+        <div class="d-flex align-center">
+          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />
+          <span class="font-weight-bold text-success">${{ item.total_price }}</span>
+        </div>
+      </template>
+
+      <template #item.turnaround_time="{ item }">
+        <VChip size="small" :color="
+            item.turnaround_time <= 3
+              ? 'success'
+              : item.turnaround_time <= 7
+              ? 'warning'
+              : 'error'
+          " variant="tonal">
+          {{ item.turnaround_time }}d
+        </VChip>
       </template>
 
       <template #item.status="{ item }">
-        <VChip :color="getStatusConfig(item.status)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getStatusConfig(item.status)?.icon || 'tabler-circle'" size="14" class="me-1" />
-          {{ getStatusConfig(item.status)?.text || 'Unknown' }}
+        <VChip :color="getStatusConfig(item.status).color" variant="tonal" size="small" class="ma-1">
+          <VIcon :icon="getStatusConfig(item.status).icon" size="14" class="me-1" />
+          {{ getStatusConfig(item.status).text }}
         </VChip>
+      </template>
+
+      <template #item.approval_status="{ item }">
+        <VChip :color="
+            item.approval_status === 1
+              ? 'warning'
+              : item.approval_status === 2
+              ? 'error'
+              : 'success'
+          " variant="tonal" size="small" class="font-weight-medium">
+          {{
+          item.approval_status === 1
+          ? "Pending"
+          : item.approval_status === 2
+          ? "Rejected"
+          : "Approved"
+          }}
+        </VChip>
+      </template>
+
+      <template #item.country="{ item }">
+        <VIcon icon="tabler-world" size="16" class="me-1 text-medium-emphasis" />
+        <span>{{ item.country }}</span>
       </template>
 
       <template #item.actions="{ item }">
@@ -627,34 +586,32 @@ const updateOptions = async (options) => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-client-view', params: { id: item.id } }">
-                  <VIcon icon="tabler-eye" size="20" />
+                <router-link :to="{ name: 'apps-domain-view', params: { id: item.id } }">
+                  <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
             </template>
           </VTooltip>
 
-          <VTooltip text="Edit Client">
+          <VTooltip text="More Options">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="openEditDialog(item)">
-                <VIcon  color= "info"  icon="tabler-edit" size="20" />
-              </IconBtn>
-            </template>
-          </VTooltip>
-
-          <VTooltip text="View Domains for This Client">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small"
-                @click="$router.push({ name: 'apps-domain-clientdomain-list', params: { id: item.id } })">
-                <VIcon color="success" icon="tabler-world" size="20" />
-              </IconBtn>
-            </template>
-          </VTooltip>
-
-          <VTooltip text="Delete Client">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="handleDeleteClient(item.id)">
-                <VIcon icon="tabler-trash" size="20" color="error" />
+              <IconBtn v-bind="props" size="small">
+                <VIcon icon="tabler-dots-vertical" size="18" />
+                <VMenu activator="parent" offset="8">
+                  <VList>
+                    <VListItem value="edit" prepend-icon="tabler-edit" class="text-primary">
+                      Edit
+                    </VListItem>
+                    <VListItem value="duplicate" prepend-icon="tabler-copy" class="text-info">
+                      Duplicate
+                    </VListItem>
+                    <VDivider />
+                    <VListItem value="delete" prepend-icon="tabler-trash" class="text-error"
+                      @click="deleteDomain(item.id)">
+                      Delete
+                    </VListItem>
+                  </VList>
+                </VMenu>
               </IconBtn>
             </template>
           </VTooltip>
@@ -664,14 +621,15 @@ const updateOptions = async (options) => {
       <!-- Empty State -->
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
-          <h3 class="text-h6 mb-2">No clients found</h3>
+          <VIcon icon="tabler-world-off" size="48" class="text-medium-emphasis mb-4" />
+          <h3 class="text-h6 mb-2">No domains found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Try adjusting your search criteria or add a new client to get started.
+            Try adjusting your search criteria or add a new domain to get
+            started.
           </p>
-          <VBtn color="primary" @click="$router.push('/apps/client/add')">
+          <VBtn color="primary" :to="{ name: 'apps-domain-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
-            Add First Client
+            Add First Domain
           </VBtn>
         </div>
       </template>
@@ -683,147 +641,18 @@ const updateOptions = async (options) => {
     </VDataTableServer>
   </VCard>
 
-  <!-- Edit Client Dialog -->
-  <VDialog v-model="isEditDialogActive" max-width="800" persistent>
-    <VCard>
-      <VCardTitle class="text-h5 font-weight-bold pa-6 pb-4">
-        <div class="d-flex align-center">
-          <VIcon icon="tabler-edit" class="me-3" />
-          Edit Client
-        </div>
-      </VCardTitle>
 
-      <VDivider />
+  <!-- import domains dialog-->
 
-      <VCardText class="pa-6">
-        <VForm ref="formRef" @submit.prevent="saveClient">
-          <VRow dense>
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.name" 
-                label="Full Name" 
-                :rules="[rules.required]" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.email" 
-                label="Email" 
-                :rules="[rules.required, rules.email]" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.company_name" 
-                label="Company Name" 
-                :rules="[rules.required]" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.website" 
-                label="Website" 
-                :rules="[rules.website]"
-                placeholder="https://example.com" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.phone" 
-                label="Phone Number" 
-                :rules="[rules.phone]" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.industry" 
-                label="Industry" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="4">
-              <AppTextField 
-                v-model="clientData.city" 
-                label="City" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="4">
-              <AppTextField 
-                v-model="clientData.state" 
-                label="State" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="4">
-              <AppTextField 
-                v-model="clientData.zip_code" 
-                label="Zip Code" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.country" 
-                label="Country" 
-                variant="outlined"
-              />
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <AppSelect 
-                v-model="clientData.status" 
-                :items="[
-                  { title: 'Active', value: 1 },
-                  { title: 'Inactive', value: 2 }
-                ]" 
-                label="Status" 
-                variant="outlined"
-              />
-            </VCol>
-          </VRow>
-        </VForm>
-      </VCardText>
-
-      <VDivider />
-
-      <VCardActions class="pa-6">
-        <VSpacer />
-        <VBtn variant="outlined" @click="isEditDialogActive = false" :disabled="submitting">
-          Cancel
-        </VBtn>
-        <VBtn color="primary" :loading="submitting" @click="saveClient">
-          <VIcon icon="tabler-device-floppy" class="me-2" />
-          Save Changes
-        </VBtn>
-      </VCardActions>
-    </VCard>
-  </VDialog>
-
-  <!-- Import Clients Dialog -->
   <VDialog v-model="importDialog" max-width="600" persistent>
     <VCard>
       <VCardTitle class="pa-6 pb-4">
         <div class="d-flex align-center">
           <VIcon icon="tabler-file-excel" class="me-3 text-success" size="32" />
           <div>
-            <h3 class="text-h5 font-weight-bold">Import Clients</h3>
+            <h3 class="text-h5 font-weight-bold">Import Domains</h3>
             <p class="text-body-2 text-medium-emphasis mb-0">
-              Upload an Excel file to import multiple clients
+              Upload an Excel file to import multiple domains
             </p>
           </div>
         </div>
@@ -834,17 +663,9 @@ const updateOptions = async (options) => {
       <VCardText class="pa-6">
         <!-- File Upload Area -->
         <div class="mb-6">
-          <VFileInput 
-            v-model="selectedFile" 
-            label="Select Excel File" 
-            accept=".xlsx,.xls"
-            prepend-icon="tabler-paperclip" 
-            variant="outlined" 
-            show-size 
-            counter 
-            :error-messages="fileError"
-            @change="handleFileChange" 
-            @click:clear="clearFile">
+          <VFileInput v-model="selectedFile" label="Select Excel File" accept=".xlsx,.xls"
+            prepend-icon="tabler-paperclip" variant="outlined" show-size counter :error-messages="fileError"
+            @change="handleFileChange" @click:clear="clearFile">
             <template #selection="{ fileNames }">
               <template v-for="fileName in fileNames" :key="fileName">
                 <VChip color="success" size="small" label class="me-2">
@@ -857,23 +678,16 @@ const updateOptions = async (options) => {
         </div>
 
         <!-- Drag & Drop Area -->
-        <div 
-          class="drop-zone" 
-          :class="{ 'drop-zone--dragover': isDragOver }" 
-          @drop="handleDrop"
-          @dragover="handleDragOver" 
-          @dragenter="handleDragEnter" 
-          @dragleave="handleDragLeave">
+        <div class="drop-zone" :class="{ 'drop-zone--dragover': isDragOver }" @drop="handleDrop"
+          @dragover="handleDragOver" @dragenter="handleDragEnter" @dragleave="handleDragLeave">
           <div class="text-center">
-            <VIcon 
-              :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'" 
-              size="48"
+            <VIcon :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'" size="48"
               class="text-primary mb-4" />
             <h4 class="text-h6 mb-2">
               {{
-                isDragOver
-                  ? "Drop your Excel file here"
-                  : "Drag & drop your Excel file here"
+              isDragOver
+              ? "Drop your Excel file here"
+              : "Drag & drop your Excel file here"
               }}
             </h4>
             <p class="text-body-2 text-medium-emphasis mb-4">
@@ -893,15 +707,15 @@ const updateOptions = async (options) => {
         </div>
 
         <!-- File Preview -->
-        <div v-if="selectedFile && selectedFile.length && !fileError" class="mt-6">
+        <div v-if="selectedFile && !fileError" class="mt-6">
           <VAlert color="info" variant="tonal" class="mb-4">
             <VIcon icon="tabler-info-circle" />
             <VAlertTitle>File Ready for Import</VAlertTitle>
             <div class="mt-2">
               <div class="d-flex align-center justify-space-between">
-                <span><strong>File:</strong> {{ selectedFile[0]?.name }}</span>
+                <span><strong>File:</strong> {{ selectedFile.name }}</span>
                 <span><strong>Size:</strong>
-                  {{ formatFileSize(selectedFile[0]?.size || 0) }}</span>
+                  {{ formatFileSize(selectedFile.size) }}</span>
               </div>
             </div>
           </VAlert>
@@ -920,8 +734,7 @@ const updateOptions = async (options) => {
                 <ul class="ml-4 mb-4">
                   <li>File must be in Excel format (.xlsx or .xls)</li>
                   <li>First row should contain column headers</li>
-                  <li>Required columns: name, email, company_name</li>
-                  <li>Optional columns: website, phone, industry, city, state, zip_code, country</li>
+                  <li>Required columns: title and target_url</li>
                   <li>Maximum file size: 10MB</li>
                   <li>Maximum 1000 rows per import</li>
                 </ul>
@@ -939,15 +752,13 @@ const updateOptions = async (options) => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="outlined" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn 
-          color="primary" 
-          :loading="importing" 
-          @click="handleImportClients">
+        <VBtn color="primary" :loading="importing" :disabled="!selectedFile || !!fileError"
+          @click="handleImportDomains">
           <VIcon icon="tabler-download" class="me-2" />
-          Import Clients
+          Import Domains
         </VBtn>
       </VCardActions>
     </VCard>
@@ -993,21 +804,6 @@ const updateOptions = async (options) => {
         border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
       }
     }
-  }
-}
-
-// Drop zone styling
-.drop-zone {
-  border: 2px dashed rgba(var(--v-theme-primary), 0.3);
-  border-radius: 12px;
-  padding: 40px 20px;
-  margin: 20px 0;
-  transition: all 0.3s ease;
-  cursor: pointer;
-
-  &:hover, &--dragover {
-    border-color: rgb(var(--v-theme-primary));
-    background-color: rgba(var(--v-theme-primary), 0.04);
   }
 }
 

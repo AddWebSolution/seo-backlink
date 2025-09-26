@@ -148,6 +148,13 @@
   "Details": "Details",
   "Customer": "Customer",
   "Manage Review": "Manage Review",
+  "SEO Overview": "SEO Overview",
+  "Client List": "Client List",
+  "Add Client": "Add Client",
+  "Report List": "Report List",
+  "Keyword": "Keyword",
+  "Add Keyword": "Add Keyword",
+  "Fetching domains, please wait...": "Fetching domains, please wait...",
   "Referrals": "Referrals",
   "Settings": "Settings",
   "Overview": "Overview",
@@ -210,4 +217,5 @@
       }
     }
   }
+  
 }

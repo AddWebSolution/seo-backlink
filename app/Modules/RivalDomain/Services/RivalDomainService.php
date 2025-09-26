@@ -35,6 +35,36 @@ class RivalDomainService extends BaseService
         $this->object = new RivalDomain();
     }
 
+     public function getRivalDomains(int $clientDomainId, int $perPage = 10, array $filters = [])
+    {
+        $query = RivalDomain::where('client_domain_id', $clientDomainId);
+
+        $query->where('status', 1);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('domain', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['domain'])) {
+            $query->where('domain', $filters['domain']);
+        }
+
+
+        $domains = $query->orderBy('id', 'desc')->paginate($perPage);
+
+        return [
+            'domains' => $domains,
+        ];
+    }
+
     public function domainImport($file)
     {
         $spreadsheet = IOFactory::load($file);

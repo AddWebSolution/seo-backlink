@@ -75,6 +75,48 @@ export function useRivalDomainApi() {
     }
   };
 
+  const fetchClientRivalDomains = async (
+    id,
+    filters = {},
+    page = 1,
+    perPage = 10
+  ) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const query = {
+        ...filters,
+        page,
+        per_page: perPage,
+      };
+
+      const result = await useApi(`api/rivaldomain/get/domains/${id}`, {
+        method: "POST",
+        body : query,
+      });
+      rivaldomains.value = result.data.value.domains.data;
+      const apiPagination  = result.data.value.domains;
+
+      pagination.value = {
+        total: apiPagination.total ?? 0,
+        currentPage: apiPagination.current_page ?? 1,
+        perPage: apiPagination.per_page ?? perPage,
+        lastPage: apiPagination.last_page ?? 1,
+        itemsPerPage: apiPagination.per_page ?? perPage,
+        page: apiPagination.current_page ?? 1,
+      };
+
+      return result;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to load domains", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   // import rivaldomains
 
   const importRivalDomains = async (file) => {
@@ -253,6 +295,7 @@ export function useRivalDomainApi() {
     // Methods
     fetchRivalDomains,
     fetchRivalDomainList,
+    fetchClientRivalDomains,
     importRivalDomains,
     fetchRivalDomain,
     downloadTemplate,

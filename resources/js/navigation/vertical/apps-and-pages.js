@@ -15,23 +15,23 @@ export default [
       { title: 'Add Client', to: 'apps-client-add', icon: { icon: 'tabler-circle-plus' } },
     ],
   },
-  {
-    title: 'Domains',
-    icon: { icon: 'tabler-world' },
-    children: [
-    { title: 'Domain List', to: 'apps-domain-list', icon: { icon: 'tabler-list' } },
-    { title: 'Add Domain', to: 'apps-domain-add',  icon: { icon: 'tabler-circle-plus' } },
-  ],
-  },
-  { heading: 'Rival Domains' },
-  {
-    title: 'Rival Domain',
-    icon: { icon: 'tabler-world' },
-    children: [
-      { title: 'RivalDomain List', to: 'apps-rivaldomain-list', icon: { icon: 'tabler-list' } },
-      { title: 'Add RivalDomain', to: 'apps-rivaldomain-add', icon: { icon: 'tabler-circle-plus' } },
-    ],
-  },
+  // {
+  //   title: 'Domains',
+  //   icon: { icon: 'tabler-world' },
+  //   children: [
+  //   { title: 'Domain List', to: 'apps-domain-list', icon: { icon: 'tabler-list' } },
+  //   { title: 'Add Domain', to: 'apps-domain-add',  icon: { icon: 'tabler-circle-plus' } },
+  // ],
+  // },
+  // { heading: 'Rival Domains' },
+  // {
+  //   title: 'Rival Domain',
+  //   icon: { icon: 'tabler-world' },
+  //   children: [
+  //     { title: 'RivalDomain List', to: 'apps-rivaldomain-list', icon: { icon: 'tabler-list' } },
+  //     { title: 'Add RivalDomain', to: 'apps-rivaldomain-add', icon: { icon: 'tabler-circle-plus' } },
+  //   ],
+  // },
   { heading: 'Backlinks' },
   {
     title: 'Backlink Report',

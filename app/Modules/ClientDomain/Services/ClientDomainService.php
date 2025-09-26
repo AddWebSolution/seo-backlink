@@ -100,6 +100,35 @@ class ClientDomainService extends BaseService
 
     }
 
+    public function getClientDomains(int $clientId, int $perPage = 10, array $filters = [])
+    {
+        $query = ClientDomain::where('client_id', $clientId);
+
+        $query->where('status', 1);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('domain', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['domain'])) {
+            $query->where('domain', $filters['domain']);
+        }
+
+        $domains = $query->orderBy('title')->paginate($perPage);
+
+        return [
+            'domains' => $domains,
+        ];
+    }
+
 
     public function downloadTemplate()
     {

@@ -12,6 +12,8 @@ Route::group(['middleware' => ['api','auth:sanctum']], function () {
 				Route::post('get/{id}', [RivalDomainController::class, 'show'])->name('show');
 			//});
 
+			Route::post('get/domains/{id}', [RivalDomainController::class, 'rivalDomains'])->name('rivalDomains');
+
 			Route::post('domain/list', [RivalDomainController::class, 'rivalDomainList'])->name('rivalDomainList');
 
 			Route::post('import', [RivalDomainController::class, 'rivalDomainImport'])->name('rivalDomainImport');

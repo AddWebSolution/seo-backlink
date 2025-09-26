@@ -23,6 +23,27 @@ class RivalDomainController extends BaseController
         ];
     }
 
+    public function rivalDomains($id)
+    {   
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client Domain ID is required',
+                'data'    => null
+            ], 400);
+        }
+
+        $filters = request()->only(['search', 'status', 'domain']);
+        $perPage = request()->get('per_page', 10);
+
+        $result = $this->service->getRivalDomains($id, $perPage, $filters);
+
+        return response()->json([
+            'success' => true,
+            'domains' => $result['domains']
+        ]);
+    }
+
 
     public function rivalDomainList()
     {
