@@ -439,8 +439,7 @@ onMounted(async () => {
         <span class="font-weight-medium text-h6">
           {{ totalDomains }}
         </span>
-        <span class="ml-2">reports found</span>
-
+        <span class="ml-2">Record Found</span>
         <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
         </VChip>

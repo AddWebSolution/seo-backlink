@@ -151,7 +151,6 @@ export function useDomainApi() {
         responseData?.message || "Domains imported successfully!";
 
       showAlert(successMsg, "success");
-      await fetchDomains();
 
       return {
         success: true,
@@ -212,7 +211,6 @@ export function useDomainApi() {
       });
 
       showAlert("Domain created successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;
@@ -235,7 +233,6 @@ export function useDomainApi() {
       });
 
       showAlert("Domain updated successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;
@@ -257,7 +254,6 @@ export function useDomainApi() {
       });
 
       showAlert("Domain deleted successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;

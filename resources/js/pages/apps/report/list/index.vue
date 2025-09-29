@@ -420,7 +420,7 @@ const applyFilters = async () => {
         <span class="font-weight-medium text-h6">
           {{ totalReports }}
         </span>
-        <span class="ml-2">reports found</span>
+        <span class="ml-2">Record Found</span>
 
         <VChip
           v-if="selectedRows.length"

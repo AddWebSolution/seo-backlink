@@ -217,6 +217,17 @@ const handleDeleteClient = async (id) => {
   }
 };
 
+const handleDeleteClientBatch = async (ids) => {
+  loading.value = true;
+  try {
+    await Promise.all(ids.map(id => deleteClient(id)));
+    selectedRows.value = []; 
+    await loadDomains(clientId.value);
+  } catch (error) {ss
+    console.error("Delete failed:", error);
+  }
+};
+
 // File handling functions for import
 const handleFileChange = (files) => {
   if (files && files.length > 0) {
@@ -554,7 +565,7 @@ const updateOptions = async (options) => {
         <span class="font-weight-medium text-h6">
           {{ totalDomains }}
         </span>
-        <span class="ml-2">clients found</span>
+        <span class="ml-2">Record Found</span>
 
         <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
@@ -563,7 +574,7 @@ const updateOptions = async (options) => {
 
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
+        <VBtn v-if="selectedRows.length" variant="text" @click="handleDeleteClientBatch(selectedRows)" size="small" color="error">
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>

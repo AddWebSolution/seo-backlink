@@ -23,7 +23,7 @@ class RivalDomainController extends BaseController
         ];
     }
 
-    public function rivalDomains($id)
+    public function rivalDomains($id,Request $request)
     {   
         if (!$id) {
             return response()->json([

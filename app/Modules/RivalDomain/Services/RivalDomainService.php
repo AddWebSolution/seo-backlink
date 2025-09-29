@@ -66,7 +66,7 @@ class RivalDomainService extends BaseService
     }
 
     public function domainImport($file)
-    {
+    {   
         $spreadsheet = IOFactory::load($file);
         $sheet = $spreadsheet->getActiveSheet();
         $rows = $sheet->toArray();
@@ -82,19 +82,33 @@ class RivalDomainService extends BaseService
         try {
             foreach ($rows as $row) {
                 $data = array_combine($header, $row);
-
                 if (empty($data['title']) || empty($data['target_url'])) {
                     continue;
                 }
-
-                $exists = ClientDomain::where('target_url', $data['target_url'])->exists();
-
+                $exists = RivalDomain::where(function ($q) use ($data) {
+                    $q->where('target_url', $data['target_url'])
+                    ->orWhere('title', $data['title']);
+                })->exists();
+                
+                
                 if ($exists) {
                     $failed[] = [
                         'reason' => "Domain already exists",
                         'url'    => $data['target_url'],
                     ];
                     continue;
+                }
+                $clientDomain = ClientDomain::where('target_url', trim($data['client_domain']))->first();
+
+
+                if (!isset($data['client_domain']) || empty($data['client_domain']) || !$clientDomain) {
+                    $failed[] = [
+                        'reason' => "Client domain not found",
+                        'url'    => $data['target_url'],
+                    ];
+                    continue;
+                } else {
+                    $data['client_domain_id'] = $clientDomain->id;
                 }
 
                 if (!isset($data['status']) || empty($data['status'])) {
@@ -106,7 +120,7 @@ class RivalDomainService extends BaseService
                 }
 
 
-                ClientDomain::create($data);
+                RivalDomain::create($data);
                 $imported[] = [
                     'reason' => "Domain imported",
                     'url'    => $data['target_url'],
@@ -116,7 +130,7 @@ class RivalDomainService extends BaseService
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            throw $e;
+            return $e->getMessage();
         }
 
         return [
@@ -142,7 +156,7 @@ class RivalDomainService extends BaseService
             ['name' => 'title', 'required' => true],
             ['name' => 'target_url', 'required' => true],
             ['name' => 'source_url', 'required' => false],
-            ['name' => 'client_id', 'required' => false],
+            ['name' => 'client_domain', 'required' => true],
             ['name' => 'domain_authority', 'required' => false],
             ['name' => 'domain_rating', 'required' => false],
             ['name' => 'organic_traffic', 'required' => false],
@@ -236,7 +250,7 @@ class RivalDomainService extends BaseService
             'title *' => 'The title or name of the domain/website (Required)',
             'target_url *' => 'The URL where the backlink should point to (Required)',
             'source_url' => 'The URL of the domain providing the backlink',
-            'client_id' => 'Unique identifier for the client',
+            'client_domain' => 'Unique identifier for the client domain (e.g., domain name or URL)',
             'domain_authority' => 'Moz Domain Authority score (0-100, Optional)',
             'domain_rating' => 'Ahrefs Domain Rating score (0-100, Optional)',
             'organic_traffic' => 'Monthly organic traffic estimate (Optional)',

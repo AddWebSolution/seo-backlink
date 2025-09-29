@@ -150,13 +150,25 @@ const applyFilters = async () => {
 
 const handleDeleteDomain = async (id) => {
   try {
-    await deleteDomain(id);
-    const index = selectedRows.value.findIndex((row) => row === id);
-    if (index !== -1) selectedRows.value.splice(index, 1);
+    await deleteRivalDomain(id);
+    await loadRivalDomains(clientDomainId.value);
   } catch (error) {
     console.error("Delete failed:", error);
   }
 };
+
+
+const handleDeleteDomainBatch = async (ids) => {
+  loading.value = true;
+  try {
+    await Promise.all(ids.map(id => deleteRivalDomain(id)));
+    selectedRows.value = []; 
+    await loadRivalDomains(clientDomainId.value);
+  } catch (error) {s
+    console.error("Delete failed:", error);
+  }
+};
+
 
 // import dialog function 
 const handleImportDomains = async () => {
@@ -168,16 +180,17 @@ const handleImportDomains = async () => {
   importing.value = true;
 
   try {
-    const res = await importDomains(selectedFile.value)
+    const res = await importRivalDomains(selectedFile.value)
     importResult.value = res.data  
     closeImportDialog();
-    if (result.success) {
+    if (res.success) {
       showImportResult.value = true;
       selectedFile.value = null;
     }
     console.log('showImportResult',showImportResult);
+    await loadRivalDomains(clientDomainId.value);
   } catch (err) {
-    showAlert("Import failed", "error");
+    showAlert(err, "error");
   } finally {
     importing.value = false;
   }
@@ -203,9 +216,9 @@ const templateDownload = async () => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", "domains_import_template.xlsx");
+    link.setAttribute("download", "rival_domains_import_template.xlsx");
     document.body.appendChild(link);
-    link.click();
+    link.click(); 
     link.remove();
     window.URL.revokeObjectURL(url);
 
@@ -439,7 +452,7 @@ const updateOptions = async (options) => {
         <span class="font-weight-medium text-h6">
           {{ totalDomains }}
         </span>
-        <span class="ml-2">Rival Domains Found</span>
+        <span class="ml-2">Record Found</span>
 
         <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
@@ -448,8 +461,8 @@ const updateOptions = async (options) => {
 
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
-          <VIcon icon="tabler-trash" class="me-1" />
+        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error" @click="handleDeleteDomainBatch(selectedRows)">
+          <VIcon icon="tabler-trash" class="me-1"/>
           Delete Selected
         </VBtn>
       </div>
@@ -583,36 +596,19 @@ const updateOptions = async (options) => {
 
       <template #item.actions="{ item }">
         <div class="d-flex">
-          <VTooltip text="View Details">
+          <VTooltip text="View Rival Domain Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-domain-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'apps-domain-clientdomain-rivaldomain-view', params: { clientId : clientId ,id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
             </template>
           </VTooltip>
 
-          <VTooltip text="More Options">
+          <VTooltip text="Delete">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small">
-                <VIcon icon="tabler-dots-vertical" size="18" />
-                <VMenu activator="parent" offset="8">
-                  <VList>
-                    <VListItem value="edit" prepend-icon="tabler-edit" class="text-primary">
-                      Edit
-                    </VListItem>
-                    <VListItem value="duplicate" prepend-icon="tabler-copy" class="text-info">
-                      Duplicate
-                    </VListItem>
-                    <VDivider />
-                    <VListItem value="delete" prepend-icon="tabler-trash" class="text-error"
-                      @click="deleteDomain(item.id)">
-                      Delete
-                    </VListItem>
-                  </VList>
-                </VMenu>
-              </IconBtn>
+              <IconBtn v-bind="props" color="error" icon="tabler-trash"  @click="handleDeleteDomain(item.id)" size="small"/>
             </template>
           </VTooltip>
         </div>

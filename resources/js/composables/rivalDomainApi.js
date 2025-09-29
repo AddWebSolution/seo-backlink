@@ -148,7 +148,6 @@ export function useRivalDomainApi() {
         responseData?.message || "rivaldomains imported successfully!";
 
       showAlert(successMsg, "success");
-      await fetchDomains();
 
       return {
         success: true,
@@ -229,7 +228,6 @@ export function useRivalDomainApi() {
       });
 
       showAlert("Domain updated successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;
@@ -251,7 +249,6 @@ export function useRivalDomainApi() {
       });
 
       showAlert("Domain deleted successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;

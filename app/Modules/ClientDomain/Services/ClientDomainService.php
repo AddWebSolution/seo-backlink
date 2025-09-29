@@ -4,6 +4,7 @@ namespace App\Modules\ClientDomain\Services;
 
 use Illuminate\Support\Facades\DB;
 use Addweb\Base\Services\BaseService;
+use App\Modules\Client\Models\Client;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -66,8 +67,20 @@ class ClientDomainService extends BaseService
                     continue;
                 }
 
+                $getClient = Client::where('name',$data['client_name'])->first();
+
+                if (!$getClient) {
+                    $failed[] = [
+                        'reason' => "Client does not exist",
+                        'url'    => $data['target_url'],
+                    ];
+                    continue;
+                }
+
+                $data['client_id'] = $getClient->id;
+
                 if (!isset($data['status']) || empty($data['status'])) {
-                    $data['status'] = '1';
+                    $data['status'] = 1;
                 }
 
                 if (!isset($data['approval_status']) || empty($data['approval_status'])) {
@@ -140,7 +153,7 @@ class ClientDomainService extends BaseService
             ['name' => 'title', 'required' => true],
             ['name' => 'target_url', 'required' => true],
             ['name' => 'source_url', 'required' => false],
-            ['name' => 'client_id', 'required' => false],
+            ['name' => 'client_name', 'required' => false],
             ['name' => 'domain_authority', 'required' => false],
             ['name' => 'domain_rating', 'required' => false],
             ['name' => 'organic_traffic', 'required' => false],

@@ -154,12 +154,25 @@ const applyFilters = async () => {
 const handleDeleteDomain = async (id) => {
   try {
     await deleteDomain(id);
-    const index = selectedRows.value.findIndex((row) => row === id);
-    if (index !== -1) selectedRows.value.splice(index, 1);
+    await loadDomains(clientId.value);
   } catch (error) {
     console.error("Delete failed:", error);
   }
 };
+
+
+const handleDeleteDomainBatch = async (ids) => {
+  loading.value = true;
+  try {
+    await Promise.all(ids.map(id => deleteDomain(id)));
+    selectedRows.value = []; 
+    await loadDomains(clientId.value);
+  } catch (error) {ss
+    console.error("Delete failed:", error);
+  }
+};
+
+
 
 const handleExportReports = () => {
   showAlert("Export functionality is not implemented yet.", "info");
@@ -183,6 +196,7 @@ const handleImportDomains = async () => {
       importing.value = false;
       selectedFile.value = null;
     }
+    await loadDomains(clientId.value);
     console.log('showImportResult',showImportResult);
   } catch (err) {
     showAlert("Import failed", "error");
@@ -449,7 +463,7 @@ const updateOptions = async (options) => {
         <span class="font-weight-medium text-h6">
           {{ totalDomains }}
         </span>
-        <span class="ml-2">Domains Found</span>
+        <span class="ml-2">Record Found</span>
 
         <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
@@ -458,8 +472,8 @@ const updateOptions = async (options) => {
 
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
-          <VIcon icon="tabler-trash" class="me-1" />
+        <VBtn v-if="selectedRows.length"  variant="text" size="small" color="error" @click="handleDeleteDomainBatch(selectedRows)">
+          <VIcon icon="tabler-trash" class="me-1"/>
           Delete Selected
         </VBtn>
       </div>
@@ -596,14 +610,14 @@ const updateOptions = async (options) => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-domain-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'apps-domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
             </template>
           </VTooltip>
 
-          <VTooltip text="View Rival Domains for This Client">
+          <VTooltip text="View Rival Domains">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="$router.push({
                 name: 'apps-domain-clientdomain-rivaldomain-list',
@@ -611,6 +625,12 @@ const updateOptions = async (options) => {
               })">
                 <VIcon color="success" icon="tabler-world" size="20" />
               </IconBtn>
+            </template>
+          </VTooltip>
+
+          <VTooltip text="Delete">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" color="error" icon="tabler-trash"  @click="handleDeleteDomain(item.id)" size="small"/>
             </template>
           </VTooltip>
 

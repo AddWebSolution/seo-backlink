@@ -36,6 +36,12 @@ export const routes = [
     component: () => import("@/pages/apps/domain/clientdomain/list/[id].vue"),
     props: true,
   },
+    {
+    path: "/client/:clientId/clientdomain/:domainId/view",
+    name: "apps-domain-clientdomain-view",
+    component: () => import("@/pages/apps/domain/clientdomain/view/[domainId].vue"),
+    props: true,
+  },
   {
     path: "/domains/:id",
     name: "apps-domain-view",
@@ -60,6 +66,12 @@ export const routes = [
     path: "/client/:clientId/clientdomain/:domainId/rivaldomain/list",
     name: "apps-domain-clientdomain-rivaldomain-list",
     component: () => import("@/pages/apps/domain/clientdomain/[clientId]/rivaldomain/list/[domainId].vue"),
+    props: true,
+  },
+    {
+    path: "/client/:clientId/clientdomain/:domainId/rivaldomain/:id/view",
+    name: "apps-domain-clientdomain-rivaldomain-view",
+    component: () => import("@/pages/apps/domain/clientdomain/[clientId]/rivaldomain/view/[id].vue"),
     props: true,
   },
   {
