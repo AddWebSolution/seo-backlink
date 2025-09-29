@@ -4,6 +4,7 @@ export default [
   {
     title: 'SEO Overview',
     icon: { icon: 'tabler-dashboard' },
+    roles: ['super_admin'], 
     to: 'dashboards-analytics',
   },
   { heading: 'Clients' },
@@ -11,8 +12,8 @@ export default [
     title: 'Client',
     icon: { icon: 'tabler-user' },
     children: [
-      { title: 'Client List', to: 'apps-client-list', icon: { icon: 'tabler-list' } },
-      { title: 'Add Client', to: 'apps-client-add', icon: { icon: 'tabler-circle-plus' } },
+      { title: 'Client List', to: 'apps-client-list', roles: ['super_admin','client'] , icon: { icon: 'tabler-list' } },
+      { title: 'Add Client', to: 'apps-client-add',roles: ['super_admin'], icon: { icon: 'tabler-circle-plus' } },
     ],
   },
   // {
@@ -37,7 +38,7 @@ export default [
     title: 'Backlink Report',
     icon: { icon: 'tabler-report' },
     children: [
-      { title: 'Report List', to: 'apps-report-list' ,icon: { icon: 'tabler-list' } },
+      { title: 'Report List', to: 'apps-report-list' ,roles: ['super_admin','client'],icon: { icon: 'tabler-list' } },
     ],
   },
   { heading: 'Keywords' },
@@ -45,15 +46,15 @@ export default [
     title: 'Keyword',
     icon: { icon: 'tabler-key' },
     children: [
-      { title: 'Keyword', to: 'apps-keyword-list',icon: { icon: 'tabler-list' }  },
-      { title: 'Add Keyword', to: 'apps-keyword-add',icon: { icon: 'tabler-circle-plus' } },
+      { title: 'Keyword', to: 'apps-keyword-list',roles: ['super_admin','client'],icon: { icon: 'tabler-list' }  },
+      { title: 'Add Keyword', to: 'apps-keyword-add',roles: ['super_admin','client'],icon: { icon: 'tabler-circle-plus' } },
     ],
   },
   {
     title: 'Report',
     icon: { icon: 'tabler-report' },
     children: [
-      { title: 'Report List', to: 'apps-keywordreport-list',icon: { icon: 'tabler-list' } },
+      { title: 'Report List', to: 'apps-keywordreport-list',roles: ['super_admin','client'],icon: { icon: 'tabler-list' } },
     ],
   },
   // {

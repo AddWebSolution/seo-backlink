@@ -20,8 +20,11 @@ class AuthService
             'name'     => $data['name'],
             'email'    => $data['email'],
             'phone'    => $data['phone'],
+
             'password' => Hash::make($data['password']),
         ]);
+
+        $user->assignRole('client');
 
         event(new UserRegisteredEvent($user));
 
@@ -48,7 +51,7 @@ class AuthService
 
         event(new UserLoggedInEvent($user));
 
-        return ['token' => $token];
+        return ['token' => $token , 'user' => $user , 'user_type' => $user->getRoleNames()->first() ];
     }
 
     /**

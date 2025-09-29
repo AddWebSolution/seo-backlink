@@ -30,12 +30,15 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login successful.',
             'token'   => $result['token'],
+            'user'    => $result['user'],
+            'user_type' => $result['user_type']
         ], 200);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
         return response()->json([
             'message' => 'Invalid credentials provided.',
-            'errors'  => $e->errors(),
+            'token'  => null,
+            'user'   => null,
         ], 500);
     } catch (\Throwable $e) {
         return response()->json([

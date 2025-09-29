@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, computed ,unref } from "vue";
 import { useDomainApi } from "@/composables/domainApi.js";
+import {useClientApi} from "@/composables/clientApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { VBtn } from "vuetify/components";
 
@@ -46,6 +47,9 @@ const {
   deleteDomain,
   showAlert,
 } = useDomainApi();
+
+
+const { ClientList, fetchClientList } = useClientApi();
 
 // Filters
 const selectedStatus = ref();
@@ -99,11 +103,6 @@ const buildFilters = () => {
   return filters;
 };
 
-// onMounted(async () => {
-//   if (clientId.value) {
-//     await loadDomains(clientId);
-//   }
-// });
 
 const loadDomains = async (id = clientId.value) => {
   const filters = buildFilters();
@@ -159,6 +158,14 @@ const handleDeleteDomain = async (id) => {
     console.error("Delete failed:", error);
   }
 };
+
+const currentClient = computed(() => {
+  if (!ClientList.value.length) return null
+  return ClientList.value.find(client => client.id == Number(clientId.value))
+})
+
+
+console.log("currentClient",ClientList);
 
 
 const handleDeleteDomainBatch = async (ids) => {
@@ -288,7 +295,6 @@ const updateOptions = async (options) => {
   await loadDomains(clientId.value);
 }
 
-
 </script>
 
 <template>
@@ -308,6 +314,8 @@ const updateOptions = async (options) => {
           </div>
         </div>
       </VCol>
+        {{ currentClient.value }}
+
       <VCol cols="12" md="4" class="text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />

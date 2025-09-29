@@ -384,6 +384,7 @@
     "useKeywordReportApi": true,
     "useKeywordShow": true,
     "useClientApi": true,
-    "useRivalDomainApi": true
+    "useRivalDomainApi": true,
+    "useAuthApi": true
   }
 }

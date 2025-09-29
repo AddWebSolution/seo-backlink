@@ -11,11 +11,12 @@ use App\Modules\User\Observers\UserObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use Spatie\Permission\Traits\HasRoles;
 
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes ,HasRoles;
 
     protected $fillable = [
         'name',

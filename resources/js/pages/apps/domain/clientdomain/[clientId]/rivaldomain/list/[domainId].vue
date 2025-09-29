@@ -1,11 +1,13 @@
 <script setup>
 import { onMounted, ref, computed ,unref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import useClientApi from "@/composables/clientApi";
 import { useRivalDomainApi } from "@/composables/rivalDomainApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { flat } from "@/views/demos/components/button/demoCodeButton";
 
 const {domainList,fetchDomainList} = useDomainApi();
+const { clientList, fetchClientList } = useClientApi();
 
 const route = useRoute()
 const router = useRouter()
@@ -131,6 +133,11 @@ const hasActiveFilters = computed(() => {
     searchQuery.value
   );
 });
+
+const currentClient = computed(() => {
+  if (!clientList.value.length) return null
+  return clientList.value.find(client => client.id === Number(clientId.value))
+})
 
 const getStatusConfig = (status) => {
   if (status == 1)

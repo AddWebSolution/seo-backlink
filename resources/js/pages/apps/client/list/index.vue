@@ -700,7 +700,7 @@ const updateOptions = async (options) => {
       <VCardTitle class="text-h5 font-weight-bold pa-6 pb-4">
         <div class="d-flex align-center">
           <VIcon icon="tabler-edit" class="me-3" />
-          Edit Client
+          {{clientData.name}} #  Edit Client
         </div>
       </VCardTitle>
 
@@ -814,10 +814,10 @@ const updateOptions = async (options) => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="outlined" @click="isEditDialogActive = false" :disabled="submitting">
+        <VBtn variant="flat" @click="isEditDialogActive = false" :disabled="submitting">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="submitting" @click="saveClient">
+        <VBtn variant="flat" :loading="submitting" @click="saveClient">
           <VIcon icon="tabler-device-floppy" class="me-2" />
           Save Changes
         </VBtn>
