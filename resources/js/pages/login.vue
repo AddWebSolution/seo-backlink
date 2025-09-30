@@ -15,10 +15,10 @@ import { themeConfig } from '@themeConfig'
 import { useRoute } from 'vue-router'
 import { VForm } from 'vuetify/components/VForm'
 // import useAuthStore from '@/router/store/auth'
-import { useAbility } from '@casl/ability'
+// import { useAbility } from '@casl/ability'
 
 // const authStore = useAuthStore()
-const { update } = useAbility()
+// const { update } = useAbility()
 
 
 const authThemeImg = useGenerateImageVariant(
