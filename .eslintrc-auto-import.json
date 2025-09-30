@@ -385,6 +385,8 @@
     "useKeywordShow": true,
     "useClientApi": true,
     "useRivalDomainApi": true,
-    "useAuthApi": true
+    "useAuthApi": true,
+    "registerRouters": true,
+    "registerRoutes": true
   }
 }

@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router/auto'
+import { setupLayouts } from 'virtual:meta-layouts'
 import { setupGuards } from './guards';
 import { clientRoutes } from './modules/clients';
 import { domainRoutes } from './modules/domains';
@@ -11,6 +12,17 @@ export const redirects = [
   { path: '/', name: 'index', redirect: { name: 'login' } },
 ];
 
+function recursiveLayouts(route) {
+  if (route.children) {
+    for (let i = 0; i < route.children.length; i++)
+      route.children[i] = recursiveLayouts(route.children[i])
+
+    return route
+  }
+
+  return setupLayouts([route])[0]
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior(to) {
@@ -19,13 +31,15 @@ const router = createRouter({
   },
   extendRoutes: pages => [
     ...redirects,
-    ...pages,
-    ...clientRoutes,
-    ...domainRoutes,
-    ...rivalDomainRoutes,
-    ...keywordRoutes,
-    ...reportRoutes,
-    ...dashboardRoutes
+    ...[
+      ...pages,
+      ...clientRoutes,
+      ...domainRoutes,
+      ...rivalDomainRoutes,
+      ...keywordRoutes,
+      ...reportRoutes,
+      ...dashboardRoutes
+    ].map(route => recursiveLayouts(route)),
   ],
 });
 

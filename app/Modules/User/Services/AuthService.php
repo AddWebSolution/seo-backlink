@@ -50,7 +50,11 @@ class AuthService
 
         event(new UserLoggedInEvent($user));
 
-        return ['token' => $token , 'user' => $user , 'user_type' => $user->getRoleNames()->first() ];
+        return [
+            'token' => $token,
+            'user' => $user,
+            'user_type' => $user->getPermissionsViaRoles(),
+        ];
     }
 
     /**

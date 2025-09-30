@@ -3,7 +3,7 @@
 namespace Database\seeders;
 
 use Illuminate\Database\Seeder;
-use Database\Seeders\RoleSeeder;
+use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\ClientDomainSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(class: [
-            RoleSeeder::class,
+            RolePermissionSeeder::class,
         ]);
     }
 }   

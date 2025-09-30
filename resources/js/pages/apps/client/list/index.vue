@@ -46,7 +46,6 @@ const selectedCountry = ref();
 const searchQuery = ref("");
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
-const userClient = ref([]);
 
 // Edit Dialog State
 const isEditDialogActive = ref(false);
@@ -122,7 +121,6 @@ const buildFilters = () => {
 const loadClients = async () => {
   const filters = buildFilters();
   await fetchclients(filters, pagination.value.page);
-  userClient.value = clients?.value?.filter(client => client.role == '3');
 };
 
 // Open dialog for a client
@@ -406,7 +404,7 @@ const updateOptions = async (options) => {
 };
 </script>
 
-<template>
+<template v-if="ability.can('create', 'client')">
   <!-- Header Section -->
   <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
     <VContainer fluid>
@@ -614,7 +612,7 @@ const updateOptions = async (options) => {
       v-model:model-value="selectedRows" 
       :headers="headers" 
       show-select 
-      :items="userClient" 
+      :items="clients" 
       :loading="loading"
       :items-length="pagination.total" 
       loading-text="Fetching clients, please wait..." 

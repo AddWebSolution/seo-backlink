@@ -82,7 +82,7 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
       `layout-content-width-${appContentWidth.value}`,
       { 'layout-overlay-nav': isLessThanOverlayNavBreakpoint.value },
       { 'window-scrolled': unref(windowScrollY) },
-      route.meta.layoutWrapperClasses ? route.meta.layoutWrapperClasses : null,
+      // route.meta.layoutWrapperClasses ? route.meta.layoutWrapperClasses : null,
     ]
   })
 
