@@ -1,284 +1,678 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useClientApi } from '@/composables/clientApi'
+import { ref, computed, onMounted } from 'vue'
+import { useClientApi } from "@/composables/clientApi"
+import { useRouter, useRoute } from 'vue-router'
+import { IconWorldWww, IconEdit, IconDeviceFloppy, IconX, IconUpload, IconArrowLeft } from '@tabler/icons-vue'
 
-const route = useRoute()
 const router = useRouter()
-const { currentClient, fetchClient, showAlert } = useClientApi()
+const route = useRoute()
+const { currentClient, fetchClient, updateClient, showAlert } = useClientApi()
+
+const isEditMode = ref(false)
+const loading = ref(true)
+const submitting = ref(false)
+const formRef = ref(null)
+const fileInputRef = ref(null)
+
+const isPasswordVisible = ref(false)
+const isConfirmPasswordVisible = ref(false)
+const profileImagePreview = ref('')
+const showPasswordFields = ref(false)
+
+
+const clientId = route.params.id
+
+
+
+const form = ref({
+  name: '',
+  email: '',
+  company_name: '',
+  role: '3',
+  designation: '',
+  status: 1,
+  profile_pic: '',
+  phone: '',
+  password: '',
+  password_confirmation: '',
+})
+
+// Validation rules
+const rules = {
+  required: value => !!value || 'This field is required',
+  email: value => !value || /^\S+@\S+\.\S+$/.test(value) || 'Enter a valid email',
+  phone: value => !value || /^[0-9]{10}$/.test(value) || 'Enter a valid 10-digit phone number'
+}
+
+const passwordRules = [
+  v => !v || v.length >= 8 || 'Password must be at least 8 characters',
+  v => !v || /[A-Z]/.test(v) || 'Password must contain at least one uppercase letter',
+  v => !v || /[a-z]/.test(v) || 'Password must contain at least one lowercase letter',
+  v => !v || /[0-9]/.test(v) || 'Password must contain at least one number',
+]
+
+const confirmPasswordValidator = (value) => {
+  if (showPasswordFields.value && form.value.password && !value) {
+    return 'Confirm Password is required'
+  }
+  if (value && value !== form.value.password) {
+    return 'Passwords do not match'
+  }
+  return true
+}
+
+const phoneValidator = (value) => {
+  if (!value) return 'Phone number is required'
+  const regex = /^[0-9]{10}$/  
+  if (!regex.test(value)) return 'Invalid 10-digit phone number'
+  return true
+}
+
+const requiredValidator = (value) => {
+  return !!value || 'This field is required'
+}
+
+const statusText = computed(() => {
+  return currentClient.value.status === 1 ? 'Active' : 'Inactive'
+})
+
+const statusColor = computed(() => {
+  return currentClient.value.status === 1 ? 'success' : 'error'
+})
+
+// Handle file upload
+const handleFileSelect = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      showAlert('Please select a valid image file', 'error')
+      return
+    }
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      showAlert('Image size must be less than 5MB', 'error')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      profileImagePreview.value = e.target.result
+      form.value.profile_pic = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const removeProfileImage = () => {
+  profileImagePreview.value = ''
+  form.value.profile_pic = ''
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
+  }
+}
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click()
+}
+
+const enableEditMode = () => {
+  isEditMode.value = true
+  // Copy current data to form
+  form.value = {
+    name: currentClient.value.name,
+    email: currentClient.value.email,
+    company_name: currentClient.value.company_name,
+    role: currentClient.value.role,
+    designation: currentClient.value.designation,
+    status: currentClient.value.status,
+    profile_pic: currentClient.value.profile_pic,
+    phone: currentClient.value.phone,
+    password: '',
+    password_confirmation: '',
+  }
+  profileImagePreview.value = currentClient.value.profile_pic
+  showPasswordFields.value = false
+}
+
+const cancelEdit = () => {
+  isEditMode.value = false
+  showPasswordFields.value = false
+  profileImagePreview.value = currentClient.value.profile_pic
+  form.value.password = ''
+  form.value.password_confirmation = ''
+}
+
+const handleSubmit = async () => {
+  const { valid } = await formRef.value.validate()
+  if (!valid) return
+
+  submitting.value = true
+  try {
+    // Prepare data - only include password if it's being changed
+    const updateData = { ...form.value }
+    if (!showPasswordFields.value || !updateData.password) {
+      delete updateData.password
+      delete updateData.password_confirmation
+    }
+    await updateClient(currentClient.value.id, updateData)
+    showAlert('Client updated successfully!', 'success')
+    
+    // Refresh data
+    await loadClientData()
+    isEditMode.value = false
+    showPasswordFields.value = false
+  } catch (err) {
+    console.error(err)
+    showAlert(err.response?.data?.message || 'Failed to update client.', 'error')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const loadClientData = async () => {
+  loading.value = true
+  try {
+    const response = await fetchClient(clientId)
+    currentClient.value = response.data.value
+    profileImagePreview.value = response.data.profile_pic
+  } catch (err) {
+    console.error(err)
+    showAlert('Failed to load client data.', 'error')
+    router.push({ name: 'apps-client-list' })
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 onMounted(async () => {
-  if (route.params.id) {
-    try {
-      const res = await fetchClient(route.params.id)
-    } catch (err) {
-      console.error(err)
-      showAlert('Failed to load client data', 'error')
-      router.push({ name: 'apps-client-list' })
-    }
-  }
+  await loadClientData()
 })
 </script>
 
 <template>
-  <div v-if="currentClient">
-    <!-- Header Card -->
-    <VCard class="mb-6 header-card" elevation="2">
-      <VCardText class="pa-8">
-        <div class="d-flex align-center flex-wrap gap-4">
-          <VAvatar
-            :color="currentClient.status === 1 ? 'success' : 'error'"
-            size="100"
-            class="text-h2 font-weight-bold avatar-shadow"
-          >
-            {{ currentClient.name?.charAt(0)?.toUpperCase() || 'C' }}
-          </VAvatar>
-          
-          <div class="flex-grow-1">
-            <div class="d-flex align-center gap-3 mb-2">
-              <h1 class="text-h3 font-weight-bold">{{ currentClient.name }}</h1>
-              <VChip
-                :color="currentClient.status === 1 ? 'success' : 'error'"
-                size="default"
-                variant="flat"
-                class="font-weight-medium"
-              >
-                <VIcon icon="tabler-circle-filled" size="8" class="mr-2" />
-                {{ currentClient.status === 1 ? 'Active' : 'Inactive' }}
-              </VChip>
+  <div v-if="loading" class="d-flex justify-center align-center" style="min-height: 400px;">
+    <VProgressCircular indeterminate color="primary" size="64" />
+  </div>
+
+  <div v-else>
+    <!-- Header -->
+    <VCard class="mb-6" elevation="0" style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
+      <VCardText class="pa-6">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+          <div class="d-flex align-center">
+            <VBtn
+              icons
+              variant="flat"
+              size="large"
+              class="ma-4"
+             @click="router.push({ name: 'apps-client-list' })"
+            >
+              <IconArrowLeft :size="40" />
+            </VBtn>
+            <VAvatar size="56" color="primary" variant="tonal" class="me-4">
+              <IconWorldWww :size="32" stroke-width="2" />
+            </VAvatar>
+            <div>
+              <h1 class="text-h4 font-weight-bold mb-1">
+                {{ isEditMode ? 'Edit Client' : 'Client Details' }}
+              </h1>
+              <p class="text-body-2 text-medium-emphasis mb-0">
+                {{ isEditMode ? 'Update client information' : 'View and manage client information' }}
+              </p>
             </div>
-            <p class="text-h6 text-medium-emphasis mb-0">{{ currentClient.company_name }}</p>
           </div>
 
-          <VBtn
-            variant="flat"
-            size="large"
-            prepend-icon="tabler-arrow-left"
-            @click="router.push({ name: 'apps-client-list' })"
-          >
-            Back to List
-          </VBtn>
+          <div class="d-flex gap-3">
+            <VChip
+              :color="statusColor"
+              variant="tonal"
+              size="large"
+            >
+              {{ statusText }}
+            </VChip>
+
+            <VBtn
+              v-if="!isEditMode"
+              color="primary"
+              prepend-icon="tabler-edit"
+              @click="enableEditMode"
+            >
+              Edit Client
+            </VBtn>
+          </div>
         </div>
       </VCardText>
     </VCard>
 
-    <!-- Contact Information Card -->
-    <VCard class="mb-6 info-card" elevation="2">
-      <VCardText class="pa-8">
-        <div class="d-flex align-center mb-6">
-          <div class="icon-wrapper mr-3">
-            <VIcon icon="tabler-user-circle" size="28" color="primary" />
-          </div>
-          <h2 class="text-h5 font-weight-bold">Contact Information</h2>
-        </div>
-        
-        <VRow class="gy-6">
+    <!-- View Mode -->
+    <VCard v-if="!isEditMode" elevation="0" style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
+      <VCardText class="pa-6">
+        <VRow>
+          <!-- Profile Picture Section -->
+          <VCol cols="12" class="mb-4">
+            <div class="border rounded pa-6 text-center" style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));">
+              <VAvatar
+                size="140"
+                :color="currentClient.profile_pic ? 'transparent' : 'primary'"
+                variant="tonal"
+                class="mb-4 elevation-3"
+              >
+                <VImg
+                  v-if="currentClient.profile_pic"
+                  :src="currentClient.profile_pic"
+                  cover
+                />
+                <span v-else class="text-h2 font-weight-bold">
+                  {{ currentClient.name ? currentClient.name.charAt(0).toUpperCase() : '?' }}
+                </span>
+              </VAvatar>
+              <h2 class="text-h5 font-weight-bold mb-1">{{ currentClient.name }}</h2>
+              <p class="text-body-2 text-medium-emphasis">{{ currentClient.designation }}</p>
+            </div>
+          </VCol>
+
+          <!-- Personal Information Section -->
+          <VCol cols="12">
+            <h3 class="text-h6 font-weight-semibold mb-4">Personal Information</h3>
+            <VDivider class="mb-4" />
+          </VCol>
+
           <VCol cols="12" md="6">
-            <div class="info-box">
-              <div class="d-flex align-center mb-3">
-                <div class="info-icon-bg success mr-3">
-                  <VIcon icon="tabler-mail" size="20" color="white" />
-                </div>
-                <div>
-                  <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-1">Email Address</div>
-                  <div class="text-body-1 font-weight-medium">{{ currentClient.email || '—' }}</div>
-                </div>
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-user" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Full Name</span>
               </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.name }}</p>
             </div>
           </VCol>
 
           <VCol cols="12" md="6">
-            <div class="info-box">
-              <div class="d-flex align-center mb-3">
-                <div class="info-icon-bg info mr-3">
-                  <VIcon icon="tabler-phone" size="20" color="white" />
-                </div>
-                <div>
-                  <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-1">Phone Number</div>
-                  <div class="text-body-1 font-weight-medium">{{ currentClient.phone || '—' }}</div>
-                </div>
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-mail" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Email Address</span>
               </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.email }}</p>
             </div>
           </VCol>
 
           <VCol cols="12" md="6">
-            <div class="info-box">
-              <div class="d-flex align-center mb-3">
-                <div class="info-icon-bg warning mr-3">
-                  <VIcon icon="tabler-world" size="20" color="white" />
-                </div>
-                <div>
-                  <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-1">Website</div>
-                  <div class="text-body-1 font-weight-medium">
-                    <a 
-                      v-if="currentClient.website" 
-                      :href="currentClient.website" 
-                      target="_blank"
-                      class="text-decoration-none text-primary hover-underline"
-                    >
-                      {{ currentClient.website }}
-                      <VIcon icon="tabler-external-link" size="16" class="ml-1" />
-                    </a>
-                    <span v-else>—</span>
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-phone" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Phone Number</span>
+              </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.phone || 'N/A' }}</p>
+            </div>
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-briefcase" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Designation</span>
+              </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.designation || 'N/A' }}</p>
+            </div>
+          </VCol>
+
+          <!-- Company Information Section -->
+          <VCol cols="12" class="mt-2">
+            <h3 class="text-h6 font-weight-semibold mb-4">Company Information</h3>
+            <VDivider class="mb-4" />
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-building" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Company Name</span>
+              </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.company_name || 'N/A' }}</p>
+            </div>
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-shield" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Role</span>
+              </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">Client</p>
+            </div>
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-circle-dot" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Account Status</span>
+              </div>
+              <div class="pl-7">
+                <VChip :color="statusColor" size="small" variant="tonal">
+                  {{ statusText }}
+                </VChip>
+              </div>
+            </div>
+          </VCol>
+
+          <!-- Account Information Section -->
+          <VCol cols="12" class="mt-2">
+            <h3 class="text-h6 font-weight-semibold mb-4">Account Information</h3>
+            <VDivider class="mb-4" />
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-calendar-plus" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Created At</span>
+              </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ formatDate(currentClient.created_at) }}</p>
+            </div>
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <div class="info-item mb-6">
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="tabler-calendar-event" size="20" class="me-2 text-medium-emphasis" />
+                <span class="text-caption text-medium-emphasis font-weight-medium">Last Updated</span>
+              </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ formatDate(currentClient.updated_at) }}</p>
+            </div>
+          </VCol>
+        </VRow>
+      </VCardText>
+    </VCard>
+
+    <!-- Edit Mode -->
+    <VCard v-else elevation="0" style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
+      <VCardText class="pa-6">
+        <VForm ref="formRef" @submit.prevent="handleSubmit">
+          <VRow>
+            <!-- Profile Picture Upload Section -->
+            <VCol cols="12" class="mb-4">
+              <div class="border rounded pa-6" style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));">
+                <h3 class="text-h6 font-weight-semibold mb-4">Profile Picture</h3>
+                
+                <div class="d-flex align-center flex-wrap gap-4">
+                  <VAvatar
+                    size="120"
+                    :color="profileImagePreview ? 'transparent' : 'grey-lighten-3'"
+                    class="elevation-2"
+                  >
+                    <VImg
+                      v-if="profileImagePreview"
+                      :src="profileImagePreview"
+                      cover
+                    />
+                    <span v-else class="text-h3 text-grey">
+                      {{ form.name ? form.name.charAt(0).toUpperCase() : '?' }}
+                    </span>
+                  </VAvatar>
+
+                  <div class="flex-grow-1">
+                    <input
+                      ref="fileInputRef"
+                      type="file"
+                      accept="image/*"
+                      style="display: none"
+                      @change="handleFileSelect"
+                    />
+                    
+                    <div class="d-flex gap-3 mb-2">
+                      <VBtn
+                        color="primary"
+                        variant="tonal"
+                        prepend-icon="tabler-upload"
+                        @click="triggerFileInput"
+                      >
+                        Upload Photo
+                      </VBtn>
+                      
+                      <VBtn
+                        v-if="profileImagePreview"
+                        color="error"
+                        variant="outlined"
+                        prepend-icon="tabler-x"
+                        @click="removeProfileImage"
+                      >
+                        Remove
+                      </VBtn>
+                    </div>
+                    
+                    <p class="text-caption text-medium-emphasis mb-0">
+                      Allowed JPG, PNG or JPEG. Max size of 5MB
+                    </p>
                   </div>
                 </div>
               </div>
-            </div>
-          </VCol>
+            </VCol>
 
-          <VCol cols="12" md="6">
-            <div class="info-box">
-              <div class="d-flex align-center mb-3">
-                <div class="info-icon-bg error mr-3">
-                  <VIcon icon="tabler-building" size="20" color="white" />
-                </div>
-                <div>
-                  <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-1">Industry</div>
-                  <div class="text-body-1 font-weight-medium">{{ currentClient.industry || '—' }}</div>
-                </div>
+            <!-- Personal Information Section -->
+            <VCol cols="12">
+              <h3 class="text-h6 font-weight-semibold mb-4">Personal Information</h3>
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <AppTextField
+                v-model="form.name"
+                label="Full Name"
+                placeholder="Enter full name"
+                :rules="[rules.required]"
+                prepend-inner-icon="tabler-user"
+                variant="outlined"
+                density="comfortable"
+              />
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <AppTextField
+                v-model="form.email"
+                label="Email Address"
+                placeholder="john@example.com"
+                type="email"
+                :rules="[rules.required, rules.email]"
+                prepend-inner-icon="tabler-mail"
+                variant="outlined"
+                density="comfortable"
+              />
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <AppTextField
+                v-model="form.phone"
+                label="Phone Number"
+                placeholder="Enter 10-digit number"
+                :rules="[requiredValidator, phoneValidator]"
+                prepend-inner-icon="tabler-phone"
+                variant="outlined"
+                density="comfortable"
+              />
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <AppTextField
+                v-model="form.designation"
+                label="Designation"
+                placeholder="e.g., Manager, Director"
+                prepend-inner-icon="tabler-briefcase"
+                variant="outlined"
+                density="comfortable"
+              />
+            </VCol>
+
+            <!-- Company Information Section -->
+            <VCol cols="12" class="mt-4">
+              <h3 class="text-h6 font-weight-semibold mb-4">Company Information</h3>
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <AppTextField
+                v-model="form.company_name"
+                label="Company Name"
+                placeholder="Enter company name"
+                prepend-inner-icon="tabler-building"
+                variant="outlined"
+                density="comfortable"
+              />
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <AppTextField
+                model-value="Client"
+                label="Role"
+                prepend-inner-icon="tabler-shield"
+                variant="outlined"
+                density="comfortable"
+                readonly
+                disabled
+              />
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <AppSelect
+                v-model="form.status"
+                :items="[
+                  { title: 'Active', value: 1 },
+                  { title: 'Inactive', value: 2 }
+                ]"
+                label="Account Status"
+                prepend-inner-icon="tabler-circle-dot"
+                variant="outlined"
+                density="comfortable"
+              />
+            </VCol>
+
+            <!-- Change Password Section -->
+            <VCol cols="12" class="mt-4">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <h3 class="text-h6 font-weight-semibold mb-0">Change Password</h3>
+                <VSwitch
+                  v-model="showPasswordFields"
+                  label="Update Password"
+                  color="primary"
+                  hide-details
+                  density="compact"
+                />
               </div>
-            </div>
-          </VCol>
-        </VRow>
-      </VCardText>
-    </VCard>
+            </VCol>
 
-    <!-- Address Information Card -->
-    <VCard class="info-card" elevation="2">
-      <VCardText class="pa-8">
-        <div class="d-flex align-center mb-6">
-          <div class="icon-wrapper mr-3">
-            <VIcon icon="tabler-map-pin" size="28" color="primary" />
-          </div>
-          <h2 class="text-h5 font-weight-bold">Address Information</h2>
-        </div>
-        
-        <VRow class="gy-6">
-          <VCol cols="12" md="4">
-            <div class="info-box">
-              <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-2">City</div>
-              <div class="text-h6 font-weight-medium">{{ currentClient.city || '—' }}</div>
-            </div>
-          </VCol>
+            <template v-if="showPasswordFields">
+              <VCol cols="12" md="6">
+                <AppTextField
+                  v-model="form.password"
+                  :rules="passwordRules"
+                  label="New Password"
+                  placeholder="Enter new password"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  prepend-inner-icon="tabler-lock"
+                  :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  variant="outlined"
+                  density="comfortable"
+                />
+              </VCol>
 
-          <VCol cols="12" md="4">
-            <div class="info-box">
-              <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-2">State</div>
-              <div class="text-h6 font-weight-medium">{{ currentClient.state || '—' }}</div>
-            </div>
-          </VCol>
+              <VCol cols="12" md="6">
+                <AppTextField
+                  v-model="form.password_confirmation"
+                  :rules="[confirmPasswordValidator]"
+                  label="Confirm New Password"
+                  placeholder="Re-enter new password"
+                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  prepend-inner-icon="tabler-lock-check"
+                  :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                  variant="outlined"
+                  density="comfortable"
+                />
+              </VCol>
 
-          <VCol cols="12" md="4">
-            <div class="info-box">
-              <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-2">Zip Code</div>
-              <div class="text-h6 font-weight-medium">{{ currentClient.zip_code || '—' }}</div>
-            </div>
-          </VCol>
+              <VCol cols="12">
+                <VAlert
+                  type="info"
+                  variant="tonal"
+                  density="compact"
+                  class="mb-0"
+                >
+                  <div class="text-caption">
+                    <strong>Password Requirements:</strong>
+                    <ul class="mt-1 mb-0 pl-4">
+                      <li>At least 8 characters long</li>
+                      <li>Contains uppercase and lowercase letters</li>
+                      <li>Contains at least one number</li>
+                    </ul>
+                  </div>
+                </VAlert>
+              </VCol>
+            </template>
 
-          <VCol cols="12">
-            <div class="info-box country-box">
-              <div class="d-flex align-center">
-                <div class="info-icon-bg primary mr-4">
-                  <VIcon icon="tabler-flag" size="24" color="white" />
-                </div>
-                <div>
-                  <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-1">Country</div>
-                  <div class="text-h6 font-weight-medium">{{ currentClient.country || '—' }}</div>
-                </div>
+            <!-- Action Buttons -->
+            <VDivider class="mb-6" />
+            <VCol cols="12" class="mt-6 d-flex justify-end">
+              <div class="d-flex  space-between gap-4">
+                <VBtn
+                  :loading="submitting"
+                  color="primary"
+                  type="submit"
+                  size="large"
+                  prepend-icon="tabler-device-floppy"
+                >
+                  Save Changes
+                </VBtn>
+                
+                <VBtn
+                  variant="flat"
+                  color="error"
+                  size="large"
+                  prepend-icon="tabler-x"
+                  @click="cancelEdit"
+                  :disabled="submitting"
+                >
+                  Cancel
+                </VBtn>
               </div>
-            </div>
-          </VCol>
-        </VRow>
+            </VCol>
+          </VRow>
+        </VForm>
       </VCardText>
     </VCard>
   </div>
-
-  <!-- Loading State -->
-  <VCard v-else class="pa-10 text-center">
-    <VProgressCircular indeterminate color="primary" size="64" />
-    <p class="text-body-1 text-medium-emphasis mt-4">Loading client information...</p>
-  </VCard>
 </template>
 
 <style scoped>
-.header-card {
-  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.05) 0%, rgba(var(--v-theme-surface), 1) 100%);
-  border-radius: 16px !important;
-  overflow: hidden;
+.text-medium-emphasis {
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 
-.avatar-shadow {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+.gap-3 {
+  gap: 12px;
 }
 
-.info-card {
-  border-radius: 16px !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.gap-4 {
+  gap: 16px;
 }
 
-.info-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
-}
-
-.icon-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-}
-
-.info-box {
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+.info-item {
   transition: all 0.2s ease;
-  height: 100%;
 }
 
-.info-box:hover {
-  border-color: rgba(var(--v-theme-primary), 0.3);
+.info-item:hover {
   transform: translateX(4px);
-}
-
-.info-icon-bg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  flex-shrink: 0;
-}
-
-
-.country-box {
-  padding: 24px;
-}
-
-.hover-underline {
-  position: relative;
-  transition: color 0.2s ease;
-}
-
-.hover-underline::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  bottom: -2px;
-  left: 0;
-  background-color: currentColor;
-  transition: width 0.3s ease;
-}
-
-.hover-underline:hover::after {
-  width: 100%;
-}
-
-.hover-underline:hover {
-  color: rgb(var(--v-theme-primary)) !important;
 }
 </style>

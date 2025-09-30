@@ -15,7 +15,7 @@ export function useClientApi() {
     itemsPerPage: 10,
     page: 1,
   });
-  const ClientList = ref([]);
+  const ClientList = ref();
   const currentClient = ref(null);
   const loading = ref(false);
   const error = ref(null);
@@ -25,7 +25,7 @@ export function useClientApi() {
     loading.value = true;
     error.value = null;
     try {
-      const result = await useApi(`api/client/get/${id}`, {
+      const result = await useApi(`api/user/get/${id}`, {
         method: "POST",
       });
       currentClient.value = result.data.value.data;
@@ -49,7 +49,7 @@ export function useClientApi() {
       const body = {
         ...filters
       };
-      const result = await useApi(createUrl("api/client/get",{query : body}), {
+      const result = await useApi(createUrl("api/user/get",{query : body}), {
         method: "POST",
       });
       console.log("Clients API Result:", result);
@@ -65,6 +65,7 @@ export function useClientApi() {
         page: apiPagination.currentPage,
       };
 
+      await fetchClientList();
       return result;
     } catch (err) {
       error.value = err;
@@ -90,7 +91,7 @@ export function useClientApi() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await useApi("api/client/import", {
+      const result = await useApi("api/user/import", {
         method: "POST",
         body: formData,
         skipJsonTransform: true,
@@ -129,7 +130,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const response = await fetch("/api/client/import/template/download", {
+      const response = await fetch("/api/user/import/template/download", {
         method: "GET",
         headers: {
           Accept:
@@ -158,7 +159,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi("api/client/store", {
+      const result = await useApi("api/auth/register", {
         method: "POST",
         body: payload,
       });
@@ -178,10 +179,9 @@ export function useClientApi() {
   // update Client
   const updateClient = async (id, payload) => {
     loading.value = true;
-    error.value = null;
 
     try {
-      const result = await useApi(`api/client/update/${id}`, {
+      const result = await useApi(`api/user/update/${id}`, {
         method: "POST",
         body: payload,
       });
@@ -204,7 +204,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi(`api/client/delete/${id}`, {
+      const result = await useApi(`api/user/delete/${id}`, {
         method: "POST",
       });
 
@@ -226,11 +226,11 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi("api/client/list", {
+      const result = await useApi("api/user/list", {
         method: "POST",
       });
       console.log("Client List API Result:", result);
-      ClientList.value = result.data.value.clients || [];
+      ClientList.value = result?.data?.value?.clients;
       return result;
     } catch (err) {
       error.value = err;

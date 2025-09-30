@@ -1,13 +1,13 @@
 <script setup>
 import { onMounted, ref, computed ,unref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import useClientApi from "@/composables/clientApi";
+import { useClientApi } from "@/composables/clientApi";
 import { useRivalDomainApi } from "@/composables/rivalDomainApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { flat } from "@/views/demos/components/button/demoCodeButton";
 
 const {domainList,fetchDomainList} = useDomainApi();
-const { clientList, fetchClientList } = useClientApi();
+const { ClientList, fetchClientList } = useClientApi();
 
 const route = useRoute()
 const router = useRouter()
@@ -17,7 +17,6 @@ const clientDomainId = computed(() => route.params.domainId)
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Client Domain ID", key: "client_domain_id", align: "center", width: "100px" },
   { title: "Title", key: "title", align: "center", width: "200px" },
   { title: "Target URL", key: "target_url", align: "center", width: "250px" },
   { title: "DA", key: "domain_authority", align: "center", width: "80px" },
@@ -135,9 +134,15 @@ const hasActiveFilters = computed(() => {
 });
 
 const currentClient = computed(() => {
-  if (!clientList.value.length) return null
-  return clientList.value.find(client => client.id === Number(clientId.value))
+  if (!ClientList.value?.length) return null
+  return ClientList.value.find(client => client.id == (clientId.value))
 })
+
+const currentClientDomain = computed(() => {
+  if (!domainList.value?.length) return null
+  return domainList.value.find(clientDomain => clientDomain.id == (clientDomainId.value))
+})
+
 
 const getStatusConfig = (status) => {
   if (status == 1)
@@ -286,35 +291,52 @@ const updateOptions = async (options) => {
   await loadRivalDomains(clientDomainId.value);
 }
 
+onMounted(async () => {
+  await fetchClientList();
+  await fetchDomainList();
+})
+
 </script>
 
 <template>
   <!-- Header Section -->
   <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
-    <VContainer fluid>
-      <VRow align="center">
-        <VCol cols="12" md="8">
-          <div class="d-flex align-center">
-            <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-              <IconWorldWww stroke="{2}" />
-            </VAvatar>
-            <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Client Rival Domain Management</h1>
-              <p class="text-body-1 text-medium-emphasis mb-0">
-                Manage and monitor your domain portfolio
-              </p>
-            </div>
+    <VRow align="start" justify="space-between">
+      <VCol cols="12" md="8">
+        <div class="d-flex align-center">
+          <VAvatar size="64" color="primary" variant="elevated" class="me-4">
+            <IconWorldWww stroke="{2}" />
+          </VAvatar>
+          <div>
+            <h1 class="text-h3 font-weight-bold mb-1">Client Rival Domain Management</h1>
+            <p class="text-body-1 text-medium-emphasis mb-0">
+              Manage and monitor your domain portfolio
+            </p>
           </div>
-        </VCol>
-        <VCol cols="12" md="4" class="text-md-end">
-          <VBtn color="primary" variant="flat"
-            @click="router.push({ name: 'apps-domain-clientdomain-list', params: { id: clientId } })">
-            <VIcon icon="tabler-arrow-left" class="me-2" />
-            Back to Clients Domain
-          </VBtn>
-        </VCol>
-      </VRow>
-    </VContainer>
+        </div>
+      </VCol>
+      <VCol cols="12" md="4" class="text-md-end">
+        <VBtn color="primary" variant="flat"
+          @click="router.push({ name: 'apps-domain-clientdomain-list', params: { id: clientId } })">
+          <VIcon icon="tabler-arrow-left" class="me-2" />
+          Back to Clients Domain
+        </VBtn>
+      </VCol>
+      <VCol cols="12" class="mt-4">
+        <div class="d-flex align-center flex-wrap gap-4">
+          <VChip v-if="currentClient" color="primary" class="pa-4" variant="flat" size="large" elevation="2" outlined>
+            <VIcon icon="tabler-user" class="me-2" />
+            Client Name : {{ currentClient.name }}
+          </VChip>
+
+          <VChip v-if="currentClientDomain" color="primary" class="pa-4" variant="flat" size="large" elevation="2"
+            outlined>
+            <VIcon icon="tabler-world" class="me-2" />
+            Domain Name : {{ currentClientDomain.title }}
+          </VChip>
+        </div>
+      </VCol>
+    </VRow>
   </VCard>
 
   <!-- Enhanced Search & Filter Section -->
@@ -397,7 +419,7 @@ const updateOptions = async (options) => {
     </VCardText>
   </VCard>
 
-  <VCard v-if="importResult" class="mb-6 pa-6" elevation="1">
+  <VCard v-if="showImportResult" class="mb-6 pa-6" elevation="1">
     <!-- Summary Row -->
     <div v-if="importResult.message" class="d-flex align-center justify-space-between">
       <div class="d-flex align-center gap-2">
@@ -468,8 +490,9 @@ const updateOptions = async (options) => {
 
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error" @click="handleDeleteDomainBatch(selectedRows)">
-          <VIcon icon="tabler-trash" class="me-1"/>
+        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error"
+          @click="handleDeleteDomainBatch(selectedRows)">
+          <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
       </div>
@@ -606,7 +629,8 @@ const updateOptions = async (options) => {
           <VTooltip text="View Rival Domain Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-domain-clientdomain-rivaldomain-view', params: { clientId : clientId ,id: item.id } }">
+                <router-link
+                  :to="{ name: 'apps-domain-clientdomain-rivaldomain-view', params: { clientId : clientId ,id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -615,7 +639,8 @@ const updateOptions = async (options) => {
 
           <VTooltip text="Delete">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" color="error" icon="tabler-trash"  @click="handleDeleteDomain(item.id)" size="small"/>
+              <IconBtn v-bind="props" color="error" icon="tabler-trash" @click="handleDeleteDomain(item.id)"
+                size="small" />
             </template>
           </VTooltip>
         </div>

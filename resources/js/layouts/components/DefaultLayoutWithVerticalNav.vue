@@ -30,8 +30,8 @@ import CustomAlert from './CustomAlert.vue'
         <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
           :languages="themeConfig.app.i18n.langConfig" />
         <NavbarThemeSwitcher />
-        <NavbarShortcuts />
-        <NavBarNotifications class="me-1" />
+        <!-- <NavbarShortcuts /> -->
+        <!-- <NavBarNotifications class="me-1" /> -->
       </div>
     </template>
 

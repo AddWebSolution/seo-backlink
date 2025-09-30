@@ -9,10 +9,9 @@ const headers = [
   { title: "Name", key: "name", align: "center", width: "70px" },
   { title: "E-Mail", key: "email", align: "center", width: "40px" },
   { title: "Company", key: "company_name", align: "center", width: "80px" },
-  { title: "Website", key: "website", align: "center", width: "80px" },
-  { title: "City", key: "city", align: "center", width: "80px" },
+  { title: "role", key: "role", align: "center", width: "80px" },
+  { title: "designation", key: "designation", align: "center", width: "80px" },
   { title: "Phone", key: "phone", align: "center", width: "100px" },
-  { title: "Country", key: "country", align: "center", width: "100px" },
   {
     title: "Status",
     key: "status",
@@ -47,6 +46,7 @@ const selectedCountry = ref();
 const searchQuery = ref("");
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
+const userClient = ref([]);
 
 // Edit Dialog State
 const isEditDialogActive = ref(false);
@@ -56,13 +56,9 @@ const clientData = ref({
   name: '',
   email: '',
   company_name: '',
-  website: '',
+  role: '',
   phone: '',
-  industry: '',
-  city: '',
-  state: '',
-  zip_code: '',
-  country: '',
+  designation: '',
   status: 1
 });
 const submitting = ref(false);
@@ -126,6 +122,7 @@ const buildFilters = () => {
 const loadClients = async () => {
   const filters = buildFilters();
   await fetchclients(filters, pagination.value.page);
+  userClient.value = clients?.value?.filter(client => client.role == '3');
 };
 
 // Open dialog for a client
@@ -136,13 +133,9 @@ const openEditDialog = (client) => {
     name: client.name || '',
     email: client.email || '',
     company_name: client.company_name || '',
-    website: client.website || '',
+    role: client.role || '',
     phone: client.phone || '',
-    industry: client.industry || '',
-    city: client.city || '',
-    state: client.state || '',
-    zip_code: client.zip_code || '',
-    country: client.country || '',
+    designation: client.designation || '',
     status: client.status || 1
   };
   isEditDialogActive.value = true;
@@ -193,11 +186,24 @@ const getStatusConfig = (status) => {
     return {
       color: "success",
       icon: "tabler-progress-check",
-      text: "Available",
+      text: "Active",
     };
   if (status == 2)
-    return { color: "error", icon: "tabler-progress-x", text: "Unavailable" };
+    return { color: "error", icon: "tabler-progress-x", text: "InActive" };
 };
+
+
+const getRoleConfig = (status) => {
+  if (status == '3')
+    return {
+      color: "info",
+      icon: "tabler-user",
+      text: "Client",
+    };
+  if (status == '1')
+    return { color: "error", icon: "tabler-user", text: "SuperAdmin" };
+};
+
 
 const applyFilters = async () => {
   pagination.value.page = 1;
@@ -608,7 +614,7 @@ const updateOptions = async (options) => {
       v-model:model-value="selectedRows" 
       :headers="headers" 
       show-select 
-      :items="clients" 
+      :items="userClient" 
       :loading="loading"
       :items-length="pagination.total" 
       loading-text="Fetching clients, please wait..." 
@@ -624,6 +630,14 @@ const updateOptions = async (options) => {
           <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
         </a>
         <span v-else class="text-grey">N/A</span>
+      </template>
+
+
+      <template #item.role="{ item }">
+        <VChip :color="getRoleConfig(item.role)?.color || 'default'" variant="tonal" size="small" class="ma-1">
+          <VIcon :icon="getRoleConfig(item.role)?.icon || 'tabler-circle'" size="14" class="me-1" />
+          {{ getRoleConfig(item.role)?.text || 'Unknown' }}
+        </VChip>
       </template>
 
       <template #item.status="{ item }">
@@ -645,13 +659,13 @@ const updateOptions = async (options) => {
             </template>
           </VTooltip>
 
-          <VTooltip text="Edit Client">
+          <!-- <VTooltip text="Edit Client">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="openEditDialog(item)">
                 <VIcon  color= "info"  icon="tabler-edit" size="20" />
               </IconBtn>
             </template>
-          </VTooltip>
+          </VTooltip> -->
 
           <VTooltip text="View Domains for This Client">
             <template #activator="{ props }">

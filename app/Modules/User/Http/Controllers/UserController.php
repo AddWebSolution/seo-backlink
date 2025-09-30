@@ -3,6 +3,7 @@
 namespace App\Modules\User\Http\Controllers;
 
 use App\Traits\HasProfilePicUpload;
+use App\Modules\User\Models\User;
 use Addweb\Base\Controller\BaseController;
 use App\Modules\User\Services\UserService;
 use App\Modules\User\Http\Resources\UserResource;
@@ -24,6 +25,20 @@ class UserController extends BaseController
             'resource' => UserResource::class,
         ];
     }
+
+    public function clientList()
+    {
+        $clients = User::select('id', 'name', 'company_name', 'phone', 'email')
+            ->where('role', '3')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'clients' => $clients,
+        ]);
+    }
+
 
     public function updateProfilePic(UploadProfilePicRequest $request)
     {

@@ -1,13 +1,12 @@
 <script setup>
-import { onMounted, ref, computed ,unref } from "vue";
+import { onMounted, ref, computed, unref } from "vue";
 import { useDomainApi } from "@/composables/domainApi.js";
-import {useClientApi} from "@/composables/clientApi";
+import { useClientApi } from "@/composables/clientApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { VBtn } from "vuetify/components";
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Client ID", key: "client_id", align: "center", width: "100px" },
   { title: "Title", key: "title", align: "center", width: "130px" },
   { title: "Target URL", key: "target_url", align: "center", width: "140px" },
   { title: "DA", key: "domain_authority", align: "start", width: "80px" },
@@ -36,6 +35,10 @@ const headers = [
   },
 ];
 
+
+const { ClientList, fetchClientList } = useClientApi()
+
+
 const {
   domains,
   pagination,
@@ -48,8 +51,6 @@ const {
   showAlert,
 } = useDomainApi();
 
-
-const { ClientList, fetchClientList } = useClientApi();
 
 // Filters
 const selectedStatus = ref();
@@ -95,7 +96,7 @@ const buildFilters = () => {
   if (selectedClient.value) filters.client_id = selectedClient.value;
 
   if (sortBy.value) filters.sortField = sortBy.value
-  if (orderBy.value) filters.sortOrder = orderBy.value  
+  if (orderBy.value) filters.sortOrder = orderBy.value
 
   filters.pageNumber = pagination.value.page;
   filters.perPage = pagination.value.itemsPerPage;
@@ -108,6 +109,14 @@ const loadDomains = async (id = clientId.value) => {
   const filters = buildFilters();
   await fetchClientDomains(id, filters, pagination.value.page);
 };
+
+const currentClient = computed(() => {
+  if (!ClientList.value?.length) return null
+  return ClientList.value.find(client => client.id == clientId.value)
+})
+
+
+console.log('currentClient', ClientList);
 
 
 
@@ -159,22 +168,15 @@ const handleDeleteDomain = async (id) => {
   }
 };
 
-const currentClient = computed(() => {
-  if (!ClientList.value.length) return null
-  return ClientList.value.find(client => client.id == Number(clientId.value))
-})
-
-
-console.log("currentClient",ClientList);
-
 
 const handleDeleteDomainBatch = async (ids) => {
   loading.value = true;
   try {
     await Promise.all(ids.map(id => deleteDomain(id)));
-    selectedRows.value = []; 
+    selectedRows.value = [];
     await loadDomains(clientId.value);
-  } catch (error) {ss
+  } catch (error) {
+    ss
     console.error("Delete failed:", error);
   }
 };
@@ -196,7 +198,7 @@ const handleImportDomains = async () => {
 
   try {
     const res = await importDomains(selectedFile.value)
-    importResult.value = res  
+    importResult.value = res
     closeImportDialog();
     if (res.success) {
       showImportResult.value = true;
@@ -204,7 +206,7 @@ const handleImportDomains = async () => {
       selectedFile.value = null;
     }
     await loadDomains(clientId.value);
-    console.log('showImportResult',showImportResult);
+    console.log('showImportResult', showImportResult);
   } catch (err) {
     showAlert("Import failed", "error");
   } finally {
@@ -279,6 +281,7 @@ const itemsPerPage = computed({
   },
 });
 
+
 const updateOptions = async (options) => {
 
   pagination.value.itemsPerPage = options.itemsPerPage
@@ -294,6 +297,10 @@ const updateOptions = async (options) => {
 
   await loadDomains(clientId.value);
 }
+
+onMounted(async () => {
+  await fetchClientList()
+})
 
 </script>
 
@@ -314,7 +321,6 @@ const updateOptions = async (options) => {
           </div>
         </div>
       </VCol>
-        {{ currentClient.value }}
 
       <VCol cols="12" md="4" class="text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
@@ -322,8 +328,18 @@ const updateOptions = async (options) => {
           Back to Clients
         </VBtn>
       </VCol>
+
+      <VCol cols="12" class="mt-4">
+        <div v-if="currentClient" class="d-flex align-center">
+          <VChip color="primary" class="ms-3 pa-4" variant="flat" size="large" elevation="2" outlined>
+            <VIcon icon="tabler-user" class="me-2" />
+            Client Name : {{ currentClient.name }}
+          </VChip>
+        </div>
+      </VCol> 
     </VRow>
   </VCard>
+
 
   <!-- Enhanced Search & Filter Section -->
   <VCard class="mb-6" elevation="1">
@@ -339,8 +355,7 @@ const updateOptions = async (options) => {
           Clear All
         </VBtn>
         <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
-          <VIcon :icon="
-              showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
+          <VIcon :icon="showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
             " class="me-1" />
           {{ showAdvancedFilters ? "Less" : "More" }} Filters
         </VBtn>
@@ -409,7 +424,7 @@ const updateOptions = async (options) => {
     </VCardText>
   </VCard>
 
-  <VCard v-if="importResult" class="mb-6 pa-6" elevation="1">
+  <VCard v-if="showImportResult" class="mb-6 pa-6" elevation="1">
     <!-- Summary Row -->
     <div v-if="importResult.message" class="d-flex align-center justify-space-between">
       <div class="d-flex align-center gap-2">
@@ -480,8 +495,9 @@ const updateOptions = async (options) => {
 
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length"  variant="text" size="small" color="error" @click="handleDeleteDomainBatch(selectedRows)">
-          <VIcon icon="tabler-trash" class="me-1"/>
+        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error"
+          @click="handleDeleteDomainBatch(selectedRows)">
+          <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
       </div>
@@ -528,10 +544,9 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.domain_authority="{ item }">
-        <VProgressCircular :model-value="item.domain_authority" size="30" width="4" :color="
-            item.domain_authority > 70
-              ? 'success'
-              : item.domain_authority > 40
+        <VProgressCircular :model-value="item.domain_authority" size="30" width="4" :color="item.domain_authority > 70
+            ? 'success'
+            : item.domain_authority > 40
               ? 'warning'
               : 'error'
           ">
@@ -542,10 +557,9 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.domain_rating="{ item }">
-        <VProgressCircular :model-value="item.domain_rating" size="30" width="4" :color="
-            item.domain_rating > 70
-              ? 'success'
-              : item.domain_rating > 40
+        <VProgressCircular :model-value="item.domain_rating" size="30" width="4" :color="item.domain_rating > 70
+            ? 'success'
+            : item.domain_rating > 40
               ? 'warning'
               : 'error'
           ">
@@ -572,10 +586,9 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.turnaround_time="{ item }">
-        <VChip size="small" :color="
-            item.turnaround_time <= 3
-              ? 'success'
-              : item.turnaround_time <= 7
+        <VChip size="small" :color="item.turnaround_time <= 3
+            ? 'success'
+            : item.turnaround_time <= 7
               ? 'warning'
               : 'error'
           " variant="tonal">
@@ -591,10 +604,9 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.approval_status="{ item }">
-        <VChip :color="
-            item.approval_status === 1
-              ? 'warning'
-              : item.approval_status === 2
+        <VChip :color="item.approval_status === 1
+            ? 'warning'
+            : item.approval_status === 2
               ? 'error'
               : 'success'
           " variant="tonal" size="small" class="font-weight-medium">
@@ -618,7 +630,8 @@ const updateOptions = async (options) => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
+                <router-link
+                  :to="{ name: 'apps-domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -638,7 +651,8 @@ const updateOptions = async (options) => {
 
           <VTooltip text="Delete">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" color="error" icon="tabler-trash"  @click="handleDeleteDomain(item.id)" size="small"/>
+              <IconBtn v-bind="props" color="error" icon="tabler-trash" @click="handleDeleteDomain(item.id)"
+                size="small" />
             </template>
           </VTooltip>
 

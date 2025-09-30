@@ -31,7 +31,6 @@ class AuthController extends Controller
             'message' => 'Login successful.',
             'token'   => $result['token'],
             'user'    => $result['user'],
-            'user_type' => $result['user_type']
         ], 200);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
@@ -42,7 +41,7 @@ class AuthController extends Controller
         ], 500);
     } catch (\Throwable $e) {
         return response()->json([
-            'message' => 'Something went wrong while attempting login.',
+            'message' => $e->getMessage(),
         ], 500);
     }
 }

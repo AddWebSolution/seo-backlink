@@ -68,10 +68,12 @@ const login = async () => {
 
     if (res?.statusCode.value !== 200) {
     } else {
+      // console.log('user data:', res.data.value.user.role);
       useCookie('accessToken').value = res.data.value.token
+      useCookie('role_id').value = res.data.value.user.role;
 
       const redirectTo = route.query.to 
-        ? decodeURIComponent(route.query.to) 
+        ? decodeURIComponent(route.query.to)
         : '/apps/client/list'
 
       console.log("Redirecting to:", redirectTo)
