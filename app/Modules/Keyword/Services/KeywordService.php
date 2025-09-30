@@ -216,10 +216,10 @@ class KeywordService extends BaseService
                         continue;
                     }
 
-                    $domain = ClientDomain::where('title', $data['client_domain'])->first();
+                    $domain = ClientDomain::where('title', trim($data['client_domain']))->first();
 
                     if (!$domain && !empty($data['client_domain'])) {
-                        $domain = ClientDomain::where('target_url', $data['client_domain'])->first();
+                        $domain = ClientDomain::where('target_url', trim($data['client_domain']))->first();
                     }
 
                     if ($domain) {

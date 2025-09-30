@@ -3,6 +3,7 @@ import { onMounted, ref, computed ,unref } from "vue";
 import { useDomainApi } from "@/composables/domainApi.js";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { flat } from "@/views/demos/components/button/demoCodeButton";
+const { ClientList,fetchClientList } = useClientApi();
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -50,6 +51,7 @@ const {
 
 // Filters
 const selectedStatus = ref();
+const selectedClient = ref();
 const selectedApprovalStatus = ref();
 const selectedCountry = ref();
 const searchQuery = ref("");
@@ -83,8 +85,10 @@ const buildFilters = () => {
     filters.approval_status = selectedApprovalStatus.value;
   if (selectedCountry.value) filters.country = selectedCountry.value;
   if (searchQuery.value) filters.searchTerm = searchQuery.value;
-  if (sortBy.value) filters.sortField = sortBy.value;
-  if (orderBy.value) filters.sortOrder = orderBy.value;
+  if (selectedClient.value) filters.client_id = selectedClient.value;
+
+  if (sortBy.value) filters.sortField = sortBy.value
+  if (orderBy.value) filters.sortOrder = orderBy.value  
 
   filters.pageNumber = pagination.value.page;
   filters.perPage = pagination.value.itemsPerPage;
@@ -99,6 +103,7 @@ const loadDomains = async () => {
 
 const clearAllFilters = async () => {
   selectedStatus.value = null;
+  selectedClient.value = null;
   selectedApprovalStatus.value = null;
   selectedCountry.value = "";
   searchQuery.value = "";
@@ -110,6 +115,9 @@ const clearAllFilters = async () => {
 const hasActiveFilters = computed(() => {
   return (
     selectedStatus.value ||
+    selectedClient.value ||
+    sortBy.value ||
+    orderBy.value ||
     selectedApprovalStatus.value ||
     selectedCountry.value ||
     searchQuery.value
@@ -235,10 +243,25 @@ const itemsPerPage = computed({
 });
 
 const updateOptions = async (options) => {
-  pagination.value.itemsPerPage = options.itemsPerPage;
-  pagination.value.page = options.page;
-  await loadDomains();
-};
+
+  pagination.value.itemsPerPage = options.itemsPerPage
+  pagination.value.page = options.page
+
+  if (options.sortBy && options.sortBy.length > 0) {
+    sortBy.value = options.sortBy[0].key
+    orderBy.value = options.sortBy[0].order
+  } else {
+    sortBy.value = null
+    orderBy.value = null
+  }
+
+  await loadDomains()
+}
+
+onMounted(async () => {
+
+  await fetchClientList();
+})
 </script>
 
 <template>
@@ -308,6 +331,10 @@ const updateOptions = async (options) => {
             hide-details prepend-inner-icon="tabler-circle-dot" />
         </VCol>
         <VCol cols="12" sm="6" md="3">
+          <AppSelect v-model="selectedClient" label="Client" :items="ClientList" item-title="name" item-value="id" variant="outlined" clearable
+            hide-details prepend-inner-icon="tabler-circle-dot" />
+        </VCol>
+        <VCol cols="12" sm="6" md="3">
           <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
             variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
         </VCol>
@@ -316,7 +343,7 @@ const updateOptions = async (options) => {
             clearable hide-details prepend-inner-icon="tabler-world" />
         </VCol>
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
-          <VBtn color="primary" variant="flat" block @click="fetchDomains">
+          <VBtn color="primary" variant="flat" block @click="loadDomains">
             <VIcon icon="tabler-search" class="me-2" />
             Search
           </VBtn>
@@ -412,8 +439,7 @@ const updateOptions = async (options) => {
         <span class="font-weight-medium text-h6">
           {{ totalDomains }}
         </span>
-        <span class="ml-2">reports found</span>
-
+        <span class="ml-2">Record Found</span>
         <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
         </VChip>

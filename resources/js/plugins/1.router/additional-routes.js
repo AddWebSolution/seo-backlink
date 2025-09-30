@@ -25,6 +25,24 @@ export const redirects = [
 export const routes = [
   // Domain
   {
+    path: "/client/:id/clientdomain/add",
+    name: "apps-domain-clientdomain-add",
+    component: () => import("@/pages/apps/domain/clientdomain/add/[id].vue"),
+    props: true,
+  },
+  {
+    path: "/client/:id/clientdomain/list",
+    name: "apps-domain-clientdomain-list",
+    component: () => import("@/pages/apps/domain/clientdomain/list/[id].vue"),
+    props: true,
+  },
+    {
+    path: "/client/:clientId/clientdomain/:domainId/view",
+    name: "apps-domain-clientdomain-view",
+    component: () => import("@/pages/apps/domain/clientdomain/view/[domainId].vue"),
+    props: true,
+  },
+  {
     path: "/domains/:id",
     name: "apps-domain-view",
     component: () => import("@/pages/apps/domain/view/[id].vue"),
@@ -36,6 +54,55 @@ export const routes = [
     component: () => import("@/pages/apps/domain/edit/[id].vue"),
     props: true,
   },
+
+  // Rival Domain
+  {
+    path: "/client/:clientId/clientdomain/:domainId/rivaldomain/add",
+    name: "apps-domain-clientdomain-rivaldomain-add",
+    component: () => import("@/pages/apps/domain/clientdomain/[clientId]/rivaldomain/add/[domainId].vue"),
+    props: true,
+  },
+  {
+    path: "/client/:clientId/clientdomain/:domainId/rivaldomain/list",
+    name: "apps-domain-clientdomain-rivaldomain-list",
+    component: () => import("@/pages/apps/domain/clientdomain/[clientId]/rivaldomain/list/[domainId].vue"),
+    props: true,
+  },
+    {
+    path: "/client/:clientId/clientdomain/:domainId/rivaldomain/:id/view",
+    name: "apps-domain-clientdomain-rivaldomain-view",
+    component: () => import("@/pages/apps/domain/clientdomain/[clientId]/rivaldomain/view/[id].vue"),
+    props: true,
+  },
+  {
+    path: "/rivalsdomains/:id",
+    name: "apps-rivaldomain-view",
+    component: () => import("@/pages/apps/rivaldomain/view/[id].vue"),
+    props: true,
+  },
+  {
+    path: "/rivaldomains/:id/edit",
+    name: "apps-rivaldomain-edit",
+    component: () => import("@/pages/apps/rivaldomain/edit/[id].vue"),
+    props: true,
+  },
+
+
+
+  // Client
+  {
+    path: "/clients/:id",
+    name: "apps-client-view",
+    component: () => import("@/pages/apps/client/view/[id].vue"),
+    props: true,
+  },
+  {
+    path: "/clients/:id/edit",
+    name: "apps-client-edit",
+    component: () => import("@/pages/apps/client/edit/[id].vue"),
+    props: true,
+  },
+
 
   // Keyword
   {

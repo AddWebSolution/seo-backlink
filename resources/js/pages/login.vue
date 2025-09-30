@@ -1,7 +1,7 @@
 <!-- Enhanced Login Component with improved error handling and background -->
 <script setup>
 import { useCookie } from '@/@core/composable/useCookie'
-import { useAuthLogin } from '@/composables/authApi.js'
+import { useAuthApi } from '@/composables/authApi'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
@@ -14,6 +14,12 @@ import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { useRoute } from 'vue-router'
 import { VForm } from 'vuetify/components/VForm'
+import useAuthStore from '@/router/store/auth'
+import { useAbility } from '@casl/ability'
+
+const authStore = useAuthStore()
+const { update } = useAbility()
+
 
 const authThemeImg = useGenerateImageVariant(
   authV2LoginIllustrationBorderedDark,
@@ -22,6 +28,8 @@ const authThemeImg = useGenerateImageVariant(
   authV2LoginIllustrationLight, 
   true
 )
+
+const { login: authLogin, loading: authLoading, error: authError, showAlert } = useAuthApi()
 
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 
@@ -56,40 +64,41 @@ const credentials = ref({
 const rememberMe = ref(false)
 const isLoading = ref(false)
 
+
 const login = async () => {
   try {
     isLoading.value = true
-    // Clear previous errors
-    errors.value = { email: undefined, password: undefined }
-    errorMessage.value = ''
-    showErrorChip.value = false
-
     const payload = { ...credentials.value }
-    console.log('Payload being sent:', payload)
-    const res = await useAuthLogin(payload)
 
-    if(res.statusCode.value == 500){
-      errorMessage.value = 'Invalid credentials provided.'
-      showErrorChip.value = true
-    }else{
-      const { message, token } = res.data.value
-      useCookie('accessToken').value = token
-      const redirectTo = route.query.to
-      if (redirectTo) {
-        router.replace(decodeURIComponent(redirectTo.toString()))
-      } else {
-        router.replace({ name: 'apps-domain-list' })
-      }
+    const res = await authLogin(payload)
+
+    if (res?.statusCode.value !== 200) {
+    } else {
+      useCookie('accessToken').value = res.data.value.token
+      useCookie('role_id').value = res.data.value.user.role;
+
+      authStore.setUser(res.data.value)
+      update() 
+      
+      const redirectTo = route.query.to 
+        ? decodeURIComponent(route.query.to)
+        : '/apps/client/list'
+
+      console.log("Redirecting to:", redirectTo)
+
+      router.replace(redirectTo)
     }
+
   } catch (err) {
-    console.error('Login error:', err)
-      errorMessage.value = 'An unexpected error occurred. Please try again.'
-      showErrorChip.value = true
-      console.error('Unexpected error:', err)
+    console.error("Login failed:", err)
+    showAlert(err.message || 'Unexpected error', 'error')
   } finally {
     isLoading.value = false
   }
 }
+
+
+
 
 const onSubmit = () => {
   refVForm.value?.validate().then(({ valid: isValid }) => {
@@ -125,16 +134,12 @@ watch(showErrorChip, (newVal) => {
         <div class="auth-bg-overlay"></div>
         <div class="d-flex align-center justify-center w-100 h-100" style="padding-inline: 6.25rem;">
           <div class="text-center">
-            <VImg 
-              max-width="500" 
-              :src="authThemeImg" 
-              class="auth-illustration mt-16 mb-6" 
-              alt="Secure Login Illustration"
-            />
+            <VImg max-width="500" :src="authThemeImg" class="auth-illustration mt-16 mb-6"
+              alt="Secure Login Illustration" />
             <div class="auth-bg-content">
               <h2 class="text-white mb-4">Secure Access Portal</h2>
               <p class="text-white opacity-87">
-                Your data security is our priority. Login to access your personalized dashboard 
+                Your data security is our priority. Login to access your personalized dashboard
                 and manage your digital workspace with confidence.
               </p>
             </div>
@@ -148,14 +153,8 @@ watch(showErrorChip, (newVal) => {
       <VCard flat :max-width="500" class="mt-12 mt-sm-0 pa-6 auth-card-shadow">
         <!-- Error Message Chip -->
         <Transition name="slide-fade">
-          <VChip
-            v-if="showErrorChip"
-            color="error"
-            variant="elevated"
-            class="mb-4 error-chip"
-            closable
-            @click:close="showErrorChip = false"
-          >
+          <VChip v-if="showErrorChip" color="error" variant="elevated" class="mb-4 error-chip" closable
+            @click:close="showErrorChip = false">
             <VIcon start icon="tabler-alert-circle" />
             {{ errorMessage }}
           </VChip>
@@ -169,78 +168,46 @@ watch(showErrorChip, (newVal) => {
             Please sign in to your account to continue
           </p>
         </VCardText>
-        
+
         <VCardText>
           <VForm ref="refVForm" @submit.prevent="onSubmit">
             <VRow>
               <!-- Email Field -->
               <VCol cols="12">
-                <AppTextField 
-                  v-model="credentials.email" 
-                  label="Email Address" 
-                  placeholder="johndoe@email.com" 
-                  type="email"
-                  autofocus 
-                  :rules="[requiredValidator, emailValidator]" 
-                  :error-messages="errors.email"
-                  :disabled="isLoading"
-                  prepend-inner-icon="tabler-mail"
-                />
+                <AppTextField v-model="credentials.email" label="Email Address" placeholder="johndoe@email.com"
+                  type="email" autofocus :rules="[requiredValidator, emailValidator]" :error-messages="errors.email"
+                  :disabled="isLoading" prepend-inner-icon="tabler-mail" />
               </VCol>
-              
+
               <!-- Password Field -->
               <VCol cols="12">
-                <AppTextField 
-                  v-model="credentials.password" 
-                  label="Password" 
-                  placeholder="Enter your password"
-                  :rules="[requiredValidator]" 
-                  :type="isPasswordVisible ? 'text' : 'password'" 
-                  autocomplete="current-password"
-                  :error-messages="errors.password"
-                  :disabled="isLoading"
+                <AppTextField v-model="credentials.password" label="Password" placeholder="Enter your password"
+                  :rules="[requiredValidator]" :type="isPasswordVisible ? 'text' : 'password'"
+                  autocomplete="current-password" :error-messages="errors.password" :disabled="isLoading"
                   prepend-inner-icon="tabler-lock"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible" 
-                />
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible" />
 
                 <div class="d-flex align-center flex-wrap justify-space-between my-6">
-                  <VCheckbox 
-                    v-model="rememberMe" 
-                    label="Remember me" 
-                    :disabled="isLoading"
-                    color="primary"
-                  />
-                  <RouterLink 
-                    class="text-primary text-decoration-none" 
-                    :to="{ name: 'forgot-password' }"
-                  >
+                  <VCheckbox v-model="rememberMe" label="Remember me" :disabled="isLoading" color="primary" />
+                  <RouterLink class="text-primary text-decoration-none" :to="{ name: 'forgot-password' }">
                     Forgot Password?
                   </RouterLink>
                 </div>
 
-                <VBtn 
-                  block 
-                  type="submit" 
-                  :loading="isLoading"
-                  :disabled="isLoading"
-                  size="large"
-                  color="primary"
-                  class="mb-4"
-                >
+                <VBtn block type="submit" :loading="authLoading || isLoading" :disabled="authLoading || isLoading"
+                  size="large" color="primary" class="mb-4">
                   <VIcon start icon="tabler-login" />
                   Sign In
                 </VBtn>
-
-                <!-- Temporary test button for debugging VChip -->
               </VCol>
 
               <!-- Create Account Section (commented out as in original) -->
               <VCol cols="12" class="text-center">
-                <!-- <span class="text-body-2">New on our platform?</span> -->
-                <!-- <RouterLink class="text-primary ms-1 text-decoration-none" :to="{ name: 'register' }">
+                <span class="text-body-2">New on our platform?</span>
+                <RouterLink class="text-primary ms-1 text-decoration-none" :to="{ name: 'register' }">
                   Create an account
-                </RouterLink> -->
+                </RouterLink>
               </VCol>
             </VRow>
           </VForm>

@@ -8,15 +8,13 @@ import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import NavBarI18n from '@core/components/I18n.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
 
-
-// @layouts plugin
 import { VerticalNavLayout } from '@layouts'
 import CustomAlert from './CustomAlert.vue'
 </script>
 
 <template>
   <VerticalNavLayout :nav-items="navItems">
-    <!-- 👉 navbar -->
+
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">
         <IconBtn id="vertical-nav-toggle-btn" class="ms-n3 d-lg-none" @click="toggleVerticalOverlayNavActive(true)">
@@ -30,8 +28,8 @@ import CustomAlert from './CustomAlert.vue'
         <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
           :languages="themeConfig.app.i18n.langConfig" />
         <NavbarThemeSwitcher />
-        <NavbarShortcuts />
-        <NavBarNotifications class="me-1" />
+        <!-- <NavbarShortcuts /> -->
+        <!-- <NavBarNotifications class="me-1" /> -->
       </div>
     </template>
 

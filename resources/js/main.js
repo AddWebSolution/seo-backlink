@@ -13,5 +13,7 @@ const app = createApp(App)
 // Register plugins
 registerPlugins(app)
 
+registerRoutes(app)
+
 // Mount vue app
 app.mount('#app')

@@ -1,12 +1,15 @@
 <script setup>
 import { useDomainApi } from '@/composables/domainApi';
+import { useClientApi } from '@/composables/clientApi';
 import { useRouter } from 'vue-router'
 import { IconWorldWww, IconDevicesCog, IconWorldMinus, IconUnlink, IconSeo, IconTag } from '@tabler/icons-vue';
 import { ref, reactive, watch, onMounted } from 'vue'
 
 const router = useRouter()
 
-const { createDomain, loading, error, showAlert } = useDomainApi()
+const { createDomain, loading, error, showAlert } = useDomainApi();
+
+const { ClientList,fetchClientList } = useClientApi();
 
 // Form data
 const form = ref({
@@ -35,16 +38,26 @@ const state = reactive({
 })
 
 // Refs
-const formRef = ref()
+const formRef = ref();
+
 
 const draftSaved = ref(false)
 const lastSavedTime = ref(null)
+
 
 watch(form, debounce(() => {
   if (state.formTouched) {
     saveDraft()
   }
 }, 2000), { deep: true })
+
+
+watch(() => form.client_id, (newId) => {
+  const client = clientOptions.find(c => c.id == newId);
+  if (client) {
+    form.client_id = client.id || ''; 
+  }
+});
 
 const saveDraft = () => {
   localStorage.setItem('domain_draft', JSON.stringify(form.value))
@@ -55,7 +68,9 @@ const saveDraft = () => {
   }, 2000)
 }
 
-onMounted(() => {
+onMounted(async () => {
+
+  await fetchClientList();
   const draft = localStorage.getItem('domain_draft')
   if (draft) {
     const shouldLoad = confirm('A draft was found. Would you like to restore it?')
@@ -66,8 +81,9 @@ onMounted(() => {
 })
 
 const markFormTouched = () => {
-  state.formTouched = true
+  state.formTouched = trues
 }
+
 
 const toggleSection = (index) => {
   state.expandedSections[index] = !state.expandedSections[index]
@@ -247,30 +263,19 @@ const scrollToSection = (sectionId) => {
   <div class="domain-create-page">
     <!-- Floating Save Indicator -->
     <VSlideYTransition>
-      <VChip
-        v-if="draftSaved"
-        color="success"
-        variant="elevated"
-        size="small"
-        class="save-indicator"
-      >
+      <VChip v-if="draftSaved" color="success" variant="elevated" size="small" class="save-indicator">
         <VIcon icon="mdi-check" size="12" class="me-1" />
         Draft saved at {{ lastSavedTime }}
       </VChip>
     </VSlideYTransition>
 
     <!-- Page Header -->
-     <VCard class="mb-10 pa-8 overflow-hidden" elevation="2">
+    <VCard class="mb-10 pa-8 overflow-hidden" elevation="2">
       <VContainer fluid>
         <VRow align="center">
           <VCol cols="12" md="8">
             <div class="d-flex align-center">
-              <VAvatar
-                size="64"
-                color="primary"
-                variant="elevated"
-                class="me-4"
-              >
+              <VAvatar size="64" color="primary" variant="elevated" class="me-4">
                 <IconWorldWww stroke={2} />
               </VAvatar>
               <div>
@@ -283,21 +288,12 @@ const scrollToSection = (sectionId) => {
           </VCol>
           <VCol cols="12" md="4" class="text-md-end">
             <div class="d-flex gap-2 justify-md-end">
-              <VBtn
-                color="primary"
-                variant="flat"
-                @click="resetForm"
-                :disabled="state.submitting"
-              >
+              <VBtn color="primary" variant="flat" @click="resetForm" :disabled="state.submitting">
                 <VIcon icon="tabler-refresh" class="me-2" />
                 Reset
               </VBtn>
-              <VBtn
-                variant="flat"
-                @click="router.push({ name: 'apps-domain-list' })"
-                :disabled="state.submitting"
-              >
-                 <VIcon icon="tabler-arrow-left" class="me-2" />
+              <VBtn variant="flat" @click="router.push({ name: 'apps-domain-list' })" :disabled="state.submitting">
+                <VIcon icon="tabler-arrow-left" class="me-2" />
                 Back to List
               </VBtn>
             </div>
@@ -327,96 +323,66 @@ const scrollToSection = (sectionId) => {
     </VCard>
 
     <!-- Main Form Container -->
-      <VSlideYTransition>
-        <VAlert
-          v-if="state.showSuccessAlert"
-          type="success"
-          variant="elevated"
-          class="mb-6"
-          closable
-          @click:close="state.showSuccessAlert = false"
-        >
-          <template v-slot:prepend>
-            <VIcon icon="mdi-check-circle" />
-          </template>
-          <VAlertTitle>Success!</VAlertTitle>
-          Domain has been created successfully. Redirecting to domain list...
-        </VAlert>
-      </VSlideYTransition>
+    <VSlideYTransition>
+      <VAlert v-if="state.showSuccessAlert" type="success" variant="elevated" class="mb-6" closable
+        @click:close="state.showSuccessAlert = false">
+        <template v-slot:prepend>
+          <VIcon icon="mdi-check-circle" />
+        </template>
+        <VAlertTitle>Success!</VAlertTitle>
+        Domain has been created successfully. Redirecting to domain list...
+      </VAlert>
+    </VSlideYTransition>
 
-      <VSlideYTransition>
-        <VAlert
-          v-if="state.errorMessage"
-          type="error"
-          variant="tonal"
-          class="mb-6"
-          closable
-          @click:close="state.errorMessage = ''"
-        >
-          <template v-slot:prepend>
-            <VIcon icon="mdi-alert-circle" />
-          </template>
-          {{ state.errorMessage }}
-        </VAlert>
-      </VSlideYTransition>
+    <VSlideYTransition>
+      <VAlert v-if="state.errorMessage" type="error" variant="tonal" class="mb-6" closable
+        @click:close="state.errorMessage = ''">
+        <template v-slot:prepend>
+          <VIcon icon="mdi-alert-circle" />
+        </template>
+        {{ state.errorMessage }}
+      </VAlert>
+    </VSlideYTransition>
 
-      <VForm ref="formRef" @submit.prevent="submitForm">
-        <!-- Section 1: Basic Information -->
-        <VCard id="section-1" class="mb-6 section-card">
-          <VCardTitle class="section-header">
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center">
-                <VAvatar color="primary" variant="tonal" size="40" class="me-3">
-                  <IconWorldMinus stroke={2} />
-                </VAvatar>
-                <div>
-                  <h2 class="text-h5 font-weight-bold">Basic Information</h2>
-                  <p class="text-body-2 text-medium-emphasis mb-0">Essential domain details and identification</p>
-                </div>
+    <VForm ref="formRef" @submit.prevent="submitForm">
+      <!-- Section 1: Basic Information -->
+      <VCard id="section-1" class="mb-6 section-card">
+        <VCardTitle class="section-header">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <VAvatar color="primary" variant="tonal" size="40" class="me-3">
+                <IconWorldMinus stroke={2} />
+              </VAvatar>
+              <div>
+                <h2 class="text-h5 font-weight-bold">Basic Information</h2>
+                <p class="text-body-2 text-medium-emphasis mb-0">Essential domain details and identification</p>
               </div>
-              <VBtn
-                icon
-                variant="text"
-                size="small"
-                @click="toggleSection(0)"
-              >
-                <VIcon :icon="state.expandedSections[0] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
-              </VBtn>
             </div>
-          </VCardTitle>
+            <VBtn icon variant="text" size="small" @click="toggleSection(0)">
+              <VIcon :icon="state.expandedSections[0] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+            </VBtn>
+          </div>
+        </VCardTitle>
 
-          <VExpandTransition>
-            <div v-show="state.expandedSections[0]">
-              <VDivider />
-              <VCardText class="pa-6">
-                <VRow>
-                  <VCol cols="12" md="6">
-                    <AppTextField
-                      v-model="form.client_id"
-                      label="Client ID"
-                      placeholder="e.g., CLT-2024-001"
-                      variant="outlined"
-                      hint="Unique identifier for the client"
-                      persistent-hint
-                      @input="markFormTouched"
-                    />
-                  </VCol>
+        <VExpandTransition>
+          <div v-show="state.expandedSections[0]">
+            <VDivider />
+            <VCardText class="pa-6">
+              <VRow>
 
-                  <VCol cols="12" md="6">
-                    <AppTextField
-                      v-model="form.title"
-                      label="Domain Title *"
-                      placeholder="Enter a descriptive title"
-                      :rules="[rules.required, rules.minLength(3), rules.maxLength(100)]"
-                      variant="outlined"
-                      hint="Primary identifier for this domain"
-                      persistent-hint
-                      required
-                      @input="markFormTouched"
-                    />
-                  </VCol>
+                <VCol cols="12" md="3">
+                  <AppSelect v-model="form.client_id" :items="ClientList" item-title="name" item-value="id"
+                    label="Select Client * " variant="outlined" hide-details clearable :loading="loading" required />
+                </VCol>
 
-                  <!-- <VCol cols="12" md="6">
+
+                <VCol cols="12" md="3">
+                  <AppTextField v-model="form.title" label="Domain Title *" placeholder="Enter a descriptive title"
+                    :rules="[rules.required, rules.minLength(3), rules.maxLength(100)]" variant="outlined"
+                    hint="Primary identifier for this domain" persistent-hint required @input="markFormTouched" />
+                </VCol>
+
+                <!-- <VCol cols="12" md="6">
                     <VAutocomplete
                       v-model="form.country"
                       label="Country"
@@ -430,631 +396,450 @@ const scrollToSection = (sectionId) => {
                     />
                   </VCol> -->
 
-                  <VCol cols="12" md="6">
-                    <AppTextField
-                      v-model="form.turnaround_time"
-                      label="Turnaround Time"
-                      placeholder="e.g., 5-7 business days"
-                      variant="outlined"
-                      hint="Expected delivery timeframe"
-                      persistent-hint
-                      @input="markFormTouched"
-                    />
-                  </VCol>
-                </VRow>
-              </VCardText>
-            </div>
-          </VExpandTransition>
-        </VCard>
+                <VCol cols="12" md="6">
+                  <AppTextField v-model="form.turnaround_time" label="Turnaround Time"
+                    placeholder="e.g., 5-7 business days" variant="outlined" hint="Expected delivery timeframe"
+                    persistent-hint @input="markFormTouched" />
+                </VCol>
+              </VRow>
+            </VCardText>
+          </div>
+        </VExpandTransition>
+      </VCard>
 
-        <!-- Section 2: Status Configuration -->
-        <VCard id="section-2" class="mb-6 section-card">
-          <VCardTitle class="section-header">
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center">
-                <VAvatar color="success" variant="tonal" size="40" class="me-3">
+      <!-- Section 2: Status Configuration -->
+      <VCard id="section-2" class="mb-6 section-card">
+        <VCardTitle class="section-header">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <VAvatar color="success" variant="tonal" size="40" class="me-3">
                 <IconDevicesCog stroke={2} />
-                </VAvatar>
-                <div>
-                  <h2 class="text-h5 font-weight-bold">Status Configuration</h2>
-                  <p class="text-body-2 text-medium-emphasis mb-0">Set availability and approval status</p>
-                </div>
-              </div>
-              <VBtn
-                icon
-                variant="text"
-                size="small"
-                @click="toggleSection(1)"
-              >
-                <VIcon :icon="state.expandedSections[1] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
-              </VBtn>
-            </div>
-          </VCardTitle>
-
-          <VExpandTransition>
-            <div v-show="state.expandedSections[1]">
-              <VDivider />
-              <VCardText class="pa-6">
-                <VRow>
-                  <VCol cols="12" md="6">
-                    <p class="text-body-2 font-weight-medium mb-3">Domain Status</p>
-                    <VItemGroup v-model="form.status" mandatory>
-                      <VRow>
-                        <VCol
-                          v-for="status in statusOptions"
-                          :key="status.value"
-                          cols="12"
-                        >
-                          <VItem :value="status.value" v-slot="{ isSelected, toggle }">
-                            <VCard
-                              :color="isSelected ? status.color : undefined"
-                              :variant="isSelected ? 'elevated' : 'outlined'"
-                              class="status-selection-card pa-4"
-                              @click="toggle"
-                            >
-                              <div class="d-flex align-center">
-                                <VAvatar
-                                  :color="status.color"
-                                  variant="tonal"
-                                  size="36"
-                                  class="me-3"
-                                >
-                                  <VIcon :icon="status.icon" size="20" />
-                                </VAvatar>
-                                <div class="flex-grow-1">
-                                  <p class=" font-weight-medium mb-0">
-                                    {{ status.title }}
-                                  </p>
-                                  <p class=" font-weight-medium mb-0">
-                                    {{ status.description }}
-                                  </p>
-                                </div>
-                                <VIcon
-                                  :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
-                                  :color="isSelected ? status.color : 'grey'"
-                                />
-                              </div>
-                            </VCard>
-                          </VItem>
-                        </VCol>
-                      </VRow>
-                    </VItemGroup>
-                  </VCol>
-
-                  <VCol cols="12" md="6">
-                    <p class="text-body-2 font-weight-medium mb-3">Approval Status</p>
-                    <VItemGroup v-model="form.approval_status" mandatory>
-                      <VRow>
-                        <VCol
-                          v-for="status in approvalStatusOptions"
-                          :key="status.value"
-                          cols="12"
-                        >
-                          <VItem :value="status.value" v-slot="{ isSelected, toggle }">
-                            <VCard
-                              :color="isSelected ? status.color : undefined"
-                              :variant="isSelected ? 'elevated' : 'outlined'"
-                              class="status-selection-card pa-4"
-                              @click="toggle"
-                            >
-                              <div class="d-flex align-center">
-                                <VAvatar
-                                  :color="status.color"
-                                  variant="tonal"
-                                  size="36"
-                                  class="me-3"
-                                >
-                                  <VIcon :icon="status.icon" size="20" />
-                                </VAvatar>
-                                <div class="flex-grow-1">
-                                 <p class=" font-weight-medium mb-0">
-                                    {{ status.title }}
-                                  </p>
-                                  <p class=" font-weight-medium mb-0">
-                                    {{ status.description }}
-                                  </p>
-                                </div>
-                                <VIcon
-                                  :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
-                                  :color="isSelected ? status.color : 'grey'"
-                                />
-                              </div>
-                            </VCard>
-                          </VItem>
-                        </VCol>
-                      </VRow>
-                    </VItemGroup>
-                  </VCol>
-                </VRow>
-              </VCardText>
-            </div>
-          </VExpandTransition>
-        </VCard>
-
-        <!-- Section 3: URL Management -->
-        <VCard id="section-3" class="mb-6 section-card">
-          <VCardTitle class="section-header">
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center">
-                <VAvatar color="info" variant="tonal" size="40" class="me-3">
-                  <IconUnlink stroke={2} />
-                </VAvatar>
-                <div>
-                  <h2 class="text-h5 font-weight-bold">URL Management</h2>
-                  <p class="text-body-2 text-medium-emphasis mb-0">Configure source and target URLs</p>
-                </div>
-              </div>
-              <VBtn
-                icon
-                variant="text"
-                size="small"
-                @click="toggleSection(2)"
-              >
-                <VIcon :icon="state.expandedSections[2] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
-              </VBtn>
-            </div>
-          </VCardTitle>
-
-          <VExpandTransition>
-            <div v-show="state.expandedSections[2]">
-              <VDivider />
-              <VCardText class="pa-6">
-                <VRow>
-                  <VCol cols="12">
-                    <AppTextField
-                      v-model="form.source_url"
-                      label="Source URL"
-                      placeholder="https://example.com/source-page"
-                      :rules="[rules.url]"
-                      variant="outlined"
-                      hint="The URL where the link will be placed"
-                      persistent-hint
-                      @input="markFormTouched"
-                    >
-                      <template v-slot:append-inner>
-                        <VTooltip location="top">
-                          <template v-slot:activator="{ props }">
-                            <VIcon v-bind="props" icon="mdi-information-outline" size="20" />
-                          </template>
-                          <span>This is the website that will link to your target</span>
-                        </VTooltip>
-                      </template>
-                    </AppTextField>
-                  </VCol>
-
-                  <VCol cols="12">
-                    <AppTextField
-                      v-model="form.target_url"
-                      label="Target URL*"
-                      placeholder="https://target.com/destination-page"
-                      :rules="[rules.url,rules.required]"
-                      variant="outlined"
-                      required
-                      hint="The destination URL for the link"
-                      persistent-hint
-                      @input="markFormTouched"
-                    >
-                      <template v-slot:append-inner>
-                        <VTooltip location="top">
-                          <template v-slot:activator="{ props }">
-                            <VIcon v-bind="props" icon="mdi-information-outline" size="20" />
-                          </template>
-                          <span>This is where users will be directed when clicking the link</span>
-                        </VTooltip>
-                      </template>
-                    </AppTextField>
-                  </VCol>
-                </VRow>
-
-                <!-- URL Preview -->
-                <VSlideYTransition>
-                  <VCard
-                    v-if="form.source_url || form.target_url"
-                    color="grey-lighten-5"
-                    variant="flat"
-                    class="mt-6"
-                  >
-                    <VCardText>
-                      <p class="text-body-2 font-weight-medium mb-4">Link Flow Visualization</p>
-                      
-                      <div class="url-flow-visualization">
-                        <div v-if="form.source_url" class="url-box source">
-                          <VIcon icon="mdi-web" color="info" class="me-2" />
-                          <div>
-                            <p class="text-caption text-medium-emphasis mb-1">Source</p>
-                            <a :href="form.source_url" target="_blank" class="text-decoration-none text-info">
-                              {{ form.source_url }}
-                            </a>
-                          </div>
-                        </div>
-
-                        <div v-if="form.source_url && form.target_url" class="flow-arrow">
-                          <VIcon icon="mdi-arrow-down-thick" size="24" color="primary" />
-                        </div>
-
-                        <div v-if="form.target_url" class="url-box target">
-                          <VIcon icon="mdi-target" color="success" class="me-2" />
-                          <div>
-                            <p class="text-caption text-medium-emphasis mb-1">Target</p>
-                            <a :href="form.target_url" target="_blank" class="text-decoration-none text-success">
-                              {{ form.target_url }}
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </VCardText>
-                  </VCard>
-                </VSlideYTransition>
-              </VCardText>
-            </div>
-          </VExpandTransition>
-        </VCard>
-
-        <!-- Section 4: SEO Metrics -->
-        <VCard id="section-4" class="mb-6 section-card">
-          <VCardTitle class="section-header">
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center">
-                <VAvatar color="warning" variant="tonal" size="40" class="me-3">
-                 <IconSeo stroke={2} />
-                </VAvatar>
-                <div>
-                  <h2 class="text-h5 font-weight-bold">SEO Metrics</h2>
-                  <p class="text-body-2 text-medium-emphasis mb-0">Domain authority and performance indicators</p>
-                </div>
-              </div>
-              <VBtn
-                icon
-                variant="text"
-                size="small"
-                @click="toggleSection(3)"
-              >
-                <VIcon :icon="state.expandedSections[3] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
-              </VBtn>
-            </div>
-          </VCardTitle>
-
-          <VExpandTransition>
-            <div v-show="state.expandedSections[3]">
-              <VDivider />
-              <VCardText class="pa-6">
-                <VRow>
-                  <VCol cols="12" md="4">
-                    <VCard variant="outlined" class="metric-input-card">
-                      <VCardText>
-                        <div class="d-flex align-center mb-3">
-                          <VAvatar color="primary" variant="tonal" size="36" class="me-3">
-                            <VIcon icon="tabler-award" size="32" />
-                          </VAvatar>
-                          <div>
-                            <p class="text-body-2 font-weight-medium mb-0">Domain Authority</p>
-                            <p class="text-caption text-medium-emphasis mb-0">MOZ metric (0-100)</p>
-                          </div>
-                        </div>
-                        
-                        <AppTextField
-                          v-model="form.domain_authority"
-                          type="number"
-                          min="0"
-                          max="100"
-                          :rules="rules.domainAuthority"
-                          variant="solo-filled"
-                          placeholder="0"
-                          class="metric-input"
-                          @input="markFormTouched"
-                        />
-                        
-                        <VProgressLinear
-                          v-if="form.domain_authority"
-                          :model-value="form.domain_authority"
-                          max="100"
-                          :color="getMetricColor(form.domain_authority)"
-                          height="6"
-                          rounded
-                          class="mt-3"
-                        />
-                      </VCardText>
-                    </VCard>
-                  </VCol>
-
-                  <VCol cols="12" md="4">
-                    <VCard variant="outlined" class="metric-input-card">
-                      <VCardText>
-                        <div class="d-flex align-center mb-3">
-                          <VAvatar color="success" variant="tonal" size="36" class="me-3">
-                             <VIcon icon="tabler-trending-up" size="32" />
-                          </VAvatar>
-                          <div>
-                            <p class="text-body-2 font-weight-medium mb-0">Domain Rating</p>
-                            <p class="text-caption text-medium-emphasis mb-0">Ahrefs metric (0-100)</p>
-                          </div>
-                        </div>
-                        
-                        <AppTextField
-                          v-model="form.domain_rating"
-                          type="number"
-                          min="0"
-                          max="100"
-                          :rules="rules.domainRating"
-                          variant="solo-filled"
-                          placeholder="0"
-                          class="metric-input"
-                          @input="markFormTouched"
-                        />
-                        
-                        <VProgressLinear
-                          v-if="form.domain_rating"
-                          :model-value="form.domain_rating"
-                          max="100"
-                          :color="getMetricColor(form.domain_rating)"
-                          height="6"
-                          rounded
-                          class="mt-3"
-                        />
-                      </VCardText>
-                    </VCard>
-                  </VCol>
-
-                  <VCol cols="12" md="4">
-                    <VCard variant="outlined" class="metric-input-card">
-                      <VCardText>
-                        <div class="d-flex align-center mb-3">
-                          <VAvatar color="info" variant="tonal" size="36" class="me-3">
-                            <VIcon icon="tabler-users" size="32" />
-                          </VAvatar>
-                          <div>
-                            <p class="text-body-2 font-weight-medium mb-0">Organic Traffic</p>
-                            <p class="text-caption text-medium-emphasis mb-0">Monthly visitors</p>
-                          </div>
-                        </div>
-                        
-                        <AppTextField
-                          v-model="form.organic_traffic"
-                          type="number"
-                          min="0"
-                          :rules="[rules.number, rules.positiveNumber]"
-                          variant="solo-filled"
-                          placeholder="0"
-                          class="metric-input"
-                          @input="markFormTouched"
-                        />
-                      </VCardText>
-                    </VCard>
-                  </VCol>
-                </VRow>
-
-                <!-- Metrics Summary -->
-                <VSlideYTransition>
-                  <VCard
-                    v-if="form.domain_authority || form.domain_rating || form.organic_traffic"
-                    color="primary"
-                    variant="tonal"
-                    class="mt-6"
-                  >
-                    <VCardText>
-                      <p class="text-body-1 font-weight-medium mb-4">SEO Performance Summary</p>
-                      <div class="d-flex justify-space-around align-center">
-                        <div v-if="form.domain_authority" class="text-center">
-                          <VAvatar
-                            :color="getMetricColor(form.domain_authority)"
-                            size="72"
-                            variant="elevated"
-                            class="mb-2"
-                          >
-                            <span class="text-h5 font-weight-bold">{{ form.domain_authority }}</span>
-                          </VAvatar>
-                          <p class="text-body-2 mb-0">DA Score</p>
-                        </div>
-                        <div v-if="form.domain_rating" class="text-center">
-                          <VAvatar
-                            :color="getMetricColor(form.domain_rating)"
-                            size="72"
-                            variant="elevated"
-                            class="mb-2"
-                          >
-                            <span class="text-h5 font-weight-bold">{{ form.domain_rating }}</span>
-                          </VAvatar>
-                          <p class="text-body-2 mb-0">DR Score</p>
-                        </div>
-                        <div v-if="form.organic_traffic" class="text-center">
-                          <VAvatar
-                            color="info"
-                            size="72"
-                            variant="elevated"
-                            class="mb-2"
-                          >
-                            <span class="text-h6 font-weight-bold">{{ form.organic_traffic }}</span>
-                          </VAvatar>
-                          <p class="text-body-2 mb-0">Traffic</p>
-                        </div>
-                      </div>
-                    </VCardText>
-                  </VCard>
-                </VSlideYTransition>
-              </VCardText>
-            </div>
-          </VExpandTransition>
-        </VCard>
-
-        <!-- Section 5: Pricing & Details -->
-        <VCard id="section-5" class="mb-6 section-card">
-          <VCardTitle class="section-header">
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center">
-                <VAvatar color="error" variant="tonal" size="40" class="me-3">
-                  <IconTag stroke={2} />
-                </VAvatar>
-                <div>
-                  <h2 class="text-h5 font-weight-bold">Pricing & Additional Details</h2>
-                  <p class="text-body-2 text-medium-emphasis mb-0">Cost breakdown and special requirements</p>
-                </div>
-              </div>
-              <VBtn
-                icon
-                variant="text"
-                size="small"
-                @click="toggleSection(4)"
-              >
-                <VIcon :icon="state.expandedSections[4] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
-              </VBtn>
-            </div>
-          </VCardTitle>
-
-          <VExpandTransition>
-            <div v-show="state.expandedSections[4]">
-              <VDivider />
-              <VCardText class="pa-6">
-                <!-- Pricing Grid -->
-                <div class="pricing-section mb-6">
-                  <div class="d-flex align-center justify-space-between mb-4">
-                    <p class="text-body-1 font-weight-medium mb-0">Pricing Components</p>
-                    <VChip
-                      v-if="form.total_price > 0"
-                      color="error"
-                      variant="elevated"
-                      size="large"
-                      class="font-weight-bold"
-                    >
-                      Total: {{ formatCurrency(form.total_price) }}
-                    </VChip>
-                  </div>
-
-                  <VRow>
-                    <VCol cols="12" md="4">
-                      <VCard variant="outlined">
-                        <VCardText>
-                          <AppTextField
-                            v-model="form.price_ne"
-                            label="Price NE"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            :rules="[rules.number, rules.positiveNumber]"
-                            variant="solo-filled"
-                            placeholder="0.00"
-                            @input="markFormTouched"
-                          />
-                        </VCardText>
-                      </VCard>
-                    </VCol>
-
-                    <VCol cols="12" md="4">
-                      <VCard variant="outlined">
-                        <VCardText>
-                          <AppTextField
-                            v-model="form.price_gp"
-                            label="Price GP"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            :rules="[rules.number, rules.positiveNumber]"
-                            variant="solo-filled"
-                            placeholder="0.00"
-                            @input="markFormTouched"
-                          />
-                        </VCardText>
-                      </VCard>
-                    </VCol>
-
-                    <VCol cols="12" md="4">
-                      <VCard variant="outlined">
-                        <VCardText>
-                          <AppTextField
-                            v-model="form.price"
-                            label="Base Price"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            :rules="[rules.number, rules.positiveNumber]"
-                            variant="solo-filled"
-                            placeholder="0.00"
-                            @input="markFormTouched"
-                          />
-                        </VCardText>
-                      </VCard>
-                    </VCol>
-                  </VRow>
-
-                  <!-- Total Display -->
-                  <VSlideYTransition>
-                    <VCard
-                      v-if="form.total_price > 0"
-                      color="error"
-                      variant="tonal"
-                      class="mt-4"
-                    >
-                      <VCardText class="text-center pa-4">
-                        <p class="text-body-2 mb-2">Total Price</p>
-                        <p class="text-h3 font-weight-bold mb-0">{{ formatCurrency(form.total_price) }}</p>
-                      </VCardText>
-                    </VCard>
-                  </VSlideYTransition>
-                </div>
-
-                <VDivider class="mb-6" />
-
-                <!-- Additional Details -->
-                <div class="additional-details">
-                  <p class="text-body-1 font-weight-medium mb-4">Additional Information</p>
-                  
-                  <VRow>
-                    <VCol cols="12">
-                      <AppTextField
-                        v-model="form.anchor_text"
-                        label="Anchor Text"
-                        placeholder="Enter the anchor text for the link"
-                        :rules="[rules.maxLength(200)]"
-                        variant="outlined"
-                        hint="The clickable text for the hyperlink"
-                        persistent-hint
-                        @input="markFormTouched"
-                      />
-                    </VCol>
-
-                    <VCol cols="12">
-                      <AppTextarea
-                        v-model="form.special_requirements"
-                        label="Special Requirements"
-                        placeholder="Enter any special requirements, notes, or instructions..."
-                        :rules="[rules.maxLength(500)]"
-                        variant="outlined"
-                        rows="5"
-                        counter
-                        hint="Additional instructions or notes for domain setup"
-                        persistent-hint
-                        @input="markFormTouched"
-                      />
-                    </VCol>
-                  </VRow>
-                </div>
-              </VCardText>
-            </div>
-          </VExpandTransition>
-        </VCard>
-
-        <!-- Form Actions -->
-        <VCard class="action-card">
-          <VCardText class="pa-6">
-            <div class="d-flex justify-space-between align-center">
+              </VAvatar>
               <div>
-                <p class="text-body-2 text-medium-emphasis mb-0">
-                  <VIcon icon="mdi-information-outline" size="16" class="me-1" />
-                  All fields marked with * are required
-                </p>
+                <h2 class="text-h5 font-weight-bold">Status Configuration</h2>
+                <p class="text-body-2 text-medium-emphasis mb-0">Set availability and approval status</p>
               </div>
-              
-              <div class="d-flex gap-3">
-                <VBtn
-                  variant="outlined"
-                  color="default"
-                  size="large"
-                  @click="resetForm"
-                  :disabled="state.submitting"
-                >
-                  Reset Form
-                </VBtn>
-                
-                <!-- <VBtn
+            </div>
+            <VBtn icon variant="text" size="small" @click="toggleSection(1)">
+              <VIcon :icon="state.expandedSections[1] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+            </VBtn>
+          </div>
+        </VCardTitle>
+
+        <VExpandTransition>
+          <div v-show="state.expandedSections[1]">
+            <VDivider />
+            <VCardText class="pa-6">
+              <VRow>
+                <VCol cols="12" md="6">
+                  <p class="text-body-2 font-weight-medium mb-3">Domain Status</p>
+                  <VItemGroup v-model="form.status" mandatory>
+                    <VRow>
+                      <VCol v-for="status in statusOptions" :key="status.value" cols="12">
+                        <VItem :value="status.value" v-slot="{ isSelected, toggle }">
+                          <VCard :color="isSelected ? status.color : undefined"
+                            :variant="isSelected ? 'elevated' : 'outlined'" class="status-selection-card pa-4"
+                            @click="toggle">
+                            <div class="d-flex align-center">
+                              <VAvatar :color="status.color" variant="tonal" size="36" class="me-3">
+                                <VIcon :icon="status.icon" size="20" />
+                              </VAvatar>
+                              <div class="flex-grow-1">
+                                <p class=" font-weight-medium mb-0">
+                                  {{ status.title }}
+                                </p>
+                                <p class=" font-weight-medium mb-0">
+                                  {{ status.description }}
+                                </p>
+                              </div>
+                              <VIcon :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
+                                :color="isSelected ? status.color : 'grey'" />
+                            </div>
+                          </VCard>
+                        </VItem>
+                      </VCol>
+                    </VRow>
+                  </VItemGroup>
+                </VCol>
+
+                <VCol cols="12" md="6">
+                  <p class="text-body-2 font-weight-medium mb-3">Approval Status</p>
+                  <VItemGroup v-model="form.approval_status" mandatory>
+                    <VRow>
+                      <VCol v-for="status in approvalStatusOptions" :key="status.value" cols="12">
+                        <VItem :value="status.value" v-slot="{ isSelected, toggle }">
+                          <VCard :color="isSelected ? status.color : undefined"
+                            :variant="isSelected ? 'elevated' : 'outlined'" class="status-selection-card pa-4"
+                            @click="toggle">
+                            <div class="d-flex align-center">
+                              <VAvatar :color="status.color" variant="tonal" size="36" class="me-3">
+                                <VIcon :icon="status.icon" size="20" />
+                              </VAvatar>
+                              <div class="flex-grow-1">
+                                <p class=" font-weight-medium mb-0">
+                                  {{ status.title }}
+                                </p>
+                                <p class=" font-weight-medium mb-0">
+                                  {{ status.description }}
+                                </p>
+                              </div>
+                              <VIcon :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
+                                :color="isSelected ? status.color : 'grey'" />
+                            </div>
+                          </VCard>
+                        </VItem>
+                      </VCol>
+                    </VRow>
+                  </VItemGroup>
+                </VCol>
+              </VRow>
+            </VCardText>
+          </div>
+        </VExpandTransition>
+      </VCard>
+
+      <!-- Section 3: URL Management -->
+      <VCard id="section-3" class="mb-6 section-card">
+        <VCardTitle class="section-header">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <VAvatar color="info" variant="tonal" size="40" class="me-3">
+                <IconUnlink stroke={2} />
+              </VAvatar>
+              <div>
+                <h2 class="text-h5 font-weight-bold">URL Management</h2>
+                <p class="text-body-2 text-medium-emphasis mb-0">Configure source and target URLs</p>
+              </div>
+            </div>
+            <VBtn icon variant="text" size="small" @click="toggleSection(2)">
+              <VIcon :icon="state.expandedSections[2] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+            </VBtn>
+          </div>
+        </VCardTitle>
+
+        <VExpandTransition>
+          <div v-show="state.expandedSections[2]">
+            <VDivider />
+            <VCardText class="pa-6">
+              <VRow>
+                <VCol cols="12">
+                  <AppTextField v-model="form.source_url" label="Source URL"
+                    placeholder="https://example.com/source-page" :rules="[rules.url]" variant="outlined"
+                    hint="The URL where the link will be placed" persistent-hint @input="markFormTouched">
+                    <template v-slot:append-inner>
+                      <VTooltip location="top">
+                        <template v-slot:activator="{ props }">
+                          <VIcon v-bind="props" icon="mdi-information-outline" size="20" />
+                        </template>
+                        <span>This is the website that will link to your target</span>
+                      </VTooltip>
+                    </template>
+                  </AppTextField>
+                </VCol>
+
+                <VCol cols="12">
+                  <AppTextField v-model="form.target_url" label="Target URL*"
+                    placeholder="https://target.com/destination-page" :rules="[rules.url,rules.required]"
+                    variant="outlined" required hint="The destination URL for the link" persistent-hint
+                    @input="markFormTouched">
+                    <template v-slot:append-inner>
+                      <VTooltip location="top">
+                        <template v-slot:activator="{ props }">
+                          <VIcon v-bind="props" icon="mdi-information-outline" size="20" />
+                        </template>
+                        <span>This is where users will be directed when clicking the link</span>
+                      </VTooltip>
+                    </template>
+                  </AppTextField>
+                </VCol>
+              </VRow>
+
+              <!-- URL Preview -->
+              <VSlideYTransition>
+                <VCard v-if="form.source_url || form.target_url" color="grey-lighten-5" variant="flat" class="mt-6">
+                  <VCardText>
+                    <p class="text-body-2 font-weight-medium mb-4">Link Flow Visualization</p>
+
+                    <div class="url-flow-visualization">
+                      <div v-if="form.source_url" class="url-box source">
+                        <VIcon icon="mdi-web" color="info" class="me-2" />
+                        <div>
+                          <p class="text-caption text-medium-emphasis mb-1">Source</p>
+                          <a :href="form.source_url" target="_blank" class="text-decoration-none text-info">
+                            {{ form.source_url }}
+                          </a>
+                        </div>
+                      </div>
+
+                      <div v-if="form.source_url && form.target_url" class="flow-arrow">
+                        <VIcon icon="mdi-arrow-down-thick" size="24" color="primary" />
+                      </div>
+
+                      <div v-if="form.target_url" class="url-box target">
+                        <VIcon icon="mdi-target" color="success" class="me-2" />
+                        <div>
+                          <p class="text-caption text-medium-emphasis mb-1">Target</p>
+                          <a :href="form.target_url" target="_blank" class="text-decoration-none text-success">
+                            {{ form.target_url }}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </VCardText>
+                </VCard>
+              </VSlideYTransition>
+            </VCardText>
+          </div>
+        </VExpandTransition>
+      </VCard>
+
+      <!-- Section 4: SEO Metrics -->
+      <VCard id="section-4" class="mb-6 section-card">
+        <VCardTitle class="section-header">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <VAvatar color="warning" variant="tonal" size="40" class="me-3">
+                <IconSeo stroke={2} />
+              </VAvatar>
+              <div>
+                <h2 class="text-h5 font-weight-bold">SEO Metrics</h2>
+                <p class="text-body-2 text-medium-emphasis mb-0">Domain authority and performance indicators</p>
+              </div>
+            </div>
+            <VBtn icon variant="text" size="small" @click="toggleSection(3)">
+              <VIcon :icon="state.expandedSections[3] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+            </VBtn>
+          </div>
+        </VCardTitle>
+
+        <VExpandTransition>
+          <div v-show="state.expandedSections[3]">
+            <VDivider />
+            <VCardText class="pa-6">
+              <VRow>
+                <VCol cols="12" md="4">
+                  <VCard variant="outlined" class="metric-input-card">
+                    <VCardText>
+                      <div class="d-flex align-center mb-3">
+                        <VAvatar color="primary" variant="tonal" size="36" class="me-3">
+                          <VIcon icon="tabler-award" size="32" />
+                        </VAvatar>
+                        <div>
+                          <p class="text-body-2 font-weight-medium mb-0">Domain Authority</p>
+                          <p class="text-caption text-medium-emphasis mb-0">MOZ metric (0-100)</p>
+                        </div>
+                      </div>
+
+                      <AppTextField v-model="form.domain_authority" type="number" min="0" max="100"
+                        :rules="rules.domainAuthority" variant="solo-filled" placeholder="0" class="metric-input"
+                        @input="markFormTouched" />
+
+                      <VProgressLinear v-if="form.domain_authority" :model-value="form.domain_authority" max="100"
+                        :color="getMetricColor(form.domain_authority)" height="6" rounded class="mt-3" />
+                    </VCardText>
+                  </VCard>
+                </VCol>
+
+                <VCol cols="12" md="4">
+                  <VCard variant="outlined" class="metric-input-card">
+                    <VCardText>
+                      <div class="d-flex align-center mb-3">
+                        <VAvatar color="success" variant="tonal" size="36" class="me-3">
+                          <VIcon icon="tabler-trending-up" size="32" />
+                        </VAvatar>
+                        <div>
+                          <p class="text-body-2 font-weight-medium mb-0">Domain Rating</p>
+                          <p class="text-caption text-medium-emphasis mb-0">Ahrefs metric (0-100)</p>
+                        </div>
+                      </div>
+
+                      <AppTextField v-model="form.domain_rating" type="number" min="0" max="100"
+                        :rules="rules.domainRating" variant="solo-filled" placeholder="0" class="metric-input"
+                        @input="markFormTouched" />
+
+                      <VProgressLinear v-if="form.domain_rating" :model-value="form.domain_rating" max="100"
+                        :color="getMetricColor(form.domain_rating)" height="6" rounded class="mt-3" />
+                    </VCardText>
+                  </VCard>
+                </VCol>
+
+                <VCol cols="12" md="4">
+                  <VCard variant="outlined" class="metric-input-card">
+                    <VCardText>
+                      <div class="d-flex align-center mb-3">
+                        <VAvatar color="info" variant="tonal" size="36" class="me-3">
+                          <VIcon icon="tabler-users" size="32" />
+                        </VAvatar>
+                        <div>
+                          <p class="text-body-2 font-weight-medium mb-0">Organic Traffic</p>
+                          <p class="text-caption text-medium-emphasis mb-0">Monthly visitors</p>
+                        </div>
+                      </div>
+
+                      <AppTextField v-model="form.organic_traffic" type="number" min="0"
+                        :rules="[rules.number, rules.positiveNumber]" variant="solo-filled" placeholder="0"
+                        class="metric-input" @input="markFormTouched" />
+                    </VCardText>
+                  </VCard>
+                </VCol>
+              </VRow>
+
+              <!-- Metrics Summary -->
+              <VSlideYTransition>
+                <VCard v-if="form.domain_authority || form.domain_rating || form.organic_traffic" color="primary"
+                  variant="tonal" class="mt-6">
+                  <VCardText>
+                    <p class="text-body-1 font-weight-medium mb-4">SEO Performance Summary</p>
+                    <div class="d-flex justify-space-around align-center">
+                      <div v-if="form.domain_authority" class="text-center">
+                        <VAvatar :color="getMetricColor(form.domain_authority)" size="72" variant="elevated"
+                          class="mb-2">
+                          <span class="text-h5 font-weight-bold">{{ form.domain_authority }}</span>
+                        </VAvatar>
+                        <p class="text-body-2 mb-0">DA Score</p>
+                      </div>
+                      <div v-if="form.domain_rating" class="text-center">
+                        <VAvatar :color="getMetricColor(form.domain_rating)" size="72" variant="elevated" class="mb-2">
+                          <span class="text-h5 font-weight-bold">{{ form.domain_rating }}</span>
+                        </VAvatar>
+                        <p class="text-body-2 mb-0">DR Score</p>
+                      </div>
+                      <div v-if="form.organic_traffic" class="text-center">
+                        <VAvatar color="info" size="72" variant="elevated" class="mb-2">
+                          <span class="text-h6 font-weight-bold">{{ form.organic_traffic }}</span>
+                        </VAvatar>
+                        <p class="text-body-2 mb-0">Traffic</p>
+                      </div>
+                    </div>
+                  </VCardText>
+                </VCard>
+              </VSlideYTransition>
+            </VCardText>
+          </div>
+        </VExpandTransition>
+      </VCard>
+
+      <!-- Section 5: Pricing & Details -->
+      <VCard id="section-5" class="mb-6 section-card">
+        <VCardTitle class="section-header">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <VAvatar color="error" variant="tonal" size="40" class="me-3">
+                <IconTag stroke={2} />
+              </VAvatar>
+              <div>
+                <h2 class="text-h5 font-weight-bold">Pricing & Additional Details</h2>
+                <p class="text-body-2 text-medium-emphasis mb-0">Cost breakdown and special requirements</p>
+              </div>
+            </div>
+            <VBtn icon variant="text" size="small" @click="toggleSection(4)">
+              <VIcon :icon="state.expandedSections[4] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+            </VBtn>
+          </div>
+        </VCardTitle>
+
+        <VExpandTransition>
+          <div v-show="state.expandedSections[4]">
+            <VDivider />
+            <VCardText class="pa-6">
+              <!-- Pricing Grid -->
+              <div class="pricing-section mb-6">
+                <div class="d-flex align-center justify-space-between mb-4">
+                  <p class="text-body-1 font-weight-medium mb-0">Pricing Components</p>
+                  <VChip v-if="form.total_price > 0" color="error" variant="elevated" size="large"
+                    class="font-weight-bold">
+                    Total: {{ formatCurrency(form.total_price) }}
+                  </VChip>
+                </div>
+
+                <VRow>
+                  <VCol cols="12" md="4">
+                    <VCard variant="outlined">
+                      <VCardText>
+                        <AppTextField v-model="form.price_ne" label="Price NE" type="number" step="0.01" min="0"
+                          :rules="[rules.number, rules.positiveNumber]" variant="solo-filled" placeholder="0.00"
+                          @input="markFormTouched" />
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+
+                  <VCol cols="12" md="4">
+                    <VCard variant="outlined">
+                      <VCardText>
+                        <AppTextField v-model="form.price_gp" label="Price GP" type="number" step="0.01" min="0"
+                          :rules="[rules.number, rules.positiveNumber]" variant="solo-filled" placeholder="0.00"
+                          @input="markFormTouched" />
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+
+                  <VCol cols="12" md="4">
+                    <VCard variant="outlined">
+                      <VCardText>
+                        <AppTextField v-model="form.price" label="Base Price" type="number" step="0.01" min="0"
+                          :rules="[rules.number, rules.positiveNumber]" variant="solo-filled" placeholder="0.00"
+                          @input="markFormTouched" />
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+                </VRow>
+
+                <!-- Total Display -->
+                <VSlideYTransition>
+                  <VCard v-if="form.total_price > 0" color="error" variant="tonal" class="mt-4">
+                    <VCardText class="text-center pa-4">
+                      <p class="text-body-2 mb-2">Total Price</p>
+                      <p class="text-h3 font-weight-bold mb-0">{{ formatCurrency(form.total_price) }}</p>
+                    </VCardText>
+                  </VCard>
+                </VSlideYTransition>
+              </div>
+
+              <VDivider class="mb-6" />
+
+              <!-- Additional Details -->
+              <div class="additional-details">
+                <p class="text-body-1 font-weight-medium mb-4">Additional Information</p>
+
+                <VRow>
+                  <VCol cols="12">
+                    <AppTextField v-model="form.anchor_text" label="Anchor Text"
+                      placeholder="Enter the anchor text for the link" :rules="[rules.maxLength(200)]"
+                      variant="outlined" hint="The clickable text for the hyperlink" persistent-hint
+                      @input="markFormTouched" />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <AppTextarea v-model="form.special_requirements" label="Special Requirements"
+                      placeholder="Enter any special requirements, notes, or instructions..."
+                      :rules="[rules.maxLength(500)]" variant="outlined" rows="5" counter
+                      hint="Additional instructions or notes for domain setup" persistent-hint
+                      @input="markFormTouched" />
+                  </VCol>
+                </VRow>
+              </div>
+            </VCardText>
+          </div>
+        </VExpandTransition>
+      </VCard>
+
+      <!-- Form Actions -->
+      <VCard class="action-card">
+        <VCardText class="pa-6">
+          <div class="d-flex justify-space-between align-center">
+            <div>
+              <p class="text-body-2 text-medium-emphasis mb-0">
+                <VIcon icon="mdi-information-outline" size="16" class="me-1" />
+                All fields marked with * are required
+              </p>
+            </div>
+
+            <div class="d-flex gap-3">
+              <VBtn variant="outlined" color="default" size="large" @click="resetForm" :disabled="state.submitting">
+                Reset Form
+              </VBtn>
+
+              <!-- <VBtn
                   variant="tonal"
                   color="primary"
                   size="large"
@@ -1065,21 +850,15 @@ const scrollToSection = (sectionId) => {
                   Save Draft
                 </VBtn> -->
 
-                <VBtn
-                  type="submit"
-                  color="success"
-                  size="large"
-                  variant="elevated"
-                  :loading="state.submitting"
-                  :disabled="state.showSuccessAlert"
-                >
-                  Create Domain
-                </VBtn>
-              </div>
+              <VBtn type="submit" color="success" size="large" variant="elevated" :loading="state.submitting"
+                :disabled="state.showSuccessAlert">
+                Create Domain
+              </VBtn>
             </div>
-          </VCardText>
-        </VCard>
-      </VForm>
+          </div>
+        </VCardText>
+      </VCard>
+    </VForm>
   </div>
 </template>
 

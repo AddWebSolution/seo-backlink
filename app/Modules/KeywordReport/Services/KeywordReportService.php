@@ -156,7 +156,7 @@ class KeywordReportService extends BaseService
                 $rowData = [
                     $kw->id,
                     $kw->keyword_id,
-                    optional($kw->keyword)->keyword ?? '', // if you have a keywords table relation
+                    optional($kw->keyword)->keyword ?? '',
                     optional($kw->domain)->title ?? '',
                     optional($kw->domain)->target_url ?? '',
                     $kw->llm_type,

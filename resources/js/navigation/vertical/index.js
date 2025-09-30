@@ -1,8 +1,10 @@
-import appsAndPages from './apps-and-pages'
 import charts from './charts'
 import dashboard from './dashboard'
 import forms from './forms'
 import others from './others'
 import uiElements from './ui-elements'
+import navByRole from '../nav/navByRole'
 
-export default [...dashboard, ...appsAndPages, ...uiElements, ...forms, ...charts, ...others]
+console.log('Filtered Navigation:', navByRole);
+
+export default [...dashboard, ...navByRole, ...uiElements, ...forms, ...charts, ...others]

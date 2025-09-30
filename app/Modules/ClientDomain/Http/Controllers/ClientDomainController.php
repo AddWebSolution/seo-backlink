@@ -37,6 +37,27 @@ class ClientDomainController extends BaseController
         ]);
     }
 
+    public function clientDomains($id)
+    {
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client ID is required',
+                'data'    => null
+            ], 400);
+        }
+
+        $filters = request()->only(['search', 'status', 'domain']);
+        $perPage = request()->get('per_page', 10);
+
+        $result = $this->service->getClientDomains($id, $perPage, $filters);
+
+        return response()->json([
+            'success' => true,
+            'domains' => $result['domains']
+        ]);
+    }
+
     public function domainImport(Request $request)
     {
         try {
@@ -55,10 +76,8 @@ class ClientDomainController extends BaseController
             return response()->json([
                 'success' => true,
                 'message' => $result['message'],
-                'data'    => [
-                    'imported' => $result['success'],
-                    'failed'  => $result['failed']
-                ]
+                'imported' => $result['success'],
+                'failed'  => $result['failed']
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

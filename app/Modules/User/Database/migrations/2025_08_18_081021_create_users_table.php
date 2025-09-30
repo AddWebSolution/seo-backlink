@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('company_name')->nullable();
             $table->string('designation')->nullable();
             $table->date('dob')->nullable();
-            $table->tinyInteger('role')->unsigned()->default(\App\Enums\UserRole::STAFF->value);
+            $table->tinyInteger('role')->unsigned()->default(\App\Enums\UserRole::CLIENT->value);
             $table->tinyInteger('status')->unsigned()->default(\App\Enums\UserStatus::ACTIVE->value);
             $table->string('profile_pic')->nullable();
             $table->timestamp('email_verified_at')->nullable();

@@ -11,6 +11,6 @@ return [
     App\Modules\BacklinkDatum\Providers\BacklinkDatumServiceProvider::class,
     App\Modules\Keyword\Providers\KeywordServiceProvider::class,
     App\Modules\KeywordReport\Providers\KeywordReportServiceProvider::class,
-    
-    App\Modules\KeywordDatum\Providers\KeywordDatumServiceProvider::class
+    App\Modules\KeywordDatum\Providers\KeywordDatumServiceProvider::class,
+    App\Modules\RivalDomain\Providers\RivalDomainServiceProvider::class,    
 ];

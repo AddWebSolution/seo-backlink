@@ -23,6 +23,8 @@ class AuthService
             'password' => Hash::make($data['password']),
         ]);
 
+        $user->assignRole('client');
+
         event(new UserRegisteredEvent($user));
 
         return $user;
@@ -48,7 +50,11 @@ class AuthService
 
         event(new UserLoggedInEvent($user));
 
-        return ['token' => $token];
+        return [
+            'token' => $token,
+            'user' => $user,
+            'user_type' => $user->getPermissionsViaRoles(),
+        ];
     }
 
     /**

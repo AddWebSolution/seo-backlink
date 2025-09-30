@@ -3,6 +3,7 @@
 namespace App\Modules\ClientDomain\Models;
 
 use Addweb\Base\Model\BaseModel;
+use App\Modules\Client\Models\Client;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -18,6 +19,8 @@ class ClientDomain extends BaseModel
     use HasFactory;
     use SoftDeletes;
 
+    protected $table = 'client_domains';
+
     protected $guarded = [];
 
     protected static function newFactory(): Factory
@@ -25,7 +28,6 @@ class ClientDomain extends BaseModel
         $factoryClass = "\\Database\\Factories\\" . class_basename(static::class) . "Factory";
         return $factoryClass::new();
     }
-
 
     /**
      * Get the attributes that should be cast.
@@ -37,5 +39,10 @@ class ClientDomain extends BaseModel
         return [
             'status' => 'int',
         ];
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_id', 'id');
     }
 }

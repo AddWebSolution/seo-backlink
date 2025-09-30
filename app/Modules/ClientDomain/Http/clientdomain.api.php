@@ -13,6 +13,8 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::post('get/{id}', [ClientDomainController::class, 'show'])->name('show');
 			//});
 
+			Route::post('get/domains/{id}', [ClientDomainController::class, 'clientDomains'])->name('clientDomains');
+
 			Route::post('domain/list', [ClientDomainController::class, 'domainList'])->name('domainList');
 
 			Route::post('import', [ClientDomainController::class, 'domainImport'])->name('domainImport');

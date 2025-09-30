@@ -4,6 +4,7 @@ namespace App\Modules\ClientDomain\Services;
 
 use Illuminate\Support\Facades\DB;
 use Addweb\Base\Services\BaseService;
+use App\Modules\Client\Models\Client;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -24,8 +25,9 @@ class ClientDomainService extends BaseService
 
     public array $filters = [
         'title'   => ['filter' => 'contain'],
-        'status'  => ['filter' => 'exact'],     // 1 = Available, 2 = Unavailable
-        'country' => ['filter' => 'contain'],   // partial match
+        'status'  => ['filter' => 'default'],   
+        'country' => ['filter' => 'default'], 
+        'client_id' => ['filter' => 'default'],
     ];
 
     public function __construct()
@@ -65,8 +67,20 @@ class ClientDomainService extends BaseService
                     continue;
                 }
 
+                $getClient = Client::where('name',$data['client_name'])->first();
+
+                if (!$getClient) {
+                    $failed[] = [
+                        'reason' => "Client does not exist",
+                        'url'    => $data['target_url'],
+                    ];
+                    continue;
+                }
+
+                $data['client_id'] = $getClient->id;
+
                 if (!isset($data['status']) || empty($data['status'])) {
-                    $data['status'] = '1';
+                    $data['status'] = 1;
                 }
 
                 if (!isset($data['approval_status']) || empty($data['approval_status'])) {
@@ -99,6 +113,35 @@ class ClientDomainService extends BaseService
 
     }
 
+    public function getClientDomains(int $clientId, int $perPage = 10, array $filters = [])
+    {
+        $query = ClientDomain::where('client_id', $clientId);
+
+        $query->where('status', 1);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('domain', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['domain'])) {
+            $query->where('domain', $filters['domain']);
+        }
+
+        $domains = $query->orderBy('title')->paginate($perPage);
+
+        return [
+            'domains' => $domains,
+        ];
+    }
+
 
     public function downloadTemplate()
     {
@@ -110,7 +153,7 @@ class ClientDomainService extends BaseService
             ['name' => 'title', 'required' => true],
             ['name' => 'target_url', 'required' => true],
             ['name' => 'source_url', 'required' => false],
-            ['name' => 'client_id', 'required' => false],
+            ['name' => 'client_name', 'required' => false],
             ['name' => 'domain_authority', 'required' => false],
             ['name' => 'domain_rating', 'required' => false],
             ['name' => 'organic_traffic', 'required' => false],

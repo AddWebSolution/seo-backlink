@@ -47,11 +47,14 @@ export function useDomainApi() {
 
     try {
       const body = {
-        ...filters
+        ...filters,
       };
-      const result = await useApi(createUrl("api/clientdomain/get",{query : body}), {
-        method: "POST",
-      });
+      const result = await useApi(
+        createUrl("api/clientdomain/get", { query: body }),
+        {
+          method: "POST",
+        }
+      );
 
       domains.value = result.data.value.data.resource;
       const apiPagination = result.data.value.data.pagination;
@@ -63,6 +66,48 @@ export function useDomainApi() {
         lastPage: apiPagination.lastPage,
         itemsPerPage: apiPagination.perPage,
         page: apiPagination.currentPage,
+      };
+
+      return result;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to load domains", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const fetchClientDomains = async (
+    id,
+    filters = {},
+    page = 1,
+    perPage = 10
+  ) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const query = {
+        ...filters,
+        page,
+        per_page: perPage,
+      };
+
+      const result = await useApi(`api/clientdomain/get/domains/${id}`, {
+        method: "POST",
+        body : query,
+      });
+      domains.value = result.data.value.domains.data;
+      const apiPagination  = result.data.value.domains;
+
+      pagination.value = {
+        total: apiPagination.total ?? 0,
+        currentPage: apiPagination.current_page ?? 1,
+        perPage: apiPagination.per_page ?? perPage,
+        lastPage: apiPagination.last_page ?? 1,
+        itemsPerPage: apiPagination.per_page ?? perPage,
+        page: apiPagination.current_page ?? 1,
       };
 
       return result;
@@ -106,7 +151,6 @@ export function useDomainApi() {
         responseData?.message || "Domains imported successfully!";
 
       showAlert(successMsg, "success");
-      await fetchDomains();
 
       return {
         success: true,
@@ -129,14 +173,17 @@ export function useDomainApi() {
     error.value = null;
 
     try {
-      const response = await fetch("/api/clientdomain/import/template/download", {
-        method: "GET",
-        headers: {
-          Accept:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          Authorization: `Bearer ${useCookie("accessToken").value}`,
-        },
-      });
+      const response = await fetch(
+        "/api/clientdomain/import/template/download",
+        {
+          method: "GET",
+          headers: {
+            Accept:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            Authorization: `Bearer ${useCookie("accessToken").value}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -164,7 +211,6 @@ export function useDomainApi() {
       });
 
       showAlert("Domain created successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;
@@ -187,7 +233,6 @@ export function useDomainApi() {
       });
 
       showAlert("Domain updated successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;
@@ -209,7 +254,6 @@ export function useDomainApi() {
       });
 
       showAlert("Domain deleted successfully!", "success");
-      await fetchDomains();
       return result;
     } catch (err) {
       error.value = err;
@@ -244,7 +288,7 @@ export function useDomainApi() {
 
   return {
     domains: readonly(domains),
-    pagination : pagination,
+    pagination: pagination,
     domainList: domainList,
     currentDomain: readonly(currentDomain),
     loading: readonly(loading),
@@ -252,6 +296,7 @@ export function useDomainApi() {
 
     // Methods
     fetchDomains,
+    fetchClientDomains,
     fetchDomainList,
     importDomains,
     fetchDomain,

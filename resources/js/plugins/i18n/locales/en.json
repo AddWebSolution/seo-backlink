@@ -14,6 +14,17 @@
   "Close Alert": "Close Alert",
   "Avatar": "Avatar",
   "Badge": "Badge",
+  "Users": "Users",
+  "Clients": "Clients",
+  "Client": "Client",
+  "Backlinks": "Backlinks",
+  "Backlink Report": "Backlink Report",
+  "Report": "Report",
+  "Keywords": "Keywords",
+  "Fetching clients, please wait...": "Fetching clients, please wait...",
+  "Fetching backlinks, please wait...": "Fetching backlinks, please wait...",
+  "Fetching reports, please wait...": "Fetching reports, please wait...",
+  "Fetching keywords, please wait...": "Fetching keywords, please wait...",
   "Button": "Button",
   "Calendar": "Calendar",
   "Kanban": "Kanban",
@@ -148,6 +159,13 @@
   "Details": "Details",
   "Customer": "Customer",
   "Manage Review": "Manage Review",
+  "SEO Overview": "SEO Overview",
+  "Client List": "Client List",
+  "Add Client": "Add Client",
+  "Report List": "Report List",
+  "Keyword": "Keyword",
+  "Add Keyword": "Add Keyword",
+  "Fetching domains, please wait...": "Fetching domains, please wait...",
   "Referrals": "Referrals",
   "Settings": "Settings",
   "Overview": "Overview",
@@ -210,4 +228,5 @@
       }
     }
   }
+  
 }
