@@ -2,7 +2,7 @@
 import { onMounted, ref, computed, unref } from "vue";
 import { useClientApi } from "@/composables/clientApi";
 import { IconWorldWww } from "@tabler/icons-vue";
-import { flat } from "@/views/demos/components/button/demoCodeButton";
+import { useAbility } from '@casl/vue'
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -26,6 +26,7 @@ const headers = [
   },
 ];
 
+
 const {
   clients,
   pagination,
@@ -38,6 +39,8 @@ const {
   deleteClient,
   showAlert,
 } = useClientApi();
+
+const ability = useAbility()
 
 // Filters
 const selectedStatus = ref();
@@ -225,9 +228,10 @@ const handleDeleteClientBatch = async (ids) => {
   loading.value = true;
   try {
     await Promise.all(ids.map(id => deleteClient(id)));
-    selectedRows.value = []; 
+    selectedRows.value = [];
     await loadDomains(clientId.value);
-  } catch (error) {ss
+  } catch (error) {
+    ss
     console.error("Delete failed:", error);
   }
 };
@@ -242,19 +246,19 @@ const handleFileChange = (files) => {
 
 const validateFile = (file) => {
   fileError.value = "";
-  
+
   if (!file) return;
-  
+
   const allowedTypes = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/vnd.ms-excel'
   ];
-  
+
   if (!allowedTypes.includes(file.type)) {
     fileError.value = "Please select a valid Excel file (.xlsx or .xls)";
     return;
   }
-  
+
   if (file.size > 10 * 1024 * 1024) { // 10MB
     fileError.value = "File size must be less than 10MB";
     return;
@@ -269,7 +273,7 @@ const clearFile = () => {
 const handleDrop = (e) => {
   e.preventDefault();
   isDragOver.value = false;
-  
+
   const files = Array.from(e.dataTransfer.files);
   if (files.length > 0) {
     selectedFile.value = [files[0]];
@@ -308,7 +312,7 @@ const handleImportClients = async () => {
     if (res.success) {
       showImportResult.value = true;
       selectedFile.value = null;
-      await loadClients(); 
+      await loadClients();
     }
     console.log('showImportResult', showImportResult.value);
   } catch (err) {
@@ -404,260 +408,252 @@ const updateOptions = async (options) => {
 };
 </script>
 
-<template v-if="ability.can('create', 'client')">
+<template>
   <!-- Header Section -->
-  <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
-    <VContainer fluid>
-      <VRow align="center">
-        <VCol cols="12" md="8">
-          <div class="d-flex align-center">
-            <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-              <IconWorldWww stroke="{2}" />
-            </VAvatar>
-            <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Client Management</h1>
-              <p class="text-body-1 text-medium-emphasis mb-0">
-                Manage and monitor your client portfolio
-              </p>
+    <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
+      <VContainer fluid>
+        <VRow align="center">
+          <VCol cols="12" md="8">
+            <div class="d-flex align-center">
+              <VAvatar size="64" color="primary" variant="elevated" class="me-4">
+                <IconWorldWww stroke="{2}" />
+              </VAvatar>
+              <div>
+                <h1 class="text-h3 font-weight-bold mb-1">Client Management</h1>
+                <p class="text-body-1 text-medium-emphasis mb-0">
+                  Manage and monitor your client portfolio
+                </p>
+              </div>
+            </div>
+          </VCol>
+        </VRow>
+      </VContainer>
+    </VCard>
+
+    <!-- Enhanced Search & Filter Section -->
+    <VCard class="mb-6" elevation="1">
+      <VCardTitle class="d-flex align-center justify-space-between pa-6 pb-4">
+        <div class="d-flex align-center">
+          <VIcon icon="tabler-filter" class="me-2 text-primary" />
+          <span class="text-h6 font-weight-medium">Search & Filters</span>
+          <VBadge v-if="hasActiveFilters" :content="1" color="primary" class="ml-5" />
+        </div>
+        <div class="d-flex align-center gap-2">
+          <VBtn v-if="hasActiveFilters" variant="text" size="small" color="error" @click="clearAllFilters">
+            <VIcon icon="tabler-x" class="me-1" />
+            Clear All
+          </VBtn>
+          <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
+            <VIcon :icon="showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
+              " class="me-1" />
+            {{ showAdvancedFilters ? "Less" : "More" }} Filters
+          </VBtn>
+        </div>
+      </VCardTitle>
+
+      <VCardText class="pt-0">
+        <!-- Primary Search Bar -->
+        <VRow class="mb-4">
+          <VCol cols="12">
+            <AppTextField v-model="searchQuery" placeholder="Search by name, email, company, or any client details..."
+              prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
+          </VCol>
+        </VRow>
+
+        <!-- Quick Filters -->
+        <VRow class="mb-4">
+          <VCol cols="12" sm="6" md="3">
+            <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
+              hide-details prepend-inner-icon="tabler-circle-dot" />
+          </VCol>
+          <VCol cols="12" sm="6" md="3">
+            <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
+              variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
+          </VCol>
+          <VCol cols="12" sm="6" md="3">
+            <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
+              clearable hide-details prepend-inner-icon="tabler-world" />
+          </VCol>
+          <VCol cols="12" sm="6" md="3" class="d-flex align-end">
+            <VBtn color="primary" variant="flat" block @click="loadClients">
+              <VIcon icon="tabler-search" class="me-2" />
+              Search
+            </VBtn>
+          </VCol>
+        </VRow>
+
+        <!-- Advanced Filters -->
+        <VExpandTransition>
+          <div v-show="showAdvancedFilters">
+            <VDivider class="mb-4" />
+            <VRow>
+              <VCol cols="12" sm="6" md="3">
+                <AppTextField label="Industry" placeholder="Enter industry" variant="outlined" hide-details
+                  prepend-inner-icon="tabler-building" />
+              </VCol>
+              <VCol cols="12" sm="6" md="3">
+                <AppTextField label="City" placeholder="Enter city" variant="outlined" hide-details
+                  prepend-inner-icon="tabler-map-pin" />
+              </VCol>
+              <VCol cols="12" sm="6" md="3">
+                <AppTextField label="State" placeholder="Enter state" variant="outlined" hide-details
+                  prepend-inner-icon="tabler-map" />
+              </VCol>
+              <VCol cols="12" sm="6" md="3">
+                <AppTextField label="Zip Code" placeholder="Enter zip code" variant="outlined" hide-details
+                  prepend-inner-icon="tabler-mail" />
+              </VCol>
+            </VRow>
+          </div>
+        </VExpandTransition>
+      </VCardText>
+    </VCard>
+
+    <!-- Import Result Card -->
+    <VCard v-if="importResult.message" class="mb-6 pa-6" elevation="1">
+      <!-- Summary Row -->
+      <div class="d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-2">
+          <VIcon color="primary" icon="tabler-file-import" />
+          <span class="font-weight-medium">{{ importResult.message }}</span>
+        </div>
+
+        <VBtn size="small" variant="text" color="info"
+          :icon="showImportResult ? 'tabler-chevron-up' : 'tabler-info-circle'"
+          @click="showImportResult = !showImportResult" />
+      </div>
+
+      <!-- Expandable Panel -->
+      <VExpandTransition>
+        <VSheet v-if="showImportResult" class="mt-4 pa-4 border rounded bg-grey-lighten-4">
+          <!-- Successful -->
+          <div>
+            <h4 class="text-subtitle-1 font-weight-bold text-success mb-2">
+              Successful Imports ({{ importResult.data?.imported?.length || 0 }})
+            </h4>
+            <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
+              <VList density="compact">
+                <VListItem v-for="(client, idx) in importResult.data?.imported || []" :key="'s-' + idx">
+                  <VListItemTitle>{{ client }}</VListItemTitle>
+                </VListItem>
+                <VListItem v-if="!importResult.data?.imported?.length">
+                  <VListItemTitle class="text-grey">No clients imported</VListItemTitle>
+                </VListItem>
+              </VList>
             </div>
           </div>
-        </VCol>
-      </VRow>
-    </VContainer>
-  </VCard>
 
-  <!-- Enhanced Search & Filter Section -->
-  <VCard class="mb-6" elevation="1">
-    <VCardTitle class="d-flex align-center justify-space-between pa-6 pb-4">
-      <div class="d-flex align-center">
-        <VIcon icon="tabler-filter" class="me-2 text-primary" />
-        <span class="text-h6 font-weight-medium">Search & Filters</span>
-        <VBadge v-if="hasActiveFilters" :content="1" color="primary" class="ml-5" />
-      </div>
-      <div class="d-flex align-center gap-2">
-        <VBtn v-if="hasActiveFilters" variant="text" size="small" color="error" @click="clearAllFilters">
-          <VIcon icon="tabler-x" class="me-1" />
-          Clear All
-        </VBtn>
-        <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
-          <VIcon :icon="
-              showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
-            " class="me-1" />
-          {{ showAdvancedFilters ? "Less" : "More" }} Filters
-        </VBtn>
-      </div>
-    </VCardTitle>
-
-    <VCardText class="pt-0">
-      <!-- Primary Search Bar -->
-      <VRow class="mb-4">
-        <VCol cols="12">
-          <AppTextField v-model="searchQuery" placeholder="Search by name, email, company, or any client details..."
-            prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
-        </VCol>
-      </VRow>
-
-      <!-- Quick Filters -->
-      <VRow class="mb-4">
-        <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
-            hide-details prepend-inner-icon="tabler-circle-dot" />
-        </VCol>
-        <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
-            variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
-        </VCol>
-        <VCol cols="12" sm="6" md="3">
-          <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
-            clearable hide-details prepend-inner-icon="tabler-world" />
-        </VCol>
-        <VCol cols="12" sm="6" md="3" class="d-flex align-end">
-          <VBtn color="primary" variant="flat" block @click="loadClients">
-            <VIcon icon="tabler-search" class="me-2" />
-            Search
-          </VBtn>
-        </VCol>
-      </VRow>
-
-      <!-- Advanced Filters -->
-      <VExpandTransition>
-        <div v-show="showAdvancedFilters">
-          <VDivider class="mb-4" />
-          <VRow>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Industry" placeholder="Enter industry" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-building" />
-            </VCol>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="City" placeholder="Enter city" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-map-pin" />
-            </VCol>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="State" placeholder="Enter state" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-map" />
-            </VCol>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Zip Code" placeholder="Enter zip code" variant="outlined" 
-                hide-details prepend-inner-icon="tabler-mail" />
-            </VCol>
-          </VRow>
-        </div>
+          <!-- Failed -->
+          <div class="mt-4">
+            <h4 class="text-subtitle-1 font-weight-bold text-error mb-2">
+              Failed Imports ({{ importResult.data?.failed?.length || 0 }})
+            </h4>
+            <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
+              <VList density="compact">
+                <VListItem v-for="(f, idx) in importResult.data?.failed || []" :key="'f-' + idx">
+                  <VListItemTitle>
+                    <span class="text-primary">{{ f.name || f.email || 'N/A' }}</span> — {{ f.reason }}
+                  </VListItemTitle>
+                </VListItem>
+                <VListItem v-if="!importResult.data?.failed?.length">
+                  <VListItemTitle class="text-grey">No failed clients</VListItemTitle>
+                </VListItem>
+              </VList>
+            </div>
+          </div>
+        </VSheet>
       </VExpandTransition>
-    </VCardText>
-  </VCard>
+    </VCard>
 
-  <!-- Import Result Card -->
-  <VCard v-if="importResult.message" class="mb-6 pa-6" elevation="1">
-    <!-- Summary Row -->
-    <div class="d-flex align-center justify-space-between">
-      <div class="d-flex align-center gap-2">
-        <VIcon color="primary" icon="tabler-file-import" />
-        <span class="font-weight-medium">{{ importResult.message }}</span>
-      </div>
-
-      <VBtn size="small" variant="text" color="info"
-        :icon="showImportResult ? 'tabler-chevron-up' : 'tabler-info-circle'"
-        @click="showImportResult = !showImportResult" />
-    </div>
-
-    <!-- Expandable Panel -->
-    <VExpandTransition>
-      <VSheet v-if="showImportResult" class="mt-4 pa-4 border rounded bg-grey-lighten-4">
-        <!-- Successful -->
-        <div>
-          <h4 class="text-subtitle-1 font-weight-bold text-success mb-2">
-            Successful Imports ({{ importResult.data?.imported?.length || 0 }})
-          </h4>
-          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
-            <VList density="compact">
-              <VListItem v-for="(client, idx) in importResult.data?.imported || []" :key="'s-' + idx">
-                <VListItemTitle>{{ client }}</VListItemTitle>
-              </VListItem>
-              <VListItem v-if="!importResult.data?.imported?.length">
-                <VListItemTitle class="text-grey">No clients imported</VListItemTitle>
-              </VListItem>
-            </VList>
-          </div>
-        </div>
-
-        <!-- Failed -->
-        <div class="mt-4">
-          <h4 class="text-subtitle-1 font-weight-bold text-error mb-2">
-            Failed Imports ({{ importResult.data?.failed?.length || 0 }})
-          </h4>
-          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
-            <VList density="compact">
-              <VListItem v-for="(f, idx) in importResult.data?.failed || []" :key="'f-' + idx">
-                <VListItemTitle>
-                  <span class="text-primary">{{ f.name || f.email || 'N/A' }}</span> — {{ f.reason }}
-                </VListItemTitle>
-              </VListItem>
-              <VListItem v-if="!importResult.data?.failed?.length">
-                <VListItemTitle class="text-grey">No failed clients</VListItemTitle>
-              </VListItem>
-            </VList>
-          </div>
-        </div>
-      </VSheet>
-    </VExpandTransition>
-  </VCard>
-
-  <!-- Results Summary & Actions -->
-  <VCard elevation="1">
-    <div class="d-flex flex-wrap gap-4 ma-6">
-      <div class="d-flex align-center text-body-1 font-weight-regular my-4">
-        <span class="font-weight-medium text-h6">
-          {{ totalDomains }}
-        </span>
-        <span class="ml-2">Record Found</span>
-
-        <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
-          {{ selectedRows.length }} selected
-        </VChip>
-      </div>
-
-      <VSpacer />
-      <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" @click="handleDeleteClientBatch(selectedRows)" size="small" color="error">
-          <VIcon icon="tabler-trash" class="me-1" />
-          Delete Selected
-        </VBtn>
-      </div>
-      <div class="d-flex gap-4 flex-wrap align-center">
-        <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
-
-        <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
-          Import
-        </VBtn>
-
-        <!-- Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
-          Export
-        </VBtn>
-        
-        <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')">
-          Add Client
-        </VBtn>
-      </div>
-    </div>
-
-    <VDivider class="mt-5 mb-2" />
-
-    <!-- Enhanced Data Table -->
-    <VDataTableServer 
-      :page="pagination.page" 
-      :items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows" 
-      :headers="headers" 
-      show-select 
-      :items="clients" 
-      :loading="loading"
-      :items-length="pagination.total" 
-      loading-text="Fetching clients, please wait..." 
-      hover
-      @update:options="updateOptions">
-      
-      <template #item.website="{ item }">
-        <a v-if="item.website" :href="item.website" target="_blank" class="text-success text-decoration-none text-body-1"
-          :title="item.website">
-          <span class="text-truncate" style="max-width: 200px">
-            {{ item.website }}
+    <!-- Results Summary & Actions -->
+    <VCard elevation="1">
+      <div class="d-flex flex-wrap gap-4 ma-6">
+        <div class="d-flex align-center text-body-1 font-weight-regular my-4">
+          <span class="font-weight-medium text-h6">
+            {{ totalDomains }}
           </span>
-          <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
-        </a>
-        <span v-else class="text-grey">N/A</span>
-      </template>
+          <span class="ml-2">Record Found</span>
+
+          <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
+            {{ selectedRows.length }} selected
+          </VChip>
+        </div>
+
+        <VSpacer />
+        <div class="d-flex align-center gap-2">
+          <VBtn v-if="selectedRows.length" variant="text" @click="handleDeleteClientBatch(selectedRows)" size="small"
+            color="error">
+            <VIcon icon="tabler-trash" class="me-1" />
+            Delete Selected
+          </VBtn>
+        </div>
+        <div v-if="ability.can('edit','client')" class="d-flex gap-4 flex-wrap align-center">
+          <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
+
+          <!-- Excel Import Dialog Button -->
+          <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+            Import
+          </VBtn>
+
+          <!-- Export button -->
+          <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+            Export
+          </VBtn>
+
+          <!-- Add Client button -->
+          <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')">
+            Add Client
+          </VBtn>
+        </div>
+      </div>
+
+      <VDivider class="mt-5 mb-2" />
+
+      <!-- Enhanced Data Table -->
+      <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
+        v-model:model-value="selectedRows" :headers="headers" show-select :items="clients" :loading="loading"
+        :items-length="pagination.total" loading-text="Fetching clients, please wait..." hover
+        @update:options="updateOptions">
+
+        <template #item.website="{ item }">
+          <a v-if="item.website" :href="item.website" target="_blank"
+            class="text-success text-decoration-none text-body-1" :title="item.website">
+            <span class="text-truncate" style="max-width: 200px">
+              {{ item.website }}
+            </span>
+            <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
+          </a>
+          <span v-else class="text-grey">N/A</span>
+        </template>
 
 
-      <template #item.role="{ item }">
-        <VChip :color="getRoleConfig(item.role)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getRoleConfig(item.role)?.icon || 'tabler-circle'" size="14" class="me-1" />
-          {{ getRoleConfig(item.role)?.text || 'Unknown' }}
-        </VChip>
-      </template>
+        <template #item.role="{ item }">
+          <VChip :color="getRoleConfig(item.role)?.color || 'default'" variant="tonal" size="small" class="ma-1">
+            <VIcon :icon="getRoleConfig(item.role)?.icon || 'tabler-circle'" size="14" class="me-1" />
+            {{ getRoleConfig(item.role)?.text || 'Unknown' }}
+          </VChip>
+        </template>
 
-      <template #item.status="{ item }">
-        <VChip :color="getStatusConfig(item.status)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getStatusConfig(item.status)?.icon || 'tabler-circle'" size="14" class="me-1" />
-          {{ getStatusConfig(item.status)?.text || 'Unknown' }}
-        </VChip>
-      </template>
+        <template #item.status="{ item }">
+          <VChip :color="getStatusConfig(item.status)?.color || 'default'" variant="tonal" size="small" class="ma-1">
+            <VIcon :icon="getStatusConfig(item.status)?.icon || 'tabler-circle'" size="14" class="me-1" />
+            {{ getStatusConfig(item.status)?.text || 'Unknown' }}
+          </VChip>
+        </template>
 
-      <template #item.actions="{ item }">
-        <div class="d-flex">
-          <VTooltip text="View Details">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-client-view', params: { id: item.id } }">
-                  <VIcon icon="tabler-eye" size="20" />
-                </router-link>
-              </IconBtn>
-            </template>
-          </VTooltip>
+        <template #item.actions="{ item }">
+          <div class="d-flex">
+            <VTooltip text="View Details">
+              <template #activator="{ props }">
+                <IconBtn v-bind="props" size="small">
+                  <router-link :to="{ name: 'apps-client-view', params: { id: item.id } }">
+                    <VIcon icon="tabler-eye" size="20" />
+                  </router-link>
+                </IconBtn>
+              </template>
+            </VTooltip>
 
-          <!-- <VTooltip text="Edit Client">
+            <!-- <VTooltip text="Edit Client">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="openEditDialog(item)">
                 <VIcon  color= "info"  icon="tabler-edit" size="20" />
@@ -665,316 +661,252 @@ const updateOptions = async (options) => {
             </template>
           </VTooltip> -->
 
-          <VTooltip text="View Domains for This Client">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small"
-                @click="$router.push({ name: 'apps-domain-clientdomain-list', params: { id: item.id } })">
-                <VIcon color="success" icon="tabler-world" size="20" />
-              </IconBtn>
-            </template>
-          </VTooltip>
+            <VTooltip v-if="ability.can('view','rivaldomain')" text="View Domains for This Client">
+              <template #activator="{ props }">
+                <IconBtn v-bind="props" size="small"
+                  @click="$router.push({ name: 'apps-domain-clientdomain-list', params: { id: item.id } })">
+                  <VIcon color="success" icon="tabler-world" size="20" />
+                </IconBtn>
+              </template>
+            </VTooltip>
 
-          <VTooltip text="Delete Client">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="handleDeleteClient(item.id)">
-                <VIcon icon="tabler-trash" size="20" color="error" />
-              </IconBtn>
-            </template>
-          </VTooltip>
-        </div>
-      </template>
+            <VTooltip  v-if="ability.can('delete','client')"  text="Delete Client">
+              <template #activator="{ props }">
+                <IconBtn v-bind="props" size="small" @click="handleDeleteClient(item.id)">
+                  <VIcon icon="tabler-trash" size="20" color="error" />
+                </IconBtn>
+              </template>
+            </VTooltip>
+          </div>
+        </template>
 
-      <!-- Empty State -->
-      <template #no-data>
-        <div class="text-center pa-8">
-          <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
-          <h3 class="text-h6 mb-2">No clients found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            Try adjusting your search criteria or add a new client to get started.
-          </p>
-          <VBtn color="primary" @click="$router.push('/apps/client/add')">
-            <VIcon icon="tabler-plus" class="me-2" />
-            Add First Client
-          </VBtn>
-        </div>
-      </template>
+        <!-- Empty State -->
+        <template #no-data>
+          <div class="text-center pa-8">
+            <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
+            <h3 class="text-h6 mb-2">No clients found</h3>
+            <p class="text-body-2 text-medium-emphasis mb-4">
+              Try adjusting your search criteria or add a new client to get started.
+            </p>
+            <VBtn color="primary" @click="$router.push('/apps/client/add')">
+              <VIcon icon="tabler-plus" class="me-2" />
+              Add First Client
+            </VBtn>
+          </div>
+        </template>
 
-      <template #bottom>
-        <TablePagination v-model:page="pagination.page" :items-per-page="pagination.itemsPerPage"
-          :total-items="totalDomains" />
-      </template>
-    </VDataTableServer>
-  </VCard>
+        <template #bottom>
+          <TablePagination v-model:page="pagination.page" :items-per-page="pagination.itemsPerPage"
+            :total-items="totalDomains" />
+        </template>
+      </VDataTableServer>
+    </VCard>
 
-  <!-- Edit Client Dialog -->
-  <VDialog v-model="isEditDialogActive" max-width="800" persistent>
-    <VCard>
-      <VCardTitle class="text-h5 font-weight-bold pa-6 pb-4">
-        <div class="d-flex align-center">
-          <VIcon icon="tabler-edit" class="me-3" />
-          {{clientData.name}} #  Edit Client
-        </div>
-      </VCardTitle>
+    <!-- Edit Client Dialog -->
+    <VDialog v-model="isEditDialogActive" max-width="800" persistent>
+      <VCard>
+        <VCardTitle class="text-h5 font-weight-bold pa-6 pb-4">
+          <div class="d-flex align-center">
+            <VIcon icon="tabler-edit" class="me-3" />
+            {{ clientData.name }} # Edit Client
+          </div>
+        </VCardTitle>
 
-      <VDivider />
+        <VDivider />
 
-      <VCardText class="pa-6">
-        <VForm ref="formRef" @submit.prevent="saveClient">
-          <VRow dense>
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.name" 
-                label="Full Name" 
-                :rules="[rules.required]" 
-                variant="outlined"
-              />
-            </VCol>
+        <VCardText class="pa-6">
+          <VForm ref="formRef" @submit.prevent="saveClient">
+            <VRow dense>
+              <VCol cols="12" md="6">
+                <AppTextField v-model="clientData.name" label="Full Name" :rules="[rules.required]"
+                  variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.email" 
-                label="Email" 
-                :rules="[rules.required, rules.email]" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="6">
+                <AppTextField v-model="clientData.email" label="Email" :rules="[rules.required, rules.email]"
+                  variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.company_name" 
-                label="Company Name" 
-                :rules="[rules.required]" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="6">
+                <AppTextField v-model="clientData.company_name" label="Company Name" :rules="[rules.required]"
+                  variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.website" 
-                label="Website" 
-                :rules="[rules.website]"
-                placeholder="https://example.com" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="6">
+                <AppTextField v-model="clientData.website" label="Website" :rules="[rules.website]"
+                  placeholder="https://example.com" variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.phone" 
-                label="Phone Number" 
-                :rules="[rules.phone]" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="6">
+                <AppTextField v-model="clientData.phone" label="Phone Number" :rules="[rules.phone]"
+                  variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.industry" 
-                label="Industry" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="6">
+                <AppTextField v-model="clientData.industry" label="Industry" variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="4">
-              <AppTextField 
-                v-model="clientData.city" 
-                label="City" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="4">
+                <AppTextField v-model="clientData.city" label="City" variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="4">
-              <AppTextField 
-                v-model="clientData.state" 
-                label="State" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="4">
+                <AppTextField v-model="clientData.state" label="State" variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="4">
-              <AppTextField 
-                v-model="clientData.zip_code" 
-                label="Zip Code" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="4">
+                <AppTextField v-model="clientData.zip_code" label="Zip Code" variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="6">
-              <AppTextField 
-                v-model="clientData.country" 
-                label="Country" 
-                variant="outlined"
-              />
-            </VCol>
+              <VCol cols="12" md="6">
+                <AppTextField v-model="clientData.country" label="Country" variant="outlined" />
+              </VCol>
 
-            <VCol cols="12" md="6">
-              <AppSelect 
-                v-model="clientData.status" 
-                :items="[
+              <VCol cols="12" md="6">
+                <AppSelect v-model="clientData.status" :items="[
                   { title: 'Active', value: 1 },
                   { title: 'Inactive', value: 2 }
-                ]" 
-                label="Status" 
-                variant="outlined"
-              />
-            </VCol>
-          </VRow>
-        </VForm>
-      </VCardText>
+                ]" label="Status" variant="outlined" />
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
 
-      <VDivider />
+        <VDivider />
 
-      <VCardActions class="pa-6">
-        <VSpacer />
-        <VBtn variant="flat" @click="isEditDialogActive = false" :disabled="submitting">
-          Cancel
-        </VBtn>
-        <VBtn variant="flat" :loading="submitting" @click="saveClient">
-          <VIcon icon="tabler-device-floppy" class="me-2" />
-          Save Changes
-        </VBtn>
-      </VCardActions>
-    </VCard>
-  </VDialog>
+        <VCardActions class="pa-6">
+          <VSpacer />
+          <VBtn variant="flat" @click="isEditDialogActive = false" :disabled="submitting">
+            Cancel
+          </VBtn>
+          <VBtn variant="flat" :loading="submitting" @click="saveClient">
+            <VIcon icon="tabler-device-floppy" class="me-2" />
+            Save Changes
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
-  <!-- Import Clients Dialog -->
-  <VDialog v-model="importDialog" max-width="600" persistent>
-    <VCard>
-      <VCardTitle class="pa-6 pb-4">
-        <div class="d-flex align-center">
-          <VIcon icon="tabler-file-excel" class="me-3 text-success" size="32" />
-          <div>
-            <h3 class="text-h5 font-weight-bold">Import Clients</h3>
-            <p class="text-body-2 text-medium-emphasis mb-0">
-              Upload an Excel file to import multiple clients
-            </p>
+    <!-- Import Clients Dialog -->
+    <VDialog v-model="importDialog" max-width="600" persistent>
+      <VCard>
+        <VCardTitle class="pa-6 pb-4">
+          <div class="d-flex align-center">
+            <VIcon icon="tabler-file-excel" class="me-3 text-success" size="32" />
+            <div>
+              <h3 class="text-h5 font-weight-bold">Import Clients</h3>
+              <p class="text-body-2 text-medium-emphasis mb-0">
+                Upload an Excel file to import multiple clients
+              </p>
+            </div>
           </div>
-        </div>
-      </VCardTitle>
+        </VCardTitle>
 
-      <VDivider />
+        <VDivider />
 
-      <VCardText class="pa-6">
-        <!-- File Upload Area -->
-        <div class="mb-6">
-          <VFileInput 
-            v-model="selectedFile" 
-            label="Select Excel File" 
-            accept=".xlsx,.xls"
-            prepend-icon="tabler-paperclip" 
-            variant="outlined" 
-            show-size 
-            counter 
-            :error-messages="fileError"
-            @change="handleFileChange" 
-            @click:clear="clearFile">
-            <template #selection="{ fileNames }">
-              <template v-for="fileName in fileNames" :key="fileName">
-                <VChip color="success" size="small" label class="me-2">
-                  <VIcon icon="tabler-file-excel" start />
-                  {{ fileName }}
-                </VChip>
+        <VCardText class="pa-6">
+          <!-- File Upload Area -->
+          <div class="mb-6">
+            <VFileInput v-model="selectedFile" label="Select Excel File" accept=".xlsx,.xls"
+              prepend-icon="tabler-paperclip" variant="outlined" show-size counter :error-messages="fileError"
+              @change="handleFileChange" @click:clear="clearFile">
+              <template #selection="{ fileNames }">
+                <template v-for="fileName in fileNames" :key="fileName">
+                  <VChip color="success" size="small" label class="me-2">
+                    <VIcon icon="tabler-file-excel" start />
+                    {{ fileName }}
+                  </VChip>
+                </template>
               </template>
-            </template>
-          </VFileInput>
-        </div>
+            </VFileInput>
+          </div>
 
-        <!-- Drag & Drop Area -->
-        <div 
-          class="drop-zone" 
-          :class="{ 'drop-zone--dragover': isDragOver }" 
-          @drop="handleDrop"
-          @dragover="handleDragOver" 
-          @dragenter="handleDragEnter" 
-          @dragleave="handleDragLeave">
-          <div class="text-center">
-            <VIcon 
-              :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'" 
-              size="48"
-              class="text-primary mb-4" />
-            <h4 class="text-h6 mb-2">
-              {{
-                isDragOver
-                  ? "Drop your Excel file here"
-                  : "Drag & drop your Excel file here"
-              }}
-            </h4>
-            <p class="text-body-2 text-medium-emphasis mb-4">
-              or click "Select Excel File" above
-            </p>
-            <div class="d-flex justify-center gap-2 flex-wrap">
-              <VChip size="small" color="success" variant="tonal">
-                <VIcon icon="tabler-check" start />
-                .xlsx
-              </VChip>
-              <VChip size="small" color="success" variant="tonal">
-                <VIcon icon="tabler-check" start />
-                .xls
-              </VChip>
+          <!-- Drag & Drop Area -->
+          <div class="drop-zone" :class="{ 'drop-zone--dragover': isDragOver }" @drop="handleDrop"
+            @dragover="handleDragOver" @dragenter="handleDragEnter" @dragleave="handleDragLeave">
+            <div class="text-center">
+              <VIcon :icon="isDragOver ? 'tabler-file-plus' : 'tabler-cloud-upload'" size="48"
+                class="text-primary mb-4" />
+              <h4 class="text-h6 mb-2">
+                {{
+                  isDragOver
+                    ? "Drop your Excel file here"
+                    : "Drag & drop your Excel file here"
+                }}
+              </h4>
+              <p class="text-body-2 text-medium-emphasis mb-4">
+                or click "Select Excel File" above
+              </p>
+              <div class="d-flex justify-center gap-2 flex-wrap">
+                <VChip size="small" color="success" variant="tonal">
+                  <VIcon icon="tabler-check" start />
+                  .xlsx
+                </VChip>
+                <VChip size="small" color="success" variant="tonal">
+                  <VIcon icon="tabler-check" start />
+                  .xls
+                </VChip>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- File Preview -->
-        <div v-if="selectedFile && selectedFile.length && !fileError" class="mt-6">
-          <VAlert color="info" variant="tonal" class="mb-4">
-            <VIcon icon="tabler-info-circle" />
-            <VAlertTitle>File Ready for Import</VAlertTitle>
-            <div class="mt-2">
-              <div class="d-flex align-center justify-space-between">
-                <span><strong>File:</strong> {{ selectedFile[0]?.name }}</span>
-                <span><strong>Size:</strong>
-                  {{ formatFileSize(selectedFile[0]?.size || 0) }}</span>
+          <!-- File Preview -->
+          <div v-if="selectedFile && selectedFile.length && !fileError" class="mt-6">
+            <VAlert color="info" variant="tonal" class="mb-4">
+              <VIcon icon="tabler-info-circle" />
+              <VAlertTitle>File Ready for Import</VAlertTitle>
+              <div class="mt-2">
+                <div class="d-flex align-center justify-space-between">
+                  <span><strong>File:</strong> {{ selectedFile[0]?.name }}</span>
+                  <span><strong>Size:</strong>
+                    {{ formatFileSize(selectedFile[0]?.size || 0) }}</span>
+                </div>
               </div>
-            </div>
-          </VAlert>
-        </div>
+            </VAlert>
+          </div>
 
-        <!-- Import Instructions -->
-        <VExpansionPanels class="mt-6" variant="accordion">
-          <VExpansionPanel>
-            <VExpansionPanelTitle>
-              <VIcon icon="tabler-help-circle" class="me-2" />
-              Import Instructions
-            </VExpansionPanelTitle>
-            <VExpansionPanelText>
-              <div class="text-body-2">
-                <h5 class="text-subtitle-1 mb-3">Excel File Requirements:</h5>
-                <ul class="ml-4 mb-4">
-                  <li>File must be in Excel format (.xlsx or .xls)</li>
-                  <li>First row should contain column headers</li>
-                  <li>Required columns: name, email, company_name</li>
-                  <li>Optional columns: website, phone, industry, city, state, zip_code, country</li>
-                  <li>Maximum file size: 10MB</li>
-                  <li>Maximum 1000 rows per import</li>
-                </ul>
+          <!-- Import Instructions -->
+          <VExpansionPanels class="mt-6" variant="accordion">
+            <VExpansionPanel>
+              <VExpansionPanelTitle>
+                <VIcon icon="tabler-help-circle" class="me-2" />
+                Import Instructions
+              </VExpansionPanelTitle>
+              <VExpansionPanelText>
+                <div class="text-body-2">
+                  <h5 class="text-subtitle-1 mb-3">Excel File Requirements:</h5>
+                  <ul class="ml-4 mb-4">
+                    <li>File must be in Excel format (.xlsx or .xls)</li>
+                    <li>First row should contain column headers</li>
+                    <li>Required columns: name, email, company_name</li>
+                    <li>Optional columns: website, phone, industry, city, state, zip_code, country</li>
+                    <li>Maximum file size: 10MB</li>
+                    <li>Maximum 1000 rows per import</li>
+                  </ul>
 
-                <VBtn variant="outlined" size="small" prepend-icon="tabler-download" @click="templateDownload">
-                  Download Template
-                </VBtn>
-              </div>
-            </VExpansionPanelText>
-          </VExpansionPanel>
-        </VExpansionPanels>
-      </VCardText>
+                  <VBtn variant="outlined" size="small" prepend-icon="tabler-download" @click="templateDownload">
+                    Download Template
+                  </VBtn>
+                </div>
+              </VExpansionPanelText>
+            </VExpansionPanel>
+          </VExpansionPanels>
+        </VCardText>
 
-      <VDivider />
+        <VDivider />
 
-      <VCardActions class="pa-6">
-        <VSpacer />
-        <VBtn variant="outlined" @click="closeImportDialog" :disabled="importing">
-          Cancel
-        </VBtn>
-        <VBtn 
-          color="primary" 
-          :loading="importing" 
-          @click="handleImportClients">
-          <VIcon icon="tabler-download" class="me-2" />
-          Import Clients
-        </VBtn>
-      </VCardActions>
-    </VCard>
-  </VDialog>
+        <VCardActions class="pa-6">
+          <VSpacer />
+          <VBtn variant="outlined" @click="closeImportDialog" :disabled="importing">
+            Cancel
+          </VBtn>
+          <VBtn color="primary" :loading="importing" @click="handleImportClients">
+            <VIcon icon="tabler-download" class="me-2" />
+            Import Clients
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 </template>
 
 <style lang="scss" scoped>
@@ -1028,7 +960,8 @@ const updateOptions = async (options) => {
   transition: all 0.3s ease;
   cursor: pointer;
 
-  &:hover, &--dragover {
+  &:hover,
+  &--dragover {
     border-color: rgb(var(--v-theme-primary));
     background-color: rgba(var(--v-theme-primary), 0.04);
   }

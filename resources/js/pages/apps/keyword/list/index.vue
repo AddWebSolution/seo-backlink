@@ -2,6 +2,7 @@
 import { onMounted, ref, computed } from "vue";
 import { useKeywordApi } from "@/composables/KeywordApi";
 import { IconWorldWww } from "@tabler/icons-vue";
+import {useAbility} from '@casl/vue'
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -51,6 +52,8 @@ const showAdvancedFilters = ref(false);
 const keywordEditDialog = ref(false);
 const selectedkeyword = ref(null);
 const formValid = ref(false);
+
+const ability = useAbility()
 
 
 
@@ -440,17 +443,17 @@ onMounted(() => {
       </div>
 
       <VSpacer />
-      <div class="d-flex align-center gap-2">
+      <div v-if="ability.can('delete','keyword')" class="d-flex align-center gap-2">
         <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
       </div>
-      <div class="d-flex gap-4 flex-wrap align-center">
+      <div  class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
         <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+        <VBtn v-if="ability.can('import','keyword')" variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
@@ -458,11 +461,11 @@ onMounted(() => {
           Download Template
         </VBtn> -->
 
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn v-if="ability.can('import','keyword')"  variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
 
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/keyword/add')">
+        <VBtn v-if="ability.can('create','keyword')" color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/keyword/add')">
           Add Keyword
         </VBtn>
       </div>
@@ -527,7 +530,7 @@ onMounted(() => {
             Try adjusting your search criteria or add new keywords to get
             started.
           </p>
-          <VBtn color="primary" :to="{ name: 'apps-keyword-add' }">
+          <VBtn v-if="ability.can('create','keyword')" color="primary" :to="{ name: 'apps-keyword-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Keyword
           </VBtn>

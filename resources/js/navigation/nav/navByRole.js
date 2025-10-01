@@ -1,36 +1,47 @@
 import navConfig from './navConfig'
-import { useCookie } from '@/@core/composable/useCookie'
 
-const roleMap = {
-  1: 'super_admin',
-  3: 'client',
+export function filterNav(items, ability) {
+  const filtered = []
+  
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    
+    if (item.heading) {
+      filtered.push(item)
+      continue
+    }
+    
+    if (item.action && item.subject && !ability.can(item.action, item.subject)) {
+      continue
+    }
+    
+    let newItem = { ...item }
+    
+    if (item.children) {
+      newItem.children = filterNav(item.children, ability)
+      
+      if (newItem.children.length === 0) {
+        continue
+      }
+    }
+    
+    filtered.push(newItem)
+  }
+  
+  return filtered.filter((item, index, array) => {
+    if (!item.heading) return true
+    
+    for (let i = index + 1; i < array.length; i++) {
+      if (array[i].heading) break
+      return true
+    }
+    
+    return false
+  })
 }
 
-const roleId = parseInt(useCookie('role_id').value) || 3
-const roleName = roleMap[roleId] || 'client'
-
-function filterNavByRole(items, role) {
-  return items
-    .reduce((acc, item, index, array) => {
-      if (item.heading && !item.roles) {
-        const nextItem = array[index + 1]
-        if (nextItem && (!nextItem.roles || nextItem.roles.includes(role))) {
-          acc.push(item)
-        }
-        return acc
-      }
-
-      if (item.roles && !item.roles.includes(role)) return acc
-
-      let newItem = { ...item }
-      if (item.children) {
-        newItem.children = filterNavByRole(item.children, role)
-        if (newItem.children.length === 0) return acc
-      }
-
-      acc.push(newItem)
-      return acc
-    }, [])
+// Don't export filtered nav directly at module level
+// Export a function to get filtered nav instead
+export function getFilteredNav(ability) {
+  return filterNav(navConfig, ability)
 }
-
-export default filterNavByRole(navConfig, roleName)

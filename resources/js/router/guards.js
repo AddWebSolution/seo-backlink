@@ -17,8 +17,8 @@ export const setupGuards = router => {
     }
 
 
-    // if (!canNavigate(to) && to.matched.length) {
-    //   return { name: 'not-authorized' }
-    // }
+    if (!canNavigate(to) && to.matched.length) {
+      return { name: 'not-authorized' }
+    }
   })
 }
