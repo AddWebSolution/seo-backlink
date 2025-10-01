@@ -1,6 +1,6 @@
 <script setup>
-import navItems from '@/navigation/vertical'
 import { themeConfig } from '@themeConfig'
+import { useAbility } from '@casl/vue'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
@@ -10,10 +10,16 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 
 import { VerticalNavLayout } from '@layouts'
 import CustomAlert from './CustomAlert.vue'
+import { getFilteredNav } from '@/navigation/nav/navByRole'
+
+const ability = useAbility()
+
+const filteredNav = computed(() => getFilteredNav(ability))
+
 </script>
 
 <template>
-  <VerticalNavLayout :nav-items="navItems">
+  <VerticalNavLayout :nav-items="filteredNav">
 
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">

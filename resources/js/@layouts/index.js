@@ -1,12 +1,20 @@
 import { layoutConfig } from '@layouts/config'
+import  useAuthStore from '@/router/store/auth'
 import { cookieRef, useLayoutConfigStore } from '@layouts/stores/config'
 import { _setDirAttr } from '@layouts/utils'
+import { updateAbilities } from '@/plugins/casl/ability'
 
 // 🔌 Plugin
 export const createLayouts = userConfig => {
   return () => {
     const configStore = useLayoutConfigStore()
+    const authStore = useAuthStore()
 
+    if (authStore.token) {
+      import('@/plugins/casl/ability').then(({ ability }) => {
+       updateAbilities(authStore.permissions)
+      })
+    }
 
     // Non reactive Values
     layoutConfig.app.title = userConfig.app?.title ?? layoutConfig.app.title

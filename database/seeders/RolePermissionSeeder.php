@@ -14,14 +14,14 @@ class RolePermissionSeeder extends Seeder
     public function getModulesWithPermissions(): array
     {
         return [
-            'client' => ['view', 'create', 'update', 'delete'],
-            'report' => ['view', 'create', 'update', 'delete'],
-            'clientdomain' => ['view', 'create', 'update', 'delete'],
-            'rivaldomain' => ['view', 'create', 'update', 'delete'],
-            'keyword' => ['view', 'create', 'update', 'delete'],
-            'keyworddatum' => ['view', 'create', 'update', 'delete'],
-            'keywordreport' => ['view', 'create', 'update', 'delete'],
-            'backlinkdatum' => ['view', 'create', 'update', 'delete'],
+            'client' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'report' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'clientdomain' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'rivaldomain' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'keyword' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'keyworddatum' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'keywordreport' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'backlinkdatum' => ['view', 'create', 'update', 'delete', 'import','export'],
         ];
     }
 
@@ -39,11 +39,25 @@ class RolePermissionSeeder extends Seeder
             'super_admin' => Permission::all()->pluck('name')->toArray(),
             'client' => [
                 'view report',
+                'export report',
+                'view client',
                 'view clientdomain',
+                'update clientdomain',
+                'create clientdomain',
+                'delete clientdomain',
+                'import clientdomain',
                 'view rivaldomain',
+                'update rivaldomain',
+                'create rivaldomain',
+                'delete rivaldomain',
+                'import rivaldomain',
                 'view keyword',
+                'create keyword',
+                'delete keyword',
+                'update keyword',
                 'view keyworddatum',
                 'view keywordreport',
+                'export keywordreport',
                 'view backlinkdatum',
             ],
         ];

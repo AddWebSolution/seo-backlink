@@ -14,11 +14,8 @@ import { themeConfig } from '@themeConfig'
 import { useRoute } from 'vue-router'
 import { VForm } from 'vuetify/components/VForm'
 import useAuthStore from '@/router/store/auth'
-import { useAbility } from '@/plugins/casl/ability'
 
 const authStore = useAuthStore()
-const { update } = useAbility()
-
 
 const authThemeImg = useGenerateImageVariant(
   authV2LoginIllustrationBorderedDark,
@@ -73,10 +70,11 @@ const login = async () => {
     if (res?.statusCode.value !== 200) {
     } else {
       useCookie('accessToken').value = res.data.value.token
-      useCookie('role_id').value = res.data.value.user.role;
+      useCookie('role_id').value = res.data.value.user.role
+      console.log('user data',res.data.value.user);
+      useCookie('userData').value = res.data.value.user
 
       authStore.setUser(res.data.value)
-      update() 
       
       const redirectTo = route.query.to 
         ? decodeURIComponent(route.query.to)
