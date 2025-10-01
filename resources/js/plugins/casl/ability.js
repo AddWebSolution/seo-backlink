@@ -1,6 +1,5 @@
-// casl/ability.js
 import { AbilityBuilder, PureAbility } from '@casl/ability'
-// import { useAuthStore } from '@/stores/auth'
+import useAuthStore from '@/router/store/auth'
 
 export const defineAbilitiesFor = (permissions = []) => {
   const { can, cannot, build } = new AbilityBuilder(PureAbility)
@@ -21,8 +20,10 @@ export const defineAbilitiesFor = (permissions = []) => {
 
 export const ability = defineAbilitiesFor([])
 
+console.log('Initial ability rules:', ability.rules);
+
 export const useAbility = () => {
-  // const authStore = useAuthStore()
+  const authStore = useAuthStore()
 
   const update = () => {
     ability.update(defineAbilitiesFor(authStore.permissions).rules)

@@ -2,7 +2,6 @@
 <script setup>
 import { useCookie } from '@/@core/composable/useCookie'
 import { useAuthApi } from '@/composables/authApi'
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
 import authV2LoginIllustrationBorderedLight from '@images/pages/auth-v2-login-illustration-bordered-light.png'
@@ -14,11 +13,11 @@ import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { useRoute } from 'vue-router'
 import { VForm } from 'vuetify/components/VForm'
-// import useAuthStore from '@/router/store/auth'
-// import { useAbility } from '@casl/ability'
+import useAuthStore from '@/router/store/auth'
+import { useAbility } from '@/plugins/casl/ability'
 
-// const authStore = useAuthStore()
-// const { update } = useAbility()
+const authStore = useAuthStore()
+const { update } = useAbility()
 
 
 const authThemeImg = useGenerateImageVariant(
@@ -43,7 +42,6 @@ definePage({
 const isPasswordVisible = ref(false)
 const route = useRoute()
 const router = useRouter()
-const ability = useAbility()
 
 // Enhanced error handling
 const errors = ref({
@@ -77,8 +75,8 @@ const login = async () => {
       useCookie('accessToken').value = res.data.value.token
       useCookie('role_id').value = res.data.value.user.role;
 
-      // authStore.setUser(res.data.value)
-      // update() 
+      authStore.setUser(res.data.value)
+      update() 
       
       const redirectTo = route.query.to 
         ? decodeURIComponent(route.query.to)
