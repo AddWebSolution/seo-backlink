@@ -17,6 +17,7 @@ class RolePermissionSeeder extends Seeder
             'client' => ['view', 'create', 'update', 'delete', 'import','export'],
             'report' => ['view', 'create', 'update', 'delete', 'import','export'],
             'clientdomain' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'dashboard' => ['view', 'create', 'update', 'delete', 'import','export'],
             'rivaldomain' => ['view', 'create', 'update', 'delete', 'import','export'],
             'keyword' => ['view', 'create', 'update', 'delete', 'import','export'],
             'keyworddatum' => ['view', 'create', 'update', 'delete', 'import','export'],
@@ -39,8 +40,8 @@ class RolePermissionSeeder extends Seeder
             'super_admin' => Permission::all()->pluck('name')->toArray(),
             'client' => [
                 'view report',
+                'view dashboard',
                 'export report',
-                'view client',
                 'view clientdomain',
                 'update clientdomain',
                 'create clientdomain',

@@ -13,6 +13,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use App\Modules\ClientDomain\Models\ClientDomain;
+use App\Modules\User\Models\User;
 
 class ClientDomainService extends BaseService
 {
@@ -67,7 +68,7 @@ class ClientDomainService extends BaseService
                     continue;
                 }
 
-                $getClient = Client::where('name',$data['client_name'])->first();
+                $getClient = User::where('name',$data['client_name'])->first();
 
                 if (!$getClient) {
                     $failed[] = [

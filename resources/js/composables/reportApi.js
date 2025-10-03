@@ -54,6 +54,7 @@ export function useReportApi() {
           method: "POST",
         }
       );
+      
       reports.value = result.data.value.data.resource;
       const apiPagination = result.data.value.data.pagination;
 

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useClientApi } from "@/composables/clientApi";
 import { useRivalDomainApi } from "@/composables/rivalDomainApi";
 import { IconWorldWww } from "@tabler/icons-vue";
+import useAuthStore from "@/router/store/auth";
 import { flat } from "@/views/demos/components/button/demoCodeButton";
 
 const {domainList,fetchDomainList} = useDomainApi();
@@ -11,9 +12,10 @@ const { ClientList, fetchClientList } = useClientApi();
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
-const clientId = computed(() => route.params.clientId)
-const clientDomainId = computed(() => route.params.domainId)
+const clientId = computed(() => authStore.isClient ? authStore.user.id : route.params.clientId)
+const clientDomainId =  computed(() => route.params.domainId)
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -45,6 +47,7 @@ const headers = [
     width: "100px",
   },
 ];
+
 
 const {
   rivaldomains,
@@ -153,6 +156,10 @@ const getStatusConfig = (status) => {
     };
   if (status == 2)
     return { color: "error", icon: "tabler-progress-x", text: "Unavailable" };
+};
+
+const handleExportReports = () => {
+  showAlert("Export functionality is not implemented yet.", "info");
 };
 
 const applyFilters = async () => {
@@ -650,14 +657,14 @@ onMounted(async () => {
       <template #no-data>
         <div class="text-center pa-8">
           <VIcon icon="tabler-world-off" size="48" class="text-medium-emphasis mb-4" />
-          <h3 class="text-h6 mb-2">No domains found</h3>
+          <h3 class="text-h6 mb-2">No Rival domains found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
           <VBtn color="primary" :to="{ name: 'apps-domain-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
-            Add First Domain
+            Add First Rival Domain
           </VBtn>
         </div>
       </template>

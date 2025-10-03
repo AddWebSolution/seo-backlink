@@ -30,6 +30,8 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 
 			Route::post('list', [UserController::class, 'clientList'])->name('clientList');
 
+			Route::post('client/get/all', [UserController::class, 'ClientListByRole'])->name('ClientListByRole');
+
 			//Route::group(['middleware' => ['can:Create User']], function () {
 			Route::post('store', [UserController::class, 'store'])->name('store');
 			//});

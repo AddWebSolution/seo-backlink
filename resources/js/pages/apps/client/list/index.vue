@@ -126,6 +126,7 @@ const loadClients = async () => {
   await fetchclients(filters, pagination.value.page);
 };
 
+
 // Open dialog for a client
 const openEditDialog = (client) => {
   selectedClient.value = { ...client };

@@ -2,21 +2,22 @@
 
 namespace App\Modules\User\Models;
 
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use App\Modules\User\Observers\UserObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use App\Modules\User\Observers\UserObserver;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Modules\ClientDomain\Models\ClientDomain;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, SoftDeletes ,HasRoles;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes, HasRoles;
 
     protected $fillable = [
         'name',
@@ -40,5 +41,10 @@ class User extends Authenticatable
             'role'   => UserRole::class,
             'status' => UserStatus::class,
         ];
+    }
+
+    public function clientDomains()
+    {
+        return $this->hasMany(ClientDomain::class, 'client_id', 'id');
     }
 }
