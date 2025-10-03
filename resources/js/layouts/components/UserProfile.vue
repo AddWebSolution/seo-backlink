@@ -10,19 +10,16 @@ const ability = useAbility()
 const authStore = useAuthStore()
 
 // TODO: Get type from backend
-const userData = useCookie('userData')
+const userData = authStore.user;
 
 const logout = async () => {
 
-  // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
 
-  // Remove "userData" from cookie
   userData.value = null
 
   authStore.logout();
 
-  // Redirect to login page
   await router.push('/login')
 
   // ℹ️ We had to remove abilities in then block because if we don't nav menu items mutation is visible while redirecting user to login page
@@ -30,7 +27,6 @@ const logout = async () => {
   // Remove "userAbilities" from cookie
   useCookie('userAbilityRules').value = null
 
-  // Reset ability to initial ability
   ability.update([])
 }
 

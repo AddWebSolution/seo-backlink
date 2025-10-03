@@ -1,44 +1,33 @@
-import { defineStore, storeToRefs } from 'pinia'
-import { useLayoutConfigStore, cookieRef } from '@layouts/stores/config'
+import { defineStore } from 'pinia'
 import { ability, updateAbilities } from '@/plugins/casl/ability'
 
-const useAuthStore = defineStore('auth', () => {
-  const user = cookieRef('auth-user', null)  
-  const token = cookieRef('auth-token', null)       
-  const permissions = cookieRef('auth-permissions', [])
-
-  const { appContentLayoutNav, isVerticalNavCollapsed } = storeToRefs(useLayoutConfigStore())
-
-  const setUser = (data) => {
-    user.value = JSON.parse(JSON.stringify(data.user))
-    token.value = data.token
-    permissions.value = data.user.roles?.flatMap(r => r.permissions.map(p => p.name)) || []
-
-    updateAbilities()
-  }
-
-  const logout = () => {
-    user.value = null
-    token.value = null
-    permissions.value = []
-
-    ability.update([]) 
-  }
-
-  const isSuperAdmin = computed(() => user.value?.roles?.some(r => r.name === 'super_admin'))
-  const isClient = computed(() => user.value?.roles?.some(r => r.name === 'client'))
-
-  return {
-    user,
-    token,
-    permissions,
-    appContentLayoutNav,
-    isVerticalNavCollapsed,
-    setUser,
-    logout,
-    isSuperAdmin,
-    isClient,
-  }
+const useAuthStore = defineStore('auth', {
+  state: () => ({
+    user: null,
+    token: null,
+    permissions: [],
+  }),
+  actions: {
+    setUser(data) {
+      this.user = JSON.parse(JSON.stringify(data.user)) 
+      this.token = data.token
+      this.permissions = data.user.roles?.flatMap(r => r.permissions.map(p => p.name)) || []
+      updateAbilities()
+    },
+    logout() {
+      this.user = null
+      this.token = null
+      this.permissions = []
+      ability.update([])
+    },
+  },
+  getters: {
+    isSuperAdmin: state => state.user?.roles?.some(r => r.name == 'super_admin'),
+    isClient: state => state.user?.roles?.some(r => r.name == 'client'),
+  },
+  persist: true, 
 })
 
 export default useAuthStore
+
+

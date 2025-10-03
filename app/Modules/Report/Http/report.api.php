@@ -5,7 +5,7 @@ namespace App\Modules\Report\Http\Controllers;
 use Illuminate\Support\Facades\Route;
 use App\Modules\Report\Http\Controllers\ReportController;
 
-Route::group(['middleware' => ['api', 'auth:passport']], function () {
+Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 	Route::prefix('api')->namespace('App\Modules\Report\Http\Controllers')->group(function () {
 		Route::prefix('report')->name('report.')->group(function () {
 			//Route::group(['middleware' => ['can:View Report']], function () {

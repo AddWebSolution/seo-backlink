@@ -4,6 +4,9 @@ import { useDomainApi } from "@/composables/domainApi.js";
 import { useClientApi } from "@/composables/clientApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { VBtn } from "vuetify/components";
+import { useRoute, useRouter } from 'vue-router'
+import useAuthStore from "@/router/store/auth";
+import { useAbility } from "@casl/vue";
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -13,6 +16,7 @@ const headers = [
   { title: "DR", key: "domain_rating", align: "start", width: "80px" },
   { title: "Traffic", key: "organic_traffic", align: "start", width: "100px" },
   { title: "Price", key: "total_price", align: "start", width: "100px" },
+  { align: "start", width: "100px" },
   {
     title: "Turnaround",
     key: "turnaround_time",
@@ -37,7 +41,8 @@ const headers = [
 
 
 const { ClientList, fetchClientList } = useClientApi()
-
+const authStore = useAuthStore()
+const ability = useAbility()
 
 const {
   domains,
@@ -63,8 +68,13 @@ const showAdvancedFilters = ref(false);
 
 
 const route = useRoute()
-const clientId = computed(() => route.params.id)
+const router = useRouter()
 
+// const clientId = computed(() => {
+//   return route.params.id || authStore.user?.id
+// })
+
+const clientId = computed(() => authStore.isClient ? authStore.user.id : route.params.id)
 
 const showImportResult = ref(false)
 const importResult = ref({
@@ -112,9 +122,9 @@ const loadDomains = async (id = clientId.value) => {
 
 const currentClient = computed(() => {
   if (!ClientList.value?.length) return null
+  if (!clientId.value) return null
   return ClientList.value.find(client => client.id == clientId.value)
 })
-
 
 console.log('currentClient', ClientList);
 
@@ -322,7 +332,7 @@ onMounted(async () => {
         </div>
       </VCol>
 
-      <VCol cols="12" md="4" class="text-md-end">
+      <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Clients
@@ -517,12 +527,10 @@ onMounted(async () => {
           Export
         </VBtn>
         <!-- create domain-->
-        <template v-if="clientId">
           <VBtn color="primary" prepend-icon="tabler-plus"
-            @click="$router.push({ name: 'apps-domain-clientdomain-add', params: { id: clientId.value } })">
+            @click="$router.push({ name: 'apps-domain-clientdomain-add', params: { id: clientId } })">
             Add Client Domain
           </VBtn>
-        </template>
       </div>
     </div>
 

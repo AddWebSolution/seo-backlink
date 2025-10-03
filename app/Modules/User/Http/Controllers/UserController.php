@@ -3,6 +3,7 @@
 namespace App\Modules\User\Http\Controllers;
 
 use App\Traits\HasProfilePicUpload;
+use Illuminate\Http\Request;
 use App\Modules\User\Models\User;
 use Addweb\Base\Controller\BaseController;
 use App\Modules\User\Services\UserService;
@@ -38,6 +39,19 @@ class UserController extends BaseController
             'clients' => $clients,
         ]);
     }
+
+    public function ClientListByRole(Request $request)
+    {   
+        $perPage = $request->input('perPage', 15);
+        $filters = $request->only(['search', 'status']);
+
+        $clients = $this->service->listByRoleWithFilters($perPage, $filters);
+
+        return response()->json([
+             $clients
+        ]);
+    }
+
 
 
     public function updateProfilePic(UploadProfilePicRequest $request)

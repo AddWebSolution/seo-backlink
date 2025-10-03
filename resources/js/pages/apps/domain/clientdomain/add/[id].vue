@@ -56,7 +56,7 @@ watch(form, debounce(() => {
 
 const currentClient = computed(() => {
   form.value.client_id = clientId.value
-  return ClientList.value.find(c => c.id == clientId.value) || null
+  return ClientList?.value?.find(c => c.id == clientId.value) || null
 })
 
 

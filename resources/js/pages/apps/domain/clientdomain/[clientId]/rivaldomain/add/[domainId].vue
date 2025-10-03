@@ -856,7 +856,7 @@ const scrollToSection = (sectionId) => {
 
               <VBtn type="submit" color="success" size="large" variant="elevated" :loading="state.submitting"
                 :disabled="state.showSuccessAlert">
-                Create Domain
+                Create Rival Domain
               </VBtn>
             </div>
           </div>

@@ -48,56 +48,56 @@ import AnalyticsWebsiteAnalytics from '@/views/dashboards/analytics/AnalyticsWeb
     </VCol>
 
     <!-- 👉 Support Tracker -->
-    <VCol
+    <!-- <VCol
       cols="12"
       md="6"
     >
       <AnalyticsSupportTracker />
-    </VCol>
+    </VCol> -->
 
     <!-- 👉 Sales by Countries -->
-    <VCol
+    <!-- <VCol
       cols="12"
       sm="6"
       lg="4"
     >
       <AnalyticsSalesByCountries />
-    </VCol>
+    </VCol> -->
 
     <!-- 👉 Total Earning -->
-    <VCol
+    <!-- <VCol
       cols="12"
       sm="6"
       lg="4"
     >
       <AnalyticsTotalEarning />
-    </VCol>
+    </VCol> -->
 
     <!-- 👉 Monthly Campaign State -->
-    <VCol
+    <!-- <VCol
       cols="12"
       sm="6"
       lg="4"
     >
       <AnalyticsMonthlyCampaignState />
-    </VCol>
+    </VCol> -->
 
     <!-- 👉 Source Visits -->
-    <VCol
+    <!-- <VCol
       cols="12"
       sm="6"
       lg="4"
     >
       <AnalyticsSourceVisits />
-    </VCol>
+    </VCol> -->
 
     <!-- 👉 Project Table -->
-    <VCol
+    <!-- <VCol
       cols="12"
       lg="8"
     >
       <AnalyticsProjectTable />
-    </VCol>
+    </VCol> -->
   </VRow>
 </template>
 

@@ -19,8 +19,8 @@ class Client extends BaseModel
 
     protected $guarded = [];
 
-    public function clientDomains()
-    {
-        return $this->hasMany(ClientDomain::class, 'client_id', 'id');
-    }
+    // public function clientDomains()
+    // {
+    //     return $this->hasMany(ClientDomain::class, 'client_id', 'id');
+    // }
 }

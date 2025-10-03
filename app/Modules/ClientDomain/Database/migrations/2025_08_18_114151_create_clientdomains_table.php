@@ -35,7 +35,7 @@ return new class extends Migration
             $table->softDeletes();
 
             // If you want FK:
-            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
+            $table->foreign('client_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

@@ -69,16 +69,15 @@ const login = async () => {
 
     if (res?.statusCode.value !== 200) {
     } else {
-      useCookie('accessToken').value = res.data.value.token
-      useCookie('role_id').value = res.data.value.user.role
-      console.log('user data',res.data.value.user);
-      useCookie('userData').value = res.data.value.user
+      useCookie('accessToken').value = res.data.value.token;
+      useCookie('role_id').value = res.data.value.user.role;
+      useCookie('userData').value = JSON.parse(JSON.stringify(res.data.value))
 
       authStore.setUser(res.data.value)
       
       const redirectTo = route.query.to 
         ? decodeURIComponent(route.query.to)
-        : '/apps/client/list'
+        : '/dashboards/analytics'
 
       console.log("Redirecting to:", redirectTo)
 
