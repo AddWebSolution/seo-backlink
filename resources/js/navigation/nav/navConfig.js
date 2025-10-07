@@ -26,8 +26,8 @@ export default [
     action: 'view',
     subject: 'clientdomain',
     children: [
-      { title: 'Domain List', to: 'apps-domain-clientdomain-list', action: 'view', subject: 'clientdomain', icon: { icon: 'tabler-list' } },
-      { title: 'Domain Add', to: 'apps-domain-clientdomain-add', action: 'create', subject: 'clientdomain', icon: { icon: 'tabler-circle-plus' } },
+      { title: 'Domain List', to: 'apps-clientdomain-list', action: 'view', subject: 'clientdomain', icon: { icon: 'tabler-list' } },
+      { title: 'Domain Add', to: 'apps-clientdomain-add', action: 'create', subject: 'clientdomain', icon: { icon: 'tabler-circle-plus' } },
     ],
   },
   { heading: 'Backlinks' },

@@ -8,6 +8,7 @@ use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Modules\Report\Observers\ReportObserver;
 use App\Modules\KeywordReport\Models\KeywordReport;
+use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -71,5 +72,10 @@ class Report extends BaseModel
     {
         return $this->backlinks()
             ->count('domain');
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(User::class, 'client_id', 'id');
     }
 }

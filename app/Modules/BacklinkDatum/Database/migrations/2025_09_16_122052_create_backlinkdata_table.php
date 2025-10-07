@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('backlink_data', function (Blueprint $table) {
             $table->id();
             $table->string('report_id')->constrained('reports')->cascadeOnDelete();
+            $table->unsignedBigInteger('client_id')->nullable();
             $table->string('target_url');
             $table->string('domain')->nullable();
             $table->string('from_domain')->nullable();
