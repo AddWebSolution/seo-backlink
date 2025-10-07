@@ -79,6 +79,7 @@ class ReportService extends BaseService
         foreach ($reportIds as $id) {
             $report = Report::findOrFail($id);
             $backlinks = $report->backlinks()->get();
+            $client = $report->client ? $report->client->only(['id', 'name', 'email']) : null;
 
             $sheet = $spreadsheet->createSheet();
             $sheet->setTitle("Report-{$report->id}");
@@ -187,7 +188,7 @@ class ReportService extends BaseService
                     $bl->id,
                     $bl->target_url,
                     $bl->domain,
-                    $bl->client_id ? $bl->client->name : 'N/A',
+                    $bl->client_id ? $client['name'] : 'N/A',
                     $bl->from_domain,
                     $bl->rank,
                     $bl->domain_rank,
