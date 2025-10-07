@@ -187,7 +187,7 @@ class ReportService extends BaseService
                     $bl->id,
                     $bl->target_url,
                     $bl->domain,
-                    $bl->client ? $bl->client->name : 'N/A',
+                    $bl->client_id ? $bl->client->name : 'N/A',
                     $bl->from_domain,
                     $bl->rank,
                     $bl->domain_rank,
