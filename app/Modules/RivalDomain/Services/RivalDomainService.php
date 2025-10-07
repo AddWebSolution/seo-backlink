@@ -91,13 +91,13 @@ class RivalDomainService extends BaseService
                 })->exists();
                 
                 
-                if ($exists) {
-                    $failed[] = [
-                        'reason' => "Domain already exists",
-                        'url'    => $data['target_url'],
-                    ];
-                    continue;
-                }
+                // if ($exists) {
+                //     $failed[] = [
+                //         'reason' => "Domain already exists",
+                //         'url'    => $data['target_url'],
+                //     ];
+                //     continue;
+                // }
                 $clientDomain = ClientDomain::where('target_url', trim($data['client_domain']))->first();
 
 

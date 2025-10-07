@@ -6,6 +6,7 @@ import { ref, computed, watch, onMounted } from "vue";
 const headers = [
   { title: "ID", key: "id", width: "80px" },
   { title: "Run ID", key: "run_id", width: "120px" },
+  { title: "Client", key: "client_id.name", width: "120px" },
   { title: "Run At", key: "run_at", width: "160px" },
   { title: "Domain Count", key: "domain_count", width: "130px" },
   { title: "Total Backlinks", key: "total_backlink", width: "140px" },

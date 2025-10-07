@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Modules\ClientDomain\Observers\ClientDomainObserver;
+use App\Modules\RivalDomain\Models\RivalDomain;
 use Database\Factories\ClientDomainFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -44,5 +45,10 @@ class ClientDomain extends BaseModel
     public function client()
     {
         return $this->belongsTo(Client::class, 'client_id', 'id');
+    }
+
+     public function rivalDomains()
+    {
+        return $this->hasMany(RivalDomain::class, 'client_domain_id', 'id');
     }
 }

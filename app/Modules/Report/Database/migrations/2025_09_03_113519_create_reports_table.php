@@ -11,6 +11,7 @@ return new class extends Migration {
         Schema::create('backlink_reports', function (Blueprint $table) {
             $table->id();
             $table->string('run_id')->index();
+            $table->unsignedBigInteger('client_id')->nullable();
             $table->integer('domain_count')->nullable();
             $table->integer('total_backlink')->nullable();
             $table->integer('accepted_backlinks')->nullable();

@@ -6,6 +6,7 @@ use App\Traits\HasProfilePicUpload;
 use Illuminate\Http\Request;
 use App\Modules\User\Models\User;
 use Addweb\Base\Controller\BaseController;
+use App\Enums\UserStatus;
 use App\Modules\User\Services\UserService;
 use App\Modules\User\Http\Resources\UserResource;
 use App\Modules\User\Http\Requests\StoreUserRequest;
@@ -38,6 +39,23 @@ class UserController extends BaseController
             'success' => true,
             'clients' => $clients,
         ]);
+    }
+
+    public function clientDomains()
+    {
+        return User::query()
+            ->where('status', UserStatus::ACTIVE) 
+            ->with([
+                'clientDomains' => function ($query) {
+                    $query->select('id', 'client_id', 'title', 'target_url') 
+                        ->where('status', 1) 
+                        ->with(['rivalDomains' => function ($q) {
+                            $q->select('id', 'client_domain_id', 'title', 'target_url')
+                                ->where('status', 1); 
+                        }]);
+                }
+            ])
+            ->get(['id', 'name']); 
     }
 
     public function ClientListByRole(Request $request)
