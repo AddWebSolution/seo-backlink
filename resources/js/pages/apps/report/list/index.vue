@@ -2,6 +2,7 @@
 import { IconReport, IconChartLine } from "@tabler/icons-vue";
 import { useReportApi } from "@/composables/reportApi";
 import { ref, computed, watch, onMounted } from "vue";
+import { useAbility } from "@casl/vue";
 
 const headers = [
   { title: "ID", key: "id", width: "80px" },
@@ -37,6 +38,7 @@ const showAdvancedFilters = ref(false);
 const page = ref(1);
 const sortBy = ref();
 const orderBy = ref();
+const ability = useAbility();
 
 const buildFilters = () => {
   const filters = {};
@@ -370,11 +372,11 @@ const formatRunAt = (dateString) => {
             prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="flex-grow-1" />
         </VCol>
 
-        <VCol cols="12" sm="6" md="3" class="d-flex align-center">
+        <VCol v-if="ability.can('create','client')" cols="12" sm="6" md="3" class="d-flex align-center">
           <AppSelect v-model="selectedClient" :items="backlinkClients" item-value="value" placeholder="Filter By Client" variant="outlined"
             clearable prepend-inner-icon="tabler-user" class="flex-grow-1" />
         </VCol>
-<!-- 
+        <!-- 
         <VCol cols="12" sm="6" md="2" class="d-flex align-center">
           <AppSelect v-model="selectedDateRange" placeholder="Date Range" :items="dateRangeOptions" variant="outlined"
             clearable hide-details prepend-inner-icon="tabler-calendar" class="flex-grow-1" />
