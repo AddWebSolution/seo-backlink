@@ -69,6 +69,8 @@ class ReportService extends BaseService
             });
         }
 
+        $query->orderBy($filters['sort_by'], $filters['sort_order']);
+
         $backlinks = $query->paginate($perPage);
 
         $domains = $report->getDomains();
@@ -144,8 +146,10 @@ class ReportService extends BaseService
             // Headers for backlinks table
             $headers = [
                 'ID',
+                'Target Domain',
                 'Target URL',
                 'Domain',
+                'Domain URL',
                 'Client',
                 'From Domain',
                 'Rank',
@@ -199,8 +203,10 @@ class ReportService extends BaseService
             foreach ($backlinks as $bl) {
                 $rowData = [
                     $bl->id,
+                    $bl->target_domain,
                     $bl->target_url,
                     $bl->domain,
+                    $bl->domain_url,
                     $bl->client_id ? $client['name'] : 'N/A',
                     $bl->from_domain,
                     $bl->rank,

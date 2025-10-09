@@ -31,6 +31,8 @@ class ReportController extends BaseController
             'search'          => $request->get('search'),
             'domain'          => $request->get('domain'),
             'status'          => $request->get('status'),
+            'sort_by'        => $request->get('sort_by', 'id'),
+            'sort_order'     => $request->get('sort_order', 'desc'),
         ];
 
         $result = $this->service->getReportWithBacklinks($id, $perPage, $filters);
