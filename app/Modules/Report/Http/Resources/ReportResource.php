@@ -17,6 +17,7 @@ class ReportResource extends JsonResource
         return [
             'id'       => $this->id,
             'run_id'   => $this->run_id,
+            'run_at'   => $this->created_at,
             'client_id'   => $this->client() ? $this->client->only(['id', 'name', 'email','role']) : null,
             'domain_count'   => $this->getDomainsCount() ? $this->getDomainsCount() : $this->domain_count,
             'total_backlink'   => $this->getBacklinkCount() ? $this->getBacklinkCount() : $this->total_backlink,

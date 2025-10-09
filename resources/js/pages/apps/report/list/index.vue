@@ -7,7 +7,7 @@ const headers = [
   { title: "ID", key: "id", width: "80px" },
   { title: "Run ID", key: "run_id", width: "120px" },
   { title: "Client", key: "client_id.name", width: "120px" },
-  { title: "Run At", key: "run_at", width: "160px" },
+  { title: "Run At", key: "run_at", width: "110px" },
   { title: "Domain Count", key: "domain_count", width: "130px" },
   { title: "Total Backlinks", key: "total_backlink", width: "140px" },
   { title: "Accepted", key: "accepted_backlinks", width: "120px" },
@@ -251,16 +251,17 @@ const summaryStats = computed(() => {
   };
 });
 
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const formatRunAt = (dateString) => {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit',
+    // hour: '2-digit',
+    // minute: '2-digit',
+    hour12: true,
+  })
+}
 
 </script>
 
@@ -433,11 +434,9 @@ const formatDate = (dateString) => {
 
       <template #item.run_at="{ item }">
         <div class="d-flex align-center">
-          <VIcon icon="tabler-clock" size="16" class="me-2 text-medium-emphasis" />
-          <div>
-            <div class="font-weight-medium">{{ formatDate(item.run_at) }}</div>
+            <VIcon icon="tabler-clock" size="15" class="me-2 text-medium-emphasis" />
+            <div class="font-weight-medium">{{ formatRunAt(item.run_at)}}</div>
           </div>
-        </div>
       </template>
 
       <template #item.domain_count="{ item }">
