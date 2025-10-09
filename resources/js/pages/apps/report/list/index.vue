@@ -2,12 +2,13 @@
 import { IconReport, IconChartLine } from "@tabler/icons-vue";
 import { useReportApi } from "@/composables/reportApi";
 import { ref, computed, watch, onMounted } from "vue";
+import { useAbility } from "@casl/vue";
 
 const headers = [
   { title: "ID", key: "id", width: "80px" },
   { title: "Run ID", key: "run_id", width: "120px" },
   { title: "Client", key: "client_id.name", width: "120px" },
-  { title: "Run At", key: "run_at", width: "160px" },
+  { title: "Run At", key: "run_at", width: "110px" },
   { title: "Domain Count", key: "domain_count", width: "130px" },
   { title: "Total Backlinks", key: "total_backlink", width: "140px" },
   { title: "Accepted", key: "accepted_backlinks", width: "120px" },
@@ -30,35 +31,62 @@ const {
 const selectedStatus = ref();
 const selectedDateRange = ref();
 const searchQuery = ref("");
+const selectedClient = ref(null)
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
 
 const page = ref(1);
 const sortBy = ref();
 const orderBy = ref();
+const ability = useAbility();
 
 const buildFilters = () => {
-  const filters = {}
-  
-  if (selectedStatus.value) filters.status = selectedStatus.value
-  if (selectedDateRange.value) filters.date_range = selectedDateRange.value
-  if (searchQuery.value) filters.searchTerm = searchQuery.value
-  if (sortBy.value) filters.sortField = sortBy.value
-  if (orderBy.value) filters.sortOrder = orderBy.value
+  const filters = {};
 
-  filters.pageNumber = pagination.value.page;
-  filters.perPage = pagination.value.itemsPerPage;
-  
-  return filters
-}
+  if (selectedStatus.value) filters.status = selectedStatus.value;
+  if (selectedClient.value) filters.client_id = selectedClient.value;
+
+  const params = {
+    pageNumber: pagination.value.page,
+    perPage: pagination.value.itemsPerPage,
+  };
+
+  if (searchQuery.value) params.searchTerm = searchQuery.value;
+
+  if (sortBy.value) params.sortField = sortBy.value;
+  if (orderBy.value) params.sortOrder = orderBy.value;
+
+  if (Object.keys(filters).length > 0) {
+    params.filters = filters;
+  }
+
+  return params;
+};
 
 const loadReports = async () => {
   const filters = buildFilters()
   await fetchReports(filters, pagination.value.page);
 }
 
+const backlinkClients = computed(() => {
+  const clientsMap = new Map();
+
+  reports.value.forEach(report => {
+    if (report.client_id && report.client_id.id && report.client_id.name) {
+      clientsMap.set(report.client_id.id, report.client_id.name);
+    }
+  });
+
+  return Array.from(clientsMap.entries()).map(([id, name]) => ({
+    title: name,
+    value: id,
+  }));
+});
+
+
 const clearAllFilters = async () => {
   selectedStatus.value = null;
+  selectedClient.value = null;
   selectedDateRange.value = null;
   searchQuery.value = "";
   page.value = 1
@@ -84,34 +112,35 @@ function generateBacklinkReportFilename() {
 }
 
 const hasActiveFilters = computed(() => {
-  return selectedStatus.value || selectedDateRange.value || searchQuery.value;
+  return selectedClient.value || searchQuery.value;
 });
 
 
-// onMounted(() => {
-//   loadReports()
-// })
-
 const totalReports = computed(() => pagination.value.total ?? 0);
-
 
 const itemsPerPage = computed({
   get: () => pagination.value.itemsPerPage,
   set: (val) => {
     pagination.value.itemsPerPage = val;
     pagination.value.page = 1;
-    // loadReports();
   },
 });
 
 const updateOptions = async (options) => {
   pagination.value.itemsPerPage = options.itemsPerPage;
   pagination.value.page = options.page;
+
+  if (options.sortBy && options.sortBy.length > 0) {
+    sortBy.value = options.sortBy[0].key
+    orderBy.value = options.sortBy[0].order
+  } else {
+    sortBy.value = null
+    orderBy.value = null
+  }
   await loadReports();
 };
 
 watch(selectedRows, (val) => {
-  console.log("Selected rows:", val);
 });
 
 const reportsWithStats = computed(() => {
@@ -224,21 +253,18 @@ const summaryStats = computed(() => {
   };
 });
 
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const applyFilters = async () => {
-  page.value = 1 // Reset to first page when filtering
-  await loadReports()
+const formatRunAt = (dateString) => {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit',
+    // hour: '2-digit',
+    // minute: '2-digit',
+    hour12: true,
+  })
 }
+
 </script>
 
 <template>
@@ -328,21 +354,10 @@ const applyFilters = async () => {
       <div class="d-flex align-center">
         <VIcon icon="tabler-filter" class="me-2 text-primary" />
         <span class="text-h6 font-weight-medium">Search & Filters</span>
-        <VBadge
-          v-if="hasActiveFilters"
-          :content="1"
-          color="primary"
-          class="ml-5"
-        />
+        <VBadge v-if="hasActiveFilters" :content="1" color="primary" class="ml-5" />
       </div>
       <div class="d-flex align-center gap-2">
-        <VBtn
-          v-if="hasActiveFilters"
-          variant="text"
-          size="small"
-          color="error"
-          @click="clearAllFilters"
-        >
+        <VBtn v-if="hasActiveFilters" variant="text" size="small" color="error" @click="clearAllFilters">
           <VIcon icon="tabler-x" class="me-1" />
           Clear All
         </VBtn>
@@ -351,67 +366,29 @@ const applyFilters = async () => {
 
     <VCardText class="pt-0">
       <!-- Primary Search Bar -->
-      <VRow class="mb-4">
-        <VCol cols="12" sm="6" md="4">
-          <AppTextField
-            v-model="searchQuery"
-            placeholder="Search by Run ID, date, or any report details..."
-            prepend-inner-icon="tabler-search"
-            variant="outlined"
-            hide-details
-            clearable
-            class="search-field"
-          />
+      <VRow class="mb-4 g-3">
+        <VCol cols="12" sm="6" md="4" class="d-flex align-center">
+          <AppTextField v-model="searchQuery" placeholder="Search by Run ID, date, or any report details..."
+            prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="flex-grow-1" />
         </VCol>
-        <VCol cols="12" sm="6" md="4">
-          <AppSelect
-            v-model="selectedStatus"
-            placeholder="Success Rate"
-            :items="statusOptions"
-            variant="outlined"
-            clearable
-            hide-details
-            prepend-inner-icon="tabler-chart-line"
-          />
-        </VCol>
-        <VCol cols="12" sm="6" md="4">
-          <AppSelect
-            v-model="selectedDateRange"
-            placeholder="Date Range"
-            :items="dateRangeOptions"
-            variant="outlined"
-            clearable
-            hide-details
-            prepend-inner-icon="tabler-calendar"
-          />
-        </VCol>
-        <!-- <VCol cols="12" sm="6" md="3">
-            <AppTextField label="Min Domain Count" placeholder="0+" variant="outlined" type="number" hide-details
-              prepend-inner-icon="tabler-world" />
-          </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField label="Min Backlinks" placeholder="0+" variant="outlined" type="number" hide-details
-              prepend-inner-icon="tabler-link" />
-          </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField label="Min Success Rate" placeholder="0-100%" variant="outlined" type="number" hide-details
-              prepend-inner-icon="tabler-percentage" />
-          </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField label="Max Success Rate" placeholder="0-100%" variant="outlined" type="number" hide-details
-              prepend-inner-icon="tabler-percentage" />
-          </VCol> -->
-      </VRow>
 
-      <!-- Quick Filters -->
-      <!-- <VRow class="d-flex justify-end mb-4">
-          <VCol cols="12" sm="12" md="4" class="d-flex">
-            <VBtn color="primary" variant="flat" block @click="fetchReports">
-              <VIcon icon="tabler-search" class="me-2" />
-              Search Reports
-            </VBtn>
-          </VCol>
-        </VRow> -->
+        <VCol v-if="ability.can('create','client')" cols="12" sm="6" md="3" class="d-flex align-center">
+          <AppSelect v-model="selectedClient" :items="backlinkClients" item-value="value" placeholder="Filter By Client" variant="outlined"
+            clearable prepend-inner-icon="tabler-user" class="flex-grow-1" />
+        </VCol>
+        <!-- 
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center">
+          <AppSelect v-model="selectedDateRange" placeholder="Date Range" :items="dateRangeOptions" variant="outlined"
+            clearable hide-details prepend-inner-icon="tabler-calendar" class="flex-grow-1" />
+        </VCol> -->
+
+        <VCol cols="12" sm="6" md="2" class="d-flex">
+          <VBtn color="primary" variant="flat" block @click="loadReports">
+            <VIcon icon="tabler-search" class="me-2" />
+            Search Reports
+          </VBtn>
+        </VCol>
+      </VRow>
     </VCardText>
   </VCard>
 
@@ -423,25 +400,13 @@ const applyFilters = async () => {
         </span>
         <span class="ml-2">Record Found</span>
 
-        <VChip
-          v-if="selectedRows.length"
-          color="primary"
-          size="small"
-          class="ml-4"
-          elevation="2"
-          outlined
-        >
+        <VChip v-if="selectedRows.length" color="primary" size="small" class="ml-4" elevation="2" outlined>
           {{ selectedRows.length }} selected
         </VChip>
       </div>
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn
-          v-if="selectedRows.length"
-          variant="text"
-          size="small"
-          color="error"
-        >
+        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
@@ -449,12 +414,7 @@ const applyFilters = async () => {
       <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
         <!-- 👉 Export button -->
-        <VBtn
-          variant="tonal"
-          color="secondary"
-          prepend-icon="tabler-upload"
-          @click="handleExportReports"
-        >
+        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
       </div>
@@ -463,63 +423,39 @@ const applyFilters = async () => {
     <VDivider class="mt-4 mb-2" />
 
     <!-- Enhanced Data Table -->
-    <VDataTableServer
-      v-model:page="pagination.page"
-      v-model:items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows"
-      :headers="headers"
-      show-select
-      :items="reportsWithStats"
-      :loading="loading"
-      loading-text="Fetching reports, please wait..."
-      :items-length="pagination.total"
-      class="reports-table"
-      hover
-      @update:options="updateOptions"
-    >
+    <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
+      v-model:model-value="selectedRows" :headers="headers" show-select :items="reportsWithStats" :loading="loading"
+      loading-text="Fetching reports, please wait..." :items-length="pagination.total" class="reports-table" hover
+      @update:options="updateOptions">
       <template #item.run_id="{ item }">
         <div class="d-flex align-center">
-          <VIcon
-            icon="tabler-hash"
-            size="16"
-            class="me-2 text-medium-emphasis"
-          />
+          <VIcon icon="tabler-hash" size="16" class="me-2 text-medium-emphasis" />
           <span class="font-weight-medium text-primary">{{ item.run_id }}</span>
         </div>
       </template>
 
       <template #item.run_at="{ item }">
         <div class="d-flex align-center">
-          <VIcon
-            icon="tabler-clock"
-            size="16"
-            class="me-2 text-medium-emphasis"
-          />
-          <div>
-            <div class="font-weight-medium">{{ formatDate(item.run_at) }}</div>
+            <VIcon icon="tabler-clock" size="15" class="me-2 text-medium-emphasis" />
+            <div class="font-weight-medium">{{ formatRunAt(item.run_at)}}</div>
           </div>
-        </div>
       </template>
 
       <template #item.domain_count="{ item }">
-        <div class="d-flex align-center">
-          <VIcon icon="tabler-world" size="16" class="me-2 text-info" />
+        <div class="d-flex ml-4 align-center">
           <VChip color="info" variant="tonal" size="small">
-            {{ item.domain_count || 0 }} domains
+            <VIcon icon="tabler-world" size="20" class="me-2 text-info" />
+            {{ item.domain_count || 0 }}
           </VChip>
         </div>
       </template>
 
       <template #item.total_backlink="{ item }">
         <div class="d-flex align-center">
-          <VIcon
-            icon="tabler-link"
-            size="16"
-            class="me-2 text-medium-emphasis"
-          />
+          <VIcon icon="tabler-link" size="16" class="me-2 text-medium-emphasis" />
           <span class="font-weight-bold">{{
             (item.total_backlink || 0).toLocaleString()
-          }}</span>
+            }}</span>
         </div>
       </template>
 
@@ -528,7 +464,7 @@ const applyFilters = async () => {
           <VIcon icon="tabler-check" size="16" class="me-2 text-success" />
           <span class="font-weight-bold text-success">{{
             (item.accepted_backlinks || 0).toLocaleString()
-          }}</span>
+            }}</span>
         </div>
       </template>
 
@@ -537,46 +473,34 @@ const applyFilters = async () => {
           <VIcon icon="tabler-x" size="16" class="me-2 text-error" />
           <span class="font-weight-bold text-error">{{
             (item.rejected_backlinks || 0).toLocaleString()
-          }}</span>
+            }}</span>
         </div>
       </template>
 
       <template #item.success_rate="{ item }">
         <div class="d-flex align-center">
-          <VProgressCircular
-            :model-value="item.success_rate"
-            size="32"
-            width="3"
-            :color="
+          <VProgressCircular :model-value="item.success_rate" size="32" width="3" :color="
               item.success_rate > 80
                 ? 'success'
                 : item.success_rate > 50
                 ? 'warning'
                 : 'error'
-            "
-            class="me-2"
-          >
-            <span class="text-xs font-weight-bold"
-              >{{ item.success_rate }}%</span
-            >
+            " class="me-2">
+            <span class="text-xs font-weight-bold">{{ item.success_rate }}%</span>
           </VProgressCircular>
-          <VChip
-            :color="
+          <VChip :color="
               item.success_rate > 80
                 ? 'success'
                 : item.success_rate > 50
                 ? 'warning'
                 : 'error'
-            "
-            variant="tonal"
-            size="small"
-          >
+            " variant="tonal" size="small">
             {{
-              item.success_rate > 80
-                ? "Excellent"
-                : item.success_rate > 50
-                ? "Good"
-                : "Needs Work"
+            item.success_rate > 80
+            ? "Excellent"
+            : item.success_rate > 50
+            ? "Good"
+            : "Needs Work"
             }}
           </VChip>
         </div>
@@ -587,9 +511,7 @@ const applyFilters = async () => {
           <VTooltip text="View Report">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link
-                  :to="{ name: 'apps-report-view', params: { id: item.id } }"
-                >
+                <router-link :to="{ name: 'apps-report-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -598,11 +520,7 @@ const applyFilters = async () => {
 
           <VTooltip text="Download Report">
             <template #activator="{ props }">
-              <IconBtn
-                v-bind="props"
-                size="small"
-                @click="handleExportSingleReport(item.id)"
-              >
+              <IconBtn v-bind="props" size="small" @click="handleExportSingleReport(item.id)">
                 <VIcon icon="tabler-download" color="info" size="24" />
               </IconBtn>
             </template>
@@ -613,11 +531,7 @@ const applyFilters = async () => {
       <!-- Empty State -->
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon
-            icon="tabler-report-off"
-            size="48"
-            class="text-medium-emphasis mb-4"
-          />
+          <VIcon icon="tabler-report-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No reports found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
             No reports match your current search criteria. Try adjusting your
@@ -630,11 +544,8 @@ const applyFilters = async () => {
         </div>
       </template>
       <template #bottom>
-        <TablePagination
-          v-model:page="pagination.page"
-          :items-per-page="pagination.itemsPerPage"
-          :total-items="totalReports"
-        />
+        <TablePagination v-model:page="pagination.page" :items-per-page="pagination.itemsPerPage"
+          :total-items="totalReports" />
       </template>
     </VDataTableServer>
   </VCard>

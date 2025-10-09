@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useClientApi } from "@/composables/clientApi"
 import { useRouter } from 'vue-router'
-import { IconWorldWww, IconUpload, IconX } from '@tabler/icons-vue'
 
 const router = useRouter()
 const { createClient, fetchClientList, showAlert } = useClientApi()
@@ -121,7 +120,7 @@ onMounted(async () => {
     <VCardText class="pa-6">
       <div class="d-flex align-center">
         <VAvatar size="56" color="primary" variant="tonal" class="me-4">
-          <IconWorldWww :size="32" stroke-width="2" />
+           <VIcon icon="tabler-user" ></VIcon>
         </VAvatar>
         <div>
           <h1 class="text-h4 font-weight-bold mb-1">Add New Client</h1>

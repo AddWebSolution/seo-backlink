@@ -35,6 +35,11 @@ class Report extends BaseModel
         return $this->hasMany(BacklinkDatum::class, 'report_id', 'id');
     }
 
+    public function isAdmin(){
+        $authUser = auth()->user();
+        return $authUser->role === 1 ? true : false;
+    }
+
     protected static function newFactory(): Factory
     {
         $factoryClass = "\\Database\\Factories\\" . class_basename(static::class) . "Factory";
@@ -56,7 +61,7 @@ class Report extends BaseModel
         return $this->backlinks()
             ->whereNotNull('domain')
             ->distinct()
-            ->pluck('target_url', 'domain')
+            ->pluck('domain_url', 'domain')
             ->toArray();
     }
 

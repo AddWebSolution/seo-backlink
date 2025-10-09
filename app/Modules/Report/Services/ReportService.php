@@ -3,6 +3,8 @@
 namespace App\Modules\Report\Services;
 
 use Addweb\Base\Services\BaseService;
+use App\Enums\UserRole;
+use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use App\Modules\Report\Models\Report;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -11,12 +13,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ReportService extends BaseService
 {
     public array $searchFields = [
-        'title' => [],
+        'run_id' => [],
     ];
 
     public array $filters = [
-        'title' => ['filter' => 'contain'],
+        'client_id' => ['filter' => ''],
     ];
+
+    protected function loadRelations(): void
+    {
+        $authUser = auth()->user();
+        if ($authUser->role === UserRole::CLIENT) {
+            $this->query->where('client_id', auth()->id());
+        }
+        $this->loadExtraRelation();
+    }
 
     public function __construct()
     {
@@ -39,6 +50,8 @@ class ReportService extends BaseService
                 $q->where('url', 'like', "%{$search}%")
                     ->orWhere('from_url', 'like', "%{$search}%")
                     ->orWhere('domain', 'like', "%{$search}%")
+                    ->orWhere('domain_url', 'like', "%{$search}%")
+                    ->orWhere('target_domain', 'like', "%{$search}%")
                     ->orWhere('target_url', 'like', "%{$search}%")
                     ->orWhere('anchor', 'like', "%{$search}%")
                     ->orWhere('page_title', 'like', "%{$search}%");
@@ -51,10 +64,12 @@ class ReportService extends BaseService
 
         if (!empty($filters['domain'])) {
             $query->where(function ($q) use ($filters) {
-                $q->orwhere('target_url', $filters['domain'])
+                $q->orwhere('domain_url', $filters['domain'])
                     ->orWhere('domain', $filters['domain']);
             });
         }
+
+        $query->orderBy($filters['sort_by'], $filters['sort_order']);
 
         $backlinks = $query->paginate($perPage);
 
@@ -79,6 +94,7 @@ class ReportService extends BaseService
         foreach ($reportIds as $id) {
             $report = Report::findOrFail($id);
             $backlinks = $report->backlinks()->get();
+            $client = $report->client ? $report->client->only(['id', 'name', 'email']) : null;
 
             $sheet = $spreadsheet->createSheet();
             $sheet->setTitle("Report-{$report->id}");
@@ -130,8 +146,11 @@ class ReportService extends BaseService
             // Headers for backlinks table
             $headers = [
                 'ID',
+                'Target Domain',
                 'Target URL',
                 'Domain',
+                'Domain URL',
+                'Client',
                 'From Domain',
                 'Rank',
                 'Domain Rank',
@@ -184,8 +203,11 @@ class ReportService extends BaseService
             foreach ($backlinks as $bl) {
                 $rowData = [
                     $bl->id,
+                    $bl->target_domain,
                     $bl->target_url,
                     $bl->domain,
+                    $bl->domain_url,
+                    $bl->client_id ? $client['name'] : 'N/A',
                     $bl->from_domain,
                     $bl->rank,
                     $bl->domain_rank,

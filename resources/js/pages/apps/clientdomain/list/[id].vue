@@ -4,13 +4,13 @@ import { useDomainApi } from "@/composables/domainApi.js";
 import { useClientApi } from "@/composables/clientApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { VBtn } from "vuetify/components";
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from "vue-router";
 import useAuthStore from "@/router/store/auth";
 import { useAbility } from "@casl/vue";
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Title", key: "title", align: "center", width: "130px" },
+  { title: "Title", key: "title", align: "center", width: "200px" },
   { title: "Target URL", key: "target_url", align: "center", width: "140px" },
   { title: "DA", key: "domain_authority", align: "start", width: "80px" },
   { title: "DR", key: "domain_rating", align: "start", width: "80px" },
@@ -32,6 +32,12 @@ const headers = [
   },
   { title: "Country", key: "country", align: "center", width: "40px" },
   {
+    title: "Manage Domains",
+    key: "manage_domains",
+    sortable: false,
+    width: "120px",
+  },
+  {
     title: "Actions",
     key: "actions",
     sortable: false,
@@ -39,23 +45,21 @@ const headers = [
   },
 ];
 
-
-const { ClientList, fetchClientList } = useClientApi()
-const authStore = useAuthStore()
-const ability = useAbility()
+const { ClientList, fetchClientList } = useClientApi();
+const authStore = useAuthStore();
+const ability = useAbility();
 
 const {
   domains,
   pagination,
   loading,
   error,
-  fetchClientDomains,
+  fetchDomains,
   downloadTemplate,
   importDomains,
   deleteDomain,
   showAlert,
 } = useDomainApi();
-
 
 // Filters
 const selectedStatus = ref();
@@ -66,22 +70,19 @@ const searchQuery = ref("");
 const selectedRows = ref([]);
 const showAdvancedFilters = ref(false);
 
+const route = useRoute();
+const router = useRouter();
 
-const route = useRoute()
-const router = useRouter()
+const clientId = computed(() =>
+  authStore.isClient ? authStore.user.id : route.params.id
+);
 
-// const clientId = computed(() => {
-//   return route.params.id || authStore.user?.id
-// })
-
-const clientId = computed(() => authStore.isClient ? authStore.user.id : route.params.id)
-
-const showImportResult = ref(false)
+const showImportResult = ref(false);
 const importResult = ref({
   data: {},
-  message: '',
+  message: "",
   success: false,
-})
+});
 
 // Excel Import Dialog State
 const importDialog = ref(false);
@@ -91,54 +92,51 @@ const importing = ref(false);
 const isDragOver = ref(false);
 
 // Data table options
-const sortBy = ref();
-const orderBy = ref();
+const sortBy = ref("");
+const orderBy = ref("");
 
 // Build filters object
 const buildFilters = () => {
   const filters = {};
-
   if (selectedStatus.value) filters.status = selectedStatus.value;
-  if (selectedApprovalStatus.value)
-    filters.approval_status = selectedApprovalStatus.value;
-  if (selectedCountry.value) filters.country = selectedCountry.value;
-  if (searchQuery.value) filters.searchTerm = searchQuery.value;
-  if (selectedClient.value) filters.client_id = selectedClient.value;
+  const params = {
+    pageNumber: pagination.value.page,
+    perPage: pagination.value.itemsPerPage,
+  };
+  if (searchQuery.value) params.searchTerm = searchQuery.value;
+  if (sortBy.value) params.sortField = sortBy.value;
+  if (orderBy.value) params.sortOrder = orderBy.value;
 
-  if (sortBy.value) filters.sortField = sortBy.value
-  if (orderBy.value) filters.sortOrder = orderBy.value
-
-  filters.pageNumber = pagination.value.page;
-  filters.perPage = pagination.value.itemsPerPage;
-
-  return filters;
+  if (Object.keys(filters).length > 0) {
+    params.filters = filters;
+  }
+  console.log("params", filters);
+  return params;
 };
 
-
-const loadDomains = async (id = clientId.value) => {
+const loadDomains = async (id = clientId) => {
   const filters = buildFilters();
-  await fetchClientDomains(id, filters, pagination.value.page);
+  console.log("client id", id);
+  await fetchDomains(filters, pagination.value.page);
 };
 
 const currentClient = computed(() => {
-  if (!ClientList.value?.length) return null
-  if (!clientId.value) return null
-  return ClientList.value.find(client => client.id == clientId.value)
-})
-
-console.log('currentClient', ClientList);
-
-
+  if (!ClientList.value?.length) return null;
+  if (!clientId.value) return null;
+  return ClientList.value.find((client) => client.id == clientId.value);
+});
 
 const clearAllFilters = async () => {
   selectedStatus.value = null;
   selectedClient.value = null;
   selectedApprovalStatus.value = null;
   selectedCountry.value = "";
+  sortBy.value = null;
+  orderBy.value = null;
   searchQuery.value = "";
   pagination.value.page = 1;
-  await loadDomains(clientId.value);
-  showAlert("Custom message here!", "info");
+  await loadDomains(clientId);
+  showAlert("Filters  Cleared !", "info");
 };
 
 const hasActiveFilters = computed(() => {
@@ -166,38 +164,35 @@ const getStatusConfig = (status) => {
 
 const applyFilters = async () => {
   page.value = 1;
-  await loadDomains(clientId.value);
+  await loadDomains(clientId);
 };
 
 const handleDeleteDomain = async (id) => {
   try {
     await deleteDomain(id);
-    await loadDomains(clientId.value);
+    await loadDomains(clientId);
   } catch (error) {
     console.error("Delete failed:", error);
   }
 };
-
 
 const handleDeleteDomainBatch = async (ids) => {
   loading.value = true;
   try {
-    await Promise.all(ids.map(id => deleteDomain(id)));
+    await Promise.all(ids.map((id) => deleteDomain(id)));
     selectedRows.value = [];
-    await loadDomains(clientId.value);
+    await loadDomains(clientId);
   } catch (error) {
-    ss
+    ss;
     console.error("Delete failed:", error);
   }
 };
-
-
 
 const handleExportReports = () => {
   showAlert("Export functionality is not implemented yet.", "info");
 };
 
-// import dialog function 
+// import dialog function
 const handleImportDomains = async () => {
   if (!selectedFile.value) {
     showAlert("Please select a file first", "error");
@@ -207,16 +202,15 @@ const handleImportDomains = async () => {
   importing.value = true;
 
   try {
-    const res = await importDomains(selectedFile.value)
-    importResult.value = res
+    const res = await importDomains(selectedFile.value);
+    importResult.value = res;
     closeImportDialog();
     if (res.success) {
       showImportResult.value = true;
       importing.value = false;
       selectedFile.value = null;
     }
-    await loadDomains(clientId.value);
-    console.log('showImportResult', showImportResult);
+    await loadDomains(clientId);
   } catch (err) {
     showAlert("Import failed", "error");
   } finally {
@@ -256,7 +250,6 @@ const templateDownload = async () => {
   }
 };
 
-console.log("pagination", pagination);
 // Computed total domains count
 const totalDomains = computed(() => pagination.value.total ?? 0);
 
@@ -291,27 +284,24 @@ const itemsPerPage = computed({
   },
 });
 
-
 const updateOptions = async (options) => {
-
-  pagination.value.itemsPerPage = options.itemsPerPage
-  pagination.value.page = options.page
+  pagination.value.itemsPerPage = options.itemsPerPage;
+  pagination.value.page = options.page;
 
   if (options.sortBy && options.sortBy.length > 0) {
-    sortBy.value = options.sortBy[0].key
-    orderBy.value = options.sortBy[0].order
+    sortBy.value = options.sortBy[0].key;
+    orderBy.value = options.sortBy[0].order;
   } else {
-    sortBy.value = null
-    orderBy.value = null
+    sortBy.value = null;
+    orderBy.value = null;
   }
 
-  await loadDomains(clientId.value);
-}
+  await loadDomains(clientId);
+};
 
 onMounted(async () => {
-  await fetchClientList()
-})
-
+  await fetchClientList();
+});
 </script>
 
 <template>
@@ -324,20 +314,20 @@ onMounted(async () => {
             <IconWorldWww stroke="{2}" />
           </VAvatar>
           <div>
-            <h1 class="text-h3 font-weight-bold mb-1">Client Domain Management</h1>
+            <h1 class="text-h3 font-weight-bold mb-1">Domain Management</h1>
             <p class="text-body-1 text-medium-emphasis mb-0">
-              Manage and monitor your client domain portfolio
+              Manage and monitor your domain portfolio
             </p>
           </div>
         </div>
       </VCol>
 
-      <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
+      <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Clients
         </VBtn>
-      </VCol>
+      </VCol> -->
 
       <VCol cols="12" class="mt-4">
         <div v-if="currentClient" class="d-flex align-center">
@@ -346,10 +336,9 @@ onMounted(async () => {
             Client Name : {{ currentClient.name }}
           </VChip>
         </div>
-      </VCol> 
+      </VCol>
     </VRow>
   </VCard>
-
 
   <!-- Enhanced Search & Filter Section -->
   <VCard class="mb-6" elevation="1">
@@ -364,40 +353,24 @@ onMounted(async () => {
           <VIcon icon="tabler-x" class="me-1" />
           Clear All
         </VBtn>
-        <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
+        <!-- <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
           <VIcon :icon="showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
             " class="me-1" />
           {{ showAdvancedFilters ? "Less" : "More" }} Filters
-        </VBtn>
+        </VBtn> -->
       </div>
     </VCardTitle>
 
     <VCardText class="pt-0">
       <!-- Primary Search Bar -->
-      <VRow class="mb-4">
-        <VCol cols="12">
+      <VRow align="end" justify="space-between">
+        <VCol cols="12" md="6">
           <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
             prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
         </VCol>
-      </VRow>
-
-      <!-- Quick Filters -->
-      <VRow class="mb-4">
         <VCol cols="12" sm="6" md="3">
           <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
             hide-details prepend-inner-icon="tabler-circle-dot" />
-        </VCol>
-        <!-- <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedClient" label="Client" :items="ClientList" item-title="name" item-value="id" variant="outlined" clearable
-            hide-details prepend-inner-icon="tabler-circle-dot" />
-        </VCol> -->
-        <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
-            variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
-        </VCol>
-        <VCol cols="12" sm="6" md="3">
-          <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
-            clearable hide-details prepend-inner-icon="tabler-world" />
         </VCol>
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
           <VBtn color="primary" variant="flat" block @click="loadDomains">
@@ -407,8 +380,18 @@ onMounted(async () => {
         </VCol>
       </VRow>
 
+      <!-- Quick Filters -->
+      <!-- <VRow align="end" justify="space-between">
+        <VCol cols="12" sm="6" md="3" class="d-flex align-end">
+          <VBtn color="primary" variant="flat" block @click="loadDomains">
+            <VIcon icon="tabler-search" class="me-2" />
+            Search
+          </VBtn>
+        </VCol>
+      </VRow> -->
+
       <!-- Advanced Filters -->
-      <VExpandTransition>
+      <!-- <VExpandTransition>
         <div v-show="showAdvancedFilters">
           <VDivider class="mb-4" />
           <VRow>
@@ -430,7 +413,7 @@ onMounted(async () => {
             </VCol>
           </VRow>
         </div>
-      </VExpandTransition>
+      </VExpandTransition> -->
     </VCardText>
   </VCard>
 
@@ -455,7 +438,7 @@ onMounted(async () => {
           <h4 class="text-subtitle-1 font-weight-bold text-success mb-2">
             Successful Imports ({{ importResult.data.imported.length }})
           </h4>
-          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
+          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth" class="pr-2">
             <VList density="compact">
               <VListItem v-for="(domain, idx) in importResult.data.imported" :key="'s-' + idx">
                 <VListItemTitle>{{ domain }}</VListItemTitle>
@@ -472,11 +455,12 @@ onMounted(async () => {
           <h4 class="text-subtitle-1 font-weight-bold text-error mb-2">
             Failed Imports ({{ importResult.data.failed.length }})
           </h4>
-          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth;" class="pr-2">
+          <div style="max-height: 150px; overflow-y: auto; scroll-behavior: smooth" class="pr-2">
             <VList density="compact">
               <VListItem v-for="(f, idx) in importResult.data.failed" :key="'f-' + idx">
                 <VListItemTitle>
-                  <span class="text-primary">{{ f.url || 'N/A' }}</span> — {{ f.reason }}
+                  <span class="text-primary">{{ f.url || "N/A" }}</span> —
+                  {{ f.reason }}
                 </VListItemTitle>
               </VListItem>
               <VListItem v-if="importResult.data.failed.length === 0">
@@ -527,10 +511,14 @@ onMounted(async () => {
           Export
         </VBtn>
         <!-- create domain-->
-          <VBtn color="primary" prepend-icon="tabler-plus"
-            @click="$router.push({ name: 'apps-domain-clientdomain-add', params: { id: clientId } })">
-            Add Client Domain
-          </VBtn>
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="
+            $router.push({
+              name: 'apps-clientdomain-add',
+              params: { id: clientId },
+            })
+          ">
+          Add Domain
+        </VBtn>
       </div>
     </div>
 
@@ -552,9 +540,10 @@ onMounted(async () => {
       </template>
 
       <template #item.domain_authority="{ item }">
-        <VProgressCircular :model-value="item.domain_authority" size="30" width="4" :color="item.domain_authority > 70
-            ? 'success'
-            : item.domain_authority > 40
+        <VProgressCircular :model-value="item.domain_authority" size="30" width="4" :color="
+            item.domain_authority > 70
+              ? 'success'
+              : item.domain_authority > 40
               ? 'warning'
               : 'error'
           ">
@@ -565,9 +554,10 @@ onMounted(async () => {
       </template>
 
       <template #item.domain_rating="{ item }">
-        <VProgressCircular :model-value="item.domain_rating" size="30" width="4" :color="item.domain_rating > 70
-            ? 'success'
-            : item.domain_rating > 40
+        <VProgressCircular :model-value="item.domain_rating" size="30" width="4" :color="
+            item.domain_rating > 70
+              ? 'success'
+              : item.domain_rating > 40
               ? 'warning'
               : 'error'
           ">
@@ -594,9 +584,10 @@ onMounted(async () => {
       </template>
 
       <template #item.turnaround_time="{ item }">
-        <VChip size="small" :color="item.turnaround_time <= 3
-            ? 'success'
-            : item.turnaround_time <= 7
+        <VChip size="small" :color="
+            item.turnaround_time <= 3
+              ? 'success'
+              : item.turnaround_time <= 7
               ? 'warning'
               : 'error'
           " variant="tonal">
@@ -612,9 +603,10 @@ onMounted(async () => {
       </template>
 
       <template #item.approval_status="{ item }">
-        <VChip :color="item.approval_status === 1
-            ? 'warning'
-            : item.approval_status === 2
+        <VChip :color="
+            item.approval_status === 1
+              ? 'warning'
+              : item.approval_status === 2
               ? 'error'
               : 'success'
           " variant="tonal" size="small" class="font-weight-medium">
@@ -633,26 +625,36 @@ onMounted(async () => {
         <span>{{ item.country }}</span>
       </template>
 
+
+      <template #item.manage_domains="{ item }">
+        <div class="d-flex ml-4">
+          <VTooltip text="View Rival Domains">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="
+                $router.push({
+                  name: 'apps-clientdomain-rivaldomain-list',
+                  params: { clientId: item.client_id, domainId: item.id },
+                })
+                ">
+                <VIcon color="success" icon="tabler-world" size="20" />
+              </IconBtn>
+            </template>
+          </VTooltip>
+        </div>
+      </template>
+
+
       <template #item.actions="{ item }">
         <div class="d-flex">
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link
-                  :to="{ name: 'apps-domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
+                <router-link :to="{
+                    name: 'apps-clientdomain-view',
+                    params: { clientId: item.client_id, domainId: item.id },
+                  }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
-              </IconBtn>
-            </template>
-          </VTooltip>
-
-          <VTooltip text="View Rival Domains">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="$router.push({
-                name: 'apps-domain-clientdomain-rivaldomain-list',
-                params: { clientId: item.client_id, domainId: item.id }
-              })">
-                <VIcon color="success" icon="tabler-world" size="20" />
               </IconBtn>
             </template>
           </VTooltip>
@@ -663,8 +665,6 @@ onMounted(async () => {
                 size="small" />
             </template>
           </VTooltip>
-
-
         </div>
       </template>
 
@@ -690,7 +690,6 @@ onMounted(async () => {
       </template>
     </VDataTableServer>
   </VCard>
-
 
   <!-- import domains dialog-->
 

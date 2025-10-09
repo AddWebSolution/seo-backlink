@@ -2,7 +2,6 @@
 import { onMounted, ref, computed ,unref } from "vue";
 import { useDomainApi } from "@/composables/domainApi.js";
 import { IconWorldWww } from "@tabler/icons-vue";
-import { flat } from "@/views/demos/components/button/demoCodeButton";
 const { ClientList,fetchClientList } = useClientApi();
 
 const headers = [
@@ -81,21 +80,23 @@ const buildFilters = () => {
   const filters = {};
 
   if (selectedStatus.value) filters.status = selectedStatus.value;
-  if (selectedApprovalStatus.value)
-    filters.approval_status = selectedApprovalStatus.value;
-  if (selectedCountry.value) filters.country = selectedCountry.value;
-  if (searchQuery.value) filters.searchTerm = searchQuery.value;
-  if (selectedClient.value) filters.client_id = selectedClient.value;
 
-  if (sortBy.value) filters.sortField = sortBy.value
-  if (orderBy.value) filters.sortOrder = orderBy.value  
+  const params = {
+    pageNumber: pagination.value.page,
+    perPage: pagination.value.itemsPerPage,
+  };
 
-  filters.pageNumber = pagination.value.page;
-  filters.perPage = pagination.value.itemsPerPage;
+  if (searchQuery.value) params.searchTerm = searchQuery.value;
 
-  return filters;
+  if (sortBy.value) params.sortField = sortBy.value;
+  if (orderBy.value) params.sortOrder = orderBy.value;
+
+  if (Object.keys(filters).length > 0) {
+    params.filters = filters;
+  }
+
+  return params;
 };
-
 const loadDomains = async () => {
   const filters = buildFilters();
   await fetchDomains(filters, pagination.value.page);
@@ -109,7 +110,7 @@ const clearAllFilters = async () => {
   searchQuery.value = "";
   pagination.value.page = 1;
   await loadDomains();
-  showAlert("Custom message here!", "info");
+  showAlert("Filters  Cleared !", "info");
 };
 
 const hasActiveFilters = computed(() => {
@@ -167,7 +168,6 @@ const handleImportDomains = async () => {
       showImportResult.value = true;
       selectedFile.value = null;
     }
-    console.log('showImportResult',showImportResult);
   } catch (err) {
     showAlert("Import failed", "error");
   } finally {
@@ -255,7 +255,7 @@ const updateOptions = async (options) => {
     orderBy.value = null
   }
 
-  await loadDomains()
+  await loadDomains();
 }
 
 onMounted(async () => {

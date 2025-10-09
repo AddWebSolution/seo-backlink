@@ -3,6 +3,7 @@
 namespace App\Modules\ClientDomain\Services;
 
 use Illuminate\Support\Facades\DB;
+use App\Enums\UserRole;
 use Addweb\Base\Services\BaseService;
 use App\Modules\Client\Models\Client;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -30,6 +31,18 @@ class ClientDomainService extends BaseService
         'country' => ['filter' => 'default'], 
         'client_id' => ['filter' => 'default'],
     ];
+
+    public string $sortField = 'id';
+    public string $sortOrder = 'desc';
+
+    protected function loadRelations(): void
+    {
+        $authUser = auth()->user();
+        if ($authUser->role === UserRole::CLIENT) {
+            $this->query->where('client_id', auth()->id());
+        }
+        $this->loadExtraRelation();
+    }
 
     public function __construct()
     {
@@ -113,18 +126,18 @@ class ClientDomainService extends BaseService
         ];
 
     }
-
-    public function getClientDomains(int $clientId, int $perPage = 10, array $filters = [])
+    
+    public function getClientDomains($clientId, int $perPage = 10, $searchTerm , $filters, string $sortField = 'id', string $sortOrder = 'desc')
     {
         $query = ClientDomain::where('client_id', $clientId);
 
         $query->where('status', 1);
 
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
+        if (!empty($searchTerm )) {
+            $search = $searchTerm ;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('domain', 'like', "%{$search}%");
+                    ->orWhere('target_url', 'like', "%{$search}%");
             });
         }
 
@@ -132,9 +145,11 @@ class ClientDomainService extends BaseService
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['domain'])) {
-            $query->where('domain', $filters['domain']);
-        }
+        // if (!empty($filters['domain'])) {
+        //     $query->where('domain', $filters['domain']);
+        // }
+
+        $query->orderBy($sortField, $sortOrder);
 
         $domains = $query->orderBy('title')->paginate($perPage);
 

@@ -141,10 +141,10 @@ const userProfileList = [
 
               <div>
                 <h6 class="text-h6 font-weight-medium">
-                  Super Admin
+                  {{ userData.name }}
                 </h6>
                 <VListItemSubtitle class="text-capitalize text-disabled">
-                  Administrator
+                 {{ userData.role == 3 ? 'Client' : 'Admin' }}
                 </VListItemSubtitle>
               </div>
             </div>

@@ -69,19 +69,26 @@ const buildFilters = () => {
   const filters = {};
 
   if (selectedStatus.value) filters.status = selectedStatus.value;
-  if (searchQuery.value) filters.searchTerm = searchQuery.value;
-  if (sortBy.value) filters.sortField = sortBy.value;
-  if (orderBy.value) filters.sortOrder = orderBy.value;
 
-  filters.pageNumber = pagination.value.page;
-  filters.perPage = pagination.value.itemsPerPage;
+  const params = {
+    pageNumber: pagination.value.page,
+    perPage: pagination.value.itemsPerPage,
+  };
 
-  return filters;
+  if (searchQuery.value) params.searchTerm = searchQuery.value;
+
+  if (sortBy.value) params.sortField = sortBy.value;
+  if (orderBy.value) params.sortOrder = orderBy.value;
+
+  if (Object.keys(filters).length > 0) {
+    params.filters = filters;
+  }
+
+  return params;
 };
 
 const loadKeywords = async () => {
   const filters = buildFilters();
-  console.log('run', 'run')
   await fetchKeywords(filters, pagination.value.page);
 };
 
@@ -91,7 +98,7 @@ const clearAllFilters = async () => {
   searchQuery.value = "";
   pagination.value.page = 1;
   await loadKeywords();
-  showAlert("Custom message here!", "info");
+  showAlert("Filters  Cleared !", "info");
 };
 
 const hasActiveFilters = computed(() => {

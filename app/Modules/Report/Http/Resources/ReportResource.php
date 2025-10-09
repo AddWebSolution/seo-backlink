@@ -13,16 +13,18 @@ class ReportResource extends JsonResource
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
-    {
+    {   
         return [
             'id'       => $this->id,
             'run_id'   => $this->run_id,
-            'client_id'   => $this->client() ? $this->client->only(['id', 'name', 'email']) : null,
+            'run_at'   => $this->created_at,
+            'client_id'   => $this->client() ? $this->client->only(['id', 'name', 'email','role']) : null,
             'domain_count'   => $this->getDomainsCount() ? $this->getDomainsCount() : $this->domain_count,
             'total_backlink'   => $this->getBacklinkCount() ? $this->getBacklinkCount() : $this->total_backlink,
             'accepted_backlinks'   => $this->getAcceptedCount() ? $this->getAcceptedCount() : $this->accepted_backlinks,
             'rejected_backlinks'   => $this->getRejectedCount() ? $this->getRejectedCount() : $this->rejected_backlinks,
             'backlinks' => $this->backlinks,
+            'is_admin' => $this->isAdmin(),
         ];
     }
 }

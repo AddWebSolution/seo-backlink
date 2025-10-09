@@ -92,7 +92,6 @@ const propertyListingData = ref({
 const currentStep = ref(0)
 
 const onSubmit = () => {
-  console.log('propertyListingData :>> ', propertyListingData.value)
 }
 </script>
 

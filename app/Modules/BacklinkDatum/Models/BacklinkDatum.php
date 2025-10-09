@@ -28,6 +28,10 @@ class BacklinkDatum extends BaseModel
         return $factoryClass::new();
     }
 
+    public function client(){
+        return $this->belongsTo(\App\Modules\User\Models\User::class, 'client_id');
+    }
+
 
       protected $guarded = [];
 }

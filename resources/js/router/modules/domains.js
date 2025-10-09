@@ -14,14 +14,14 @@ export const domainRoutes = [
     meta: { title: "Domain Edit" }
   },
   {
-    path: "/client/:id?/clientdomain/add",
+    path: "/clientdomain/add",
     name: "apps-clientdomain-add",
     component: () => import("@/pages/apps/clientdomain/add/[id].vue"),
     props: true,
     meta: { title: "Add Client Domain" }
   },
   {
-    path: "/client/:id?/clientdomain/list",
+    path: "/clientdomain/list",
     name: "apps-clientdomain-list",
     component: () => import("@/pages/apps/clientdomain/list/[id].vue"),
     props: true,

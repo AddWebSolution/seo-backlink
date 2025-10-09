@@ -4,15 +4,17 @@ import { useClientApi } from '@/composables/clientApi';
 import { useRouter } from 'vue-router'
 import { IconWorldWww, IconDevicesCog, IconWorldMinus, IconUnlink, IconSeo, IconTag } from '@tabler/icons-vue';
 import { ref, reactive, watch, onMounted } from 'vue'
+import useAuthStore from '@/router/store/auth';
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore();
 
 const { createDomain, loading, error, showAlert } = useDomainApi();
 
 const { ClientList,fetchClientList } = useClientApi();
 
-const clientId = computed(() => route.params.id)
+const clientId = authStore.user.id;
 
 
 // Form data
@@ -55,8 +57,8 @@ watch(form, debounce(() => {
 
 
 const currentClient = computed(() => {
-  form.value.client_id = clientId.value
-  return ClientList?.value?.find(c => c.id == clientId.value) || null
+  form.value.client_id = clientId
+  return ClientList?.value?.find(c => c.id == clientId) || null
 })
 
 
@@ -276,7 +278,7 @@ const scrollToSection = (sectionId) => {
                 <IconWorldWww stroke={2} />
               </VAvatar>
               <div>
-                <h1 class="text-h3 font-weight-bold mb-1">Create New Client Domain</h1>
+                <h1 class="text-h3 font-weight-bold mb-1">Create New Domain</h1>
                 <p class="text-body-1 text-medium-emphasis mb-0">
                   Fill in the domain details below to add a new entry to the system
                 </p>
@@ -290,7 +292,7 @@ const scrollToSection = (sectionId) => {
                 Reset
               </VBtn>
               <VBtn variant="flat"
-                @click="router.push({ name: 'apps-domain-clientdomain-list', params: { id: clientId } })"
+                @click="router.push({ name: 'apps-clientdomain-list', params: { id: clientId } })"
                 :disabled="state.submitting">
                 <VIcon icon="tabler-arrow-left" class="me-2" />
                 Back to List
@@ -374,7 +376,7 @@ const scrollToSection = (sectionId) => {
                 <VCol cols="12" md="3">
                   <AppTextField label="Client Name *" :value="currentClient?.name" variant="outlined" readonly />
                 </VCol>
-
+                
                 <VCol cols="12" md="3">
                   <AppTextField v-model="form.title" label="Domain Title *" placeholder="Enter a descriptive title"
                     :rules="[rules.required, rules.minLength(3), rules.maxLength(100)]" variant="outlined"

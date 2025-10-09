@@ -22,6 +22,4 @@ export const updateAbilities = () => {
   const authStore = useAuthStore()
   ability.update(defineAbilitiesFor(authStore.permissions || []).rules)
 
-  console.log('Abilities updated:', ability.rules);
-
 }

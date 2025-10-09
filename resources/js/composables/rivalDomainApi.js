@@ -75,26 +75,22 @@ export function useRivalDomainApi() {
     }
   };
 
-  const fetchClientRivalDomains = async (
-    id,
-    filters = {},
-    page = 1,
-    perPage = 10
-  ) => {
+  const fetchClientRivalDomains = async (id,filters = {}, page = null) => {
     loading.value = true;
     error.value = null;
 
     try {
-      const query = {
+      const body = {
         ...filters,
-        page,
-        per_page: perPage,
       };
 
-      const result = await useApi(`api/rivaldomain/get/domains/${id}`, {
-        method: "POST",
-        body : query,
-      });
+      const result = await useApi(
+        createUrl(`api/rivaldomain/get/domains/${id}`, { query: body }),
+        {
+          method: "POST",
+        }
+      );
+
       rivaldomains.value = result.data.value.domains.data;
       const apiPagination  = result.data.value.domains;
 
@@ -106,11 +102,9 @@ export function useRivalDomainApi() {
         itemsPerPage: apiPagination.per_page ?? perPage,
         page: apiPagination.current_page ?? 1,
       };
-
       return result;
     } catch (err) {
       error.value = err;
-      showAlert("Failed to load domains", "error");
       throw err;
     } finally {
       loading.value = false;
@@ -268,7 +262,6 @@ export function useRivalDomainApi() {
       const result = await useApi("api/rivaldomain/domain/list", {
         method: "POST",
       });
-      console.log("Domain List API Result:", result);
       rivalDomainList.value = result.data.value.rivaldomains || [];
       return result;
     } catch (err) {

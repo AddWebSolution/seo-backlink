@@ -29,7 +29,6 @@ const submitting = ref(false)
 // Fetch domain list on mount
 onMounted(async () => {
   await fetchDomainList()
-  console.log('dsdsd',domainList);
 })
 
 const handleSubmit = async () => {

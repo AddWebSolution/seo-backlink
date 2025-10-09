@@ -35,7 +35,6 @@ const headers = [
 ];
 
 const viewReportDetails = (report) => {
-  console.log("selected report", report);
   selectedReport.value = report;
   reportDetailsDialog.value = true;
 };

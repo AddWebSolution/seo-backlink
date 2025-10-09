@@ -44,7 +44,8 @@ class UserController extends BaseController
     public function clientDomains()
     {
         return User::query()
-            ->where('status', UserStatus::ACTIVE) 
+            ->where('status', UserStatus::ACTIVE)
+            ->where('role', '3')
             ->with([
                 'clientDomains' => function ($query) {
                     $query->select('id', 'client_id', 'title', 'target_url') 
