@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { IconWorldWww } from "@tabler/icons-vue";
 import { useClientApi } from '@/composables/clientApi'
 import { useAbility } from '@casl/vue'
 
@@ -157,7 +156,7 @@ onMounted(async () => {
       <VCol cols="12" md="8">
         <div class="d-flex align-center">
           <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-            <IconWorldWww stroke={2} />
+            <VIcon icon="tabler-user" ></VIcon>
           </VAvatar>
           <div>
             <h1 class="text-h3 font-weight-bold mb-1">Edit Client</h1>

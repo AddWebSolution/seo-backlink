@@ -430,7 +430,7 @@ const updateOptions = async (options) => {
         <VCol cols="12" md="8">
           <div class="d-flex align-center">
             <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-              <IconWorldWww stroke="{2}" />
+              <VIcon icon="tabler-user" ></VIcon>
             </VAvatar>
             <div>
               <h1 class="text-h3 font-weight-bold mb-1">Client Management</h1>

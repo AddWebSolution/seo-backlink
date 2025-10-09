@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useClientApi } from "@/composables/clientApi"
 import { useRouter, useRoute } from 'vue-router'
-import { IconWorldWww, IconEdit, IconDeviceFloppy, IconX, IconUpload, IconArrowLeft } from '@tabler/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -212,7 +211,7 @@ onMounted(async () => {
           <!-- Left Section: Avatar and Titles -->
           <VCol cols="12" md="8" class="d-flex align-center flex-wrap gap-4">
             <VAvatar size="56" color="primary" variant="tonal" class="me-4">
-              <IconWorldWww :size="32" stroke-width="2" />
+              <VIcon icon="tabler-user" ></VIcon>
             </VAvatar>
             <div>
               <h1 class="text-h4 font-weight-bold mb-1">

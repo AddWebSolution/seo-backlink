@@ -32,6 +32,12 @@ const headers = [
   },
   { title: "Country", key: "country", align: "center", width: "40px" },
   {
+    title: "Rival Domains",
+    key: "manage_domains",
+    sortable: false,
+    width: "120px",
+  },
+  {
     title: "Actions",
     key: "actions",
     sortable: false,
@@ -315,7 +321,7 @@ onMounted(async () => {
 <template>
   <!-- Header Section -->
   <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
-    <VRow align="start" justify="space-between">
+    <VRow align="center" justify="space-between">
       <VCol cols="12" md="8">
         <div class="d-flex align-center">
           <VAvatar size="64" color="primary" variant="elevated" class="me-4">
@@ -330,14 +336,14 @@ onMounted(async () => {
         </div>
       </VCol>
 
-      <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
+      <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="mt-8 text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
+          <VIcon icon="tabler-arrow-left" />
           Back to Clients
         </VBtn>
       </VCol>
 
-      <VCol cols="12" class="mt-4">
+      <VCol cols="12">
         <div v-if="currentClient" class="d-flex align-center">
           <VChip color="primary" class="ms-3 pa-4" variant="flat" size="large" elevation="2" outlined>
             <VIcon icon="tabler-user" class="me-2" />
@@ -615,6 +621,19 @@ onMounted(async () => {
         <span>{{ item.country }}</span>
       </template>
 
+      <template #item.manage_domains="{ item }">
+        <VTooltip  text="View Rival Domains">
+          <template #activator="{ props }">
+            <IconBtn class="ml-4" v-bind="props" size="small" @click="$router.push({
+              name: 'apps-domain-clientdomain-rivaldomain-list',
+              params: { clientId: item.client_id, domainId: item.id }
+            })">
+              <VIcon color="success" icon="tabler-world" size="20" />
+            </IconBtn>
+          </template>
+        </VTooltip>
+      </template>
+
       <template #item.actions="{ item }">
         <div class="d-flex">
           <VTooltip text="View Details">
@@ -624,17 +643,6 @@ onMounted(async () => {
                   :to="{ name: 'apps-domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
-              </IconBtn>
-            </template>
-          </VTooltip>
-
-          <VTooltip text="View Rival Domains">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="$router.push({
-                name: 'apps-domain-clientdomain-rivaldomain-list',
-                params: { clientId: item.client_id, domainId: item.id }
-              })">
-                <VIcon color="success" icon="tabler-world" size="20" />
               </IconBtn>
             </template>
           </VTooltip>

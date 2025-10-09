@@ -309,7 +309,7 @@ onMounted(async () => {
 <template>
   <!-- Header Section -->
   <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
-    <VRow align="start" justify="space-between">
+    <VRow align="center" justify="space-between">
       <VCol cols="12" md="8">
         <div class="d-flex align-center">
           <VAvatar size="64" color="primary" variant="elevated" class="me-4">
@@ -323,14 +323,16 @@ onMounted(async () => {
           </div>
         </div>
       </VCol>
-      <VCol cols="12" md="4" class="text-md-end">
+
+      <VCol cols="12" md="4" class="mt-8 text-md-end">
         <VBtn color="primary" variant="flat"
           @click="router.push({ name: 'apps-domain-clientdomain-list', params: { id: clientId } })">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Clients Domain
         </VBtn>
       </VCol>
-      <VCol cols="12" class="mt-4">
+
+      <VCol cols="12">
         <div class="d-flex align-center flex-wrap gap-4">
           <VChip v-if="currentClient" color="primary" class="pa-4" variant="flat" size="large" elevation="2" outlined>
             <VIcon icon="tabler-user" class="me-2" />
