@@ -99,19 +99,22 @@ const buildFilters = () => {
   const filters = {};
 
   if (selectedStatus.value) filters.status = selectedStatus.value;
-  if (selectedApprovalStatus.value)
-    filters.approval_status = selectedApprovalStatus.value;
-  if (selectedCountry.value) filters.country = selectedCountry.value;
-  if (searchQuery.value) filters.searchTerm = searchQuery.value;
-  if (selectedClient.value) filters.client_id = selectedClient.value;
 
-  if (sortBy.value) filters.sortField = sortBy.value
-  if (orderBy.value) filters.sortOrder = orderBy.value
+  const params = {
+    pageNumber: pagination.value.page,
+    perPage: pagination.value.itemsPerPage,
+  };
 
-  filters.pageNumber = pagination.value.page;
-  filters.perPage = pagination.value.itemsPerPage;
+  if (searchQuery.value) params.searchTerm = searchQuery.value;
 
-  return filters;
+  if (sortBy.value) params.sortField = sortBy.value;
+  if (orderBy.value) params.sortOrder = orderBy.value;
+
+  if (Object.keys(filters).length > 0) {
+    params.filters = filters;
+  }
+
+  return params;
 };
 
 
@@ -126,27 +129,24 @@ const currentClient = computed(() => {
   return ClientList.value.find(client => client.id == clientId.value)
 })
 
-console.log('currentClient', ClientList);
-
-
 
 const clearAllFilters = async () => {
   selectedStatus.value = null;
   selectedClient.value = null;
   selectedApprovalStatus.value = null;
+  sortBy.value = null;
+  orderBy.value = null;
   selectedCountry.value = "";
   searchQuery.value = "";
   pagination.value.page = 1;
   await loadDomains(clientId.value);
-  showAlert("Custom message here!", "info");
+  showAlert("Filters  Cleared !", "info");
 };
 
 const hasActiveFilters = computed(() => {
   return (
     selectedStatus.value ||
     selectedClient.value ||
-    sortBy.value ||
-    orderBy.value ||
     selectedApprovalStatus.value ||
     selectedCountry.value ||
     searchQuery.value
@@ -216,7 +216,6 @@ const handleImportDomains = async () => {
       selectedFile.value = null;
     }
     await loadDomains(clientId.value);
-    console.log('showImportResult', showImportResult);
   } catch (err) {
     showAlert("Import failed", "error");
   } finally {
@@ -256,7 +255,6 @@ const templateDownload = async () => {
   }
 };
 
-console.log("pagination", pagination);
 // Computed total domains count
 const totalDomains = computed(() => pagination.value.total ?? 0);
 
@@ -346,7 +344,7 @@ onMounted(async () => {
             Client Name : {{ currentClient.name }}
           </VChip>
         </div>
-      </VCol> 
+      </VCol>
     </VRow>
   </VCard>
 
@@ -364,43 +362,27 @@ onMounted(async () => {
           <VIcon icon="tabler-x" class="me-1" />
           Clear All
         </VBtn>
-        <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
+        <!-- <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
           <VIcon :icon="showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
             " class="me-1" />
           {{ showAdvancedFilters ? "Less" : "More" }} Filters
-        </VBtn>
+        </VBtn> -->
       </div>
     </VCardTitle>
 
     <VCardText class="pt-0">
       <!-- Primary Search Bar -->
-      <VRow class="mb-4">
-        <VCol cols="12">
+      <VRow align="end" justify="space-between">
+        <VCol cols="12" md="6">
           <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
             prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
         </VCol>
-      </VRow>
-
-      <!-- Quick Filters -->
-      <VRow class="mb-4">
         <VCol cols="12" sm="6" md="3">
           <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
             hide-details prepend-inner-icon="tabler-circle-dot" />
         </VCol>
-        <!-- <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedClient" label="Client" :items="ClientList" item-title="name" item-value="id" variant="outlined" clearable
-            hide-details prepend-inner-icon="tabler-circle-dot" />
-        </VCol> -->
-        <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
-            variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
-        </VCol>
-        <VCol cols="12" sm="6" md="3">
-          <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
-            clearable hide-details prepend-inner-icon="tabler-world" />
-        </VCol>
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
-          <VBtn color="primary" variant="flat" block @click="loadDomains">
+          <VBtn color="primary" variant="flat" block @click="loadDomains(clientId.value)">
             <VIcon icon="tabler-search" class="me-2" />
             Search
           </VBtn>
@@ -408,7 +390,7 @@ onMounted(async () => {
       </VRow>
 
       <!-- Advanced Filters -->
-      <VExpandTransition>
+      <!-- <VExpandTransition>
         <div v-show="showAdvancedFilters">
           <VDivider class="mb-4" />
           <VRow>
@@ -430,7 +412,7 @@ onMounted(async () => {
             </VCol>
           </VRow>
         </div>
-      </VExpandTransition>
+      </VExpandTransition> -->
     </VCardText>
   </VCard>
 
@@ -527,10 +509,10 @@ onMounted(async () => {
           Export
         </VBtn>
         <!-- create domain-->
-          <VBtn color="primary" prepend-icon="tabler-plus"
-            @click="$router.push({ name: 'apps-domain-clientdomain-add', params: { id: clientId } })">
-            Add Client Domain
-          </VBtn>
+        <VBtn color="primary" prepend-icon="tabler-plus"
+          @click="$router.push({ name: 'apps-domain-clientdomain-add', params: { id: clientId } })">
+          Add Client Domain
+        </VBtn>
       </div>
     </div>
 

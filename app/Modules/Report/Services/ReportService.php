@@ -3,6 +3,8 @@
 namespace App\Modules\Report\Services;
 
 use Addweb\Base\Services\BaseService;
+use App\Enums\UserRole;
+use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use App\Modules\Report\Models\Report;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -11,12 +13,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ReportService extends BaseService
 {
     public array $searchFields = [
-        'title' => [],
+        'run_id' => [],
     ];
 
     public array $filters = [
-        'title' => ['filter' => 'contain'],
+        'client_id' => ['filter' => ''],
     ];
+
+    protected function loadRelations(): void
+    {
+        $authUser = auth()->user();
+        if ($authUser->role === UserRole::CLIENT) {
+            $this->query->where('client_id', auth()->id());
+        }
+        $this->loadExtraRelation();
+    }
 
     public function __construct()
     {
@@ -39,6 +50,8 @@ class ReportService extends BaseService
                 $q->where('url', 'like', "%{$search}%")
                     ->orWhere('from_url', 'like', "%{$search}%")
                     ->orWhere('domain', 'like', "%{$search}%")
+                    ->orWhere('domain_url', 'like', "%{$search}%")
+                    ->orWhere('target_domain', 'like', "%{$search}%")
                     ->orWhere('target_url', 'like', "%{$search}%")
                     ->orWhere('anchor', 'like', "%{$search}%")
                     ->orWhere('page_title', 'like', "%{$search}%");
@@ -51,7 +64,7 @@ class ReportService extends BaseService
 
         if (!empty($filters['domain'])) {
             $query->where(function ($q) use ($filters) {
-                $q->orwhere('target_url', $filters['domain'])
+                $q->orwhere('domain_url', $filters['domain'])
                     ->orWhere('domain', $filters['domain']);
             });
         }

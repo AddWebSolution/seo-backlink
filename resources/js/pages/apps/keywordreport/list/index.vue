@@ -36,19 +36,26 @@ const sortBy = ref();
 const orderBy = ref();
 
 const buildFilters = () => {
-  const filters = {}
-  
-  if (selectedStatus.value) filters.status = selectedStatus.value
-  if (selectedDateRange.value) filters.date_range = selectedDateRange.value
-  if (searchQuery.value) filters.search = searchQuery.value
-  if (sortBy.value) filters.sort_by = sortBy.value
-  if (orderBy.value) filters.order_by = orderBy.value
-  
-  filters.page = page.value
-  filters.per_page = itemsPerPage.value
-  
-  return filters
-}
+  const filters = {};
+
+  if (selectedStatus.value) filters.status = selectedStatus.value;
+
+  const params = {
+    pageNumber: pagination.value.page,
+    perPage: pagination.value.itemsPerPage,
+  };
+
+  if (searchQuery.value) params.searchTerm = searchQuery.value;
+
+  if (sortBy.value) params.sortField = sortBy.value;
+  if (orderBy.value) params.sortOrder = orderBy.value;
+
+  if (Object.keys(filters).length > 0) {
+    params.filters = filters;
+  }
+
+  return params;
+};
 
 const loadReports = async () => {
   const filters = buildFilters()
@@ -100,7 +107,6 @@ const updateOptions = async (options) => {
 const totalReports = computed(() => reports.value?.length ?? 0);
 
 watch(selectedRows, (val) => {
-  console.log("Selected rows:", val);
 });
 
 const reportsWithStats = computed(() => {

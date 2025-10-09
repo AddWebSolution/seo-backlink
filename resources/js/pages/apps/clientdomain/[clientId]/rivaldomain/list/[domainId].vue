@@ -93,19 +93,22 @@ const buildFilters = () => {
   const filters = {};
 
   if (selectedStatus.value) filters.status = selectedStatus.value;
-  if (selectedApprovalStatus.value)
-    filters.approval_status = selectedApprovalStatus.value;
-  if (selectedCountry.value) filters.country = selectedCountry.value;
-  if (searchQuery.value) filters.searchTerm = searchQuery.value;
-  if (selectedClient.value) filters.client_id = selectedClient.value;
 
-  if (sortBy.value) filters.sortField = sortBy.value
-  if (orderBy.value) filters.sortOrder = orderBy.value  
+  const params = {
+    pageNumber: pagination.value.page,
+    perPage: pagination.value.itemsPerPage,
+  };
 
-  filters.pageNumber = pagination.value.page;
-  filters.perPage = pagination.value.itemsPerPage;
+  if (searchQuery.value) params.searchTerm = searchQuery.value;
 
-  return filters;
+  if (sortBy.value) params.sortField = sortBy.value;
+  if (orderBy.value) params.sortOrder = orderBy.value;
+
+  if (Object.keys(filters).length > 0) {
+    params.filters = filters;
+  }
+
+  return params;
 };
 
 const loadRivalDomains = async (id = clientDomainId.value) => {
@@ -118,10 +121,12 @@ const clearAllFilters = async () => {
   selectedClient.value = null;
   selectedApprovalStatus.value = null;
   selectedCountry.value = "";
+  sortBy.value = null;
+  orderBy.value = null;
   searchQuery.value = "";
   pagination.value.page = 1;
   await loadRivalDomains(clientDomainId.value);
-  showAlert("Custom message here!", "info");
+  showAlert("Filters  Cleared !", "info");
 };
 
 const hasActiveFilters = computed(() => {
@@ -206,7 +211,6 @@ const handleImportDomains = async () => {
       showImportResult.value = true;
       selectedFile.value = null;
     }
-    console.log('showImportResult',showImportResult);
     await loadRivalDomains(clientDomainId.value);
   } catch (err) {
     showAlert(err, "error");
@@ -315,7 +319,7 @@ onMounted(async () => {
             <IconWorldWww stroke="{2}" />
           </VAvatar>
           <div>
-            <h1 class="text-h3 font-weight-bold mb-1">Client Rival Domain Management</h1>
+            <h1 class="text-h3 font-weight-bold mb-1">Rival Domain Management</h1>
             <p class="text-body-1 text-medium-emphasis mb-0">
               Manage and monitor your domain portfolio
             </p>
@@ -324,9 +328,9 @@ onMounted(async () => {
       </VCol>
       <VCol cols="12" md="4" class="text-md-end">
         <VBtn color="primary" variant="flat"
-          @click="router.push({ name: 'apps-domain-clientdomain-list', params: { id: clientId } })">
+          @click="router.push({ name: 'apps-clientdomain-list', params: { id: clientId } })">
           <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Clients Domain
+          Back to Domain
         </VBtn>
       </VCol>
       <VCol cols="12" class="mt-4">
@@ -359,40 +363,28 @@ onMounted(async () => {
           <VIcon icon="tabler-x" class="me-1" />
           Clear All
         </VBtn>
-        <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
+        <!-- <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
           <VIcon :icon="
               showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
             " class="me-1" />
           {{ showAdvancedFilters ? "Less" : "More" }} Filters
-        </VBtn>
+        </VBtn> -->
       </div>
     </VCardTitle>
 
     <VCardText class="pt-0">
       <!-- Primary Search Bar -->
-      <VRow class="mb-4">
-        <VCol cols="12">
+      <VRow align="end" class="space-between">
+        <VCol cols="12" md="6">
           <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
             prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
         </VCol>
-      </VRow>
-
-      <!-- Quick Filters -->
-      <VRow class="mb-4">
         <VCol cols="12" sm="6" md="3">
           <AppSelect v-model="selectedStatus" label="Status" :items="statusOptions" variant="outlined" clearable
             hide-details prepend-inner-icon="tabler-circle-dot" />
         </VCol>
-        <VCol cols="12" sm="6" md="3">
-          <AppSelect v-model="selectedApprovalStatus" label="Approval Status" :items="approvalStatusOptions"
-            variant="outlined" clearable hide-details prepend-inner-icon="tabler-check" />
-        </VCol>
-        <VCol cols="12" sm="6" md="3">
-          <AppTextField v-model="selectedCountry" label="Country" placeholder="Enter country" variant="outlined"
-            clearable hide-details prepend-inner-icon="tabler-world" />
-        </VCol>
         <VCol cols="12" sm="6" md="3" class="d-flex align-end">
-          <VBtn color="primary" variant="flat" block @click="loadRivalDomains">
+          <VBtn color="primary" variant="flat" block @click="loadRivalDomains(clientDomainId.value)">
             <VIcon icon="tabler-search" class="me-2" />
             Search
           </VBtn>
@@ -400,7 +392,7 @@ onMounted(async () => {
       </VRow>
 
       <!-- Advanced Filters -->
-      <VExpandTransition>
+      <!-- <VExpandTransition>
         <div v-show="showAdvancedFilters">
           <VDivider class="mb-4" />
           <VRow>
@@ -422,7 +414,7 @@ onMounted(async () => {
             </VCol>
           </VRow>
         </div>
-      </VExpandTransition>
+      </VExpandTransition> -->
     </VCardText>
   </VCard>
 
@@ -520,7 +512,7 @@ onMounted(async () => {
         </VBtn>
         <!-- create domain-->
         <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push({
-          name: 'apps-domain-clientdomain-rivaldomain-add',
+          name: 'apps-clientdomain-rivaldomain-add',
           params: { clientId: clientId, domainId: clientDomainId }
         })">
           Add Rival Domain
@@ -637,7 +629,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link
-                  :to="{ name: 'apps-domain-clientdomain-rivaldomain-view', params: { clientId : clientId ,id: item.id } }">
+                  :to="{ name: 'apps-clientdomain-rivaldomain-view', params: { clientId : clientId ,id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>

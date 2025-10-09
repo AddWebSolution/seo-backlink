@@ -93,7 +93,7 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
         <VRow align="start" justify="space-between">
           <!-- Left Column: Domain Info -->
           <VCol cols="12" md="8">
-            <VBtn color="primary" variant="flat" :to="{ name: 'apps-domain-clientdomain-list',params: { id: clientId } }">
+            <VBtn color="primary" variant="flat" :to="{ name: 'apps-clientdomain-list',params: { id: clientId } }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Client Domains
             </VBtn>

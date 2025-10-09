@@ -79,7 +79,6 @@ const login = async () => {
         ? decodeURIComponent(route.query.to)
         : '/dashboards/analytics'
 
-      console.log("Redirecting to:", redirectTo)
 
       router.replace(redirectTo)
     }

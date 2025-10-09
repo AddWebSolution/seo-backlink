@@ -35,17 +35,15 @@ class RivalDomainService extends BaseService
         $this->object = new RivalDomain();
     }
 
-     public function getRivalDomains(int $clientDomainId, int $perPage = 10, array $filters = [])
+     public function getRivalDomains(int $clientDomainId, int $perPage = 10, $searchTerm ,$filters, string $sortField = 'id', string $sortOrder = 'desc')
     {
         $query = RivalDomain::where('client_domain_id', $clientDomainId);
 
-        $query->where('status', 1);
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
+        if (!empty($searchTerm)) {
+            $search = $searchTerm;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('domain', 'like', "%{$search}%");
+                    ->orWhere('target_url', 'like', "%{$search}%");
             });
         }
 
@@ -53,11 +51,11 @@ class RivalDomainService extends BaseService
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['domain'])) {
-            $query->where('domain', $filters['domain']);
-        }
+        // if (!empty($filters['domain'])) {
+        //     $query->where('domain', $filters['domain']);
+        // }
 
-
+        $query->orderBy($sortField, $sortOrder);
         $domains = $query->orderBy('id', 'desc')->paginate($perPage);
 
         return [

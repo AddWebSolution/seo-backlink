@@ -68,7 +68,6 @@ const registerUser= async () => {
         ? decodeURIComponent(route.query.to) 
         : '/login'
 
-      console.log("Redirecting to:", redirectTo)
 
       router.replace(redirectTo)
     }

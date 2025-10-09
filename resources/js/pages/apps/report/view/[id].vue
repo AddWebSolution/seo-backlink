@@ -55,7 +55,6 @@ watch(
   async () => {
     if (reportId.value) {
       await loadReportData();
-      console.log("after request body", unref(requestBody));
     }
   },
   { deep: true }
@@ -207,8 +206,6 @@ watch(selectedDomain, (newDomain) => {
     searchScope.value = "global";
   }
   selectedDomain.value = newDomain;
-  console.log("searchScope changed:", newDomain);
-  console.log("searchScope:", selectedDomain.value);
 });
 
 watch(searchScope, (newScope) => {
@@ -238,13 +235,27 @@ const headers = computed(() => [
     sortable: true,
     width: "80px",
   },
+  // {
+  //   title: "Domain URL",
+  //   key: "domain_url",
+  //   align: "center",
+  //   sortable: true,
+  //   width: "80px",
+  // },
   {
-    title: "Target URL",
-    key: "target_url",
+    title: "Target Domain",
+    key: "target_domain",
     align: "center",
     sortable: true,
     width: "100px",
   },
+  // {
+  //   title: "Target URL",
+  //   key: "target_url",
+  //   align: "center",
+  //   sortable: true,
+  //   width: "100px",
+  // },
   {
     title: "Status",
     key: "status",

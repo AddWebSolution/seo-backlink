@@ -71,33 +71,29 @@ export function useDomainApi() {
       return result;
     } catch (err) {
       error.value = err;
-      showAlert("Failed to load domains", "error");
+      // showAlert("Failed to load domains", "error");
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
-  const fetchClientDomains = async (
-    id,
-    filters = {},
-    page = 1,
-    perPage = 10
-  ) => {
+  const fetchClientDomains = async (id,filters = {}, page = null) => {
     loading.value = true;
     error.value = null;
 
     try {
-      const query = {
+      const body = {
         ...filters,
-        page,
-        per_page: perPage,
       };
 
-      const result = await useApi(`api/clientdomain/get/domains/${id}`, {
-        method: "POST",
-        body : query,
-      });
+      const result = await useApi(
+        createUrl(`api/clientdomain/get/domains/${id}`, { query: body }),
+        {
+          method: "POST",
+        }
+      );
+
       domains.value = result.data.value.domains.data;
       const apiPagination  = result.data.value.domains;
 
@@ -113,7 +109,7 @@ export function useDomainApi() {
       return result;
     } catch (err) {
       error.value = err;
-      showAlert("Failed to load domains", "error");
+      // showAlert("Failed to load domains", "error");
       throw err;
     } finally {
       loading.value = false;
@@ -273,7 +269,6 @@ export function useDomainApi() {
       const result = await useApi("api/clientdomain/domain/list", {
         method: "POST",
       });
-      console.log("Domain List API Result:", result);
       domainList.value = result.data.value.domains || [];
       return result;
     } catch (err) {

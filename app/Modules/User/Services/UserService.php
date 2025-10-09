@@ -4,6 +4,7 @@ namespace App\Modules\User\Services;
 
 use App\Modules\User\Models\User;
 use Addweb\Base\Services\BaseService;
+use App\Enums\UserRole;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -11,12 +12,26 @@ class UserService extends BaseService
 {
     public array $searchFields = [
         'name' => [],
+        'email' => [],
+        'status' => [],
+        'company_name' => [],
+        'phone' => [],
     ];
 
     public array $filters = [
-        'name' => ['filter' => 'default'],
-        'email' => ['filter' => 'default']
+        'status' => ['filter' =>  ''],
+
     ];
+
+    public string $sortField = 'id';
+    public string $sortOrder = 'desc';
+
+    protected function loadRelations(): void
+    {
+        $this->query->where('role', 3);
+
+        $this->loadExtraRelation();
+    }
 
     public function __construct()
     {
@@ -46,9 +61,9 @@ class UserService extends BaseService
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('company_name', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%");
             });
         }
 

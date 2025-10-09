@@ -50,7 +50,6 @@ export function useKeywordApi() {
       const body = {
         ...filters,
       };
-      console.log('apicall',body);
       const result = await useApi(
         createUrl("api/keyword/get", { query: body }),
         {
@@ -126,7 +125,6 @@ export function useKeywordApi() {
   // update keyword
   const updateKeyword = async (id, payload) => {
 
-    console.log('data',payload);
     loading.value = true;
     error.value = null;
 

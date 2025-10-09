@@ -44,16 +44,14 @@ export function useReportApi() {
   const fetchReports = async (filters = {}, page = null) => {
     loading.value = true;
     error.value = null;
+
     try {
       const body = {
         ...filters
       };
-      const result = await useApi(
-        createUrl("api/report/get", { query: body }),
-        {
-          method: "POST",
-        }
-      );
+      const result = await useApi(createUrl("api/report/get",{query : body}), {
+        method: "POST",
+      });
       
       reports.value = result.data.value.data.resource;
       const apiPagination = result.data.value.data.pagination;
@@ -66,6 +64,7 @@ export function useReportApi() {
         itemsPerPage: apiPagination.perPage,
         page: apiPagination.currentPage,
       };
+
       return result;
     } catch (err) {
       error.value = err;

@@ -23,7 +23,6 @@ const showPasswordFields = ref(false)
 const clientId = route.params.id
 
 
-
 const form = ref({
   name: '',
   email: '',
@@ -63,7 +62,7 @@ const confirmPasswordValidator = (value) => {
 
 const phoneValidator = (value) => {
   if (!value) return 'Phone number is required'
-  const regex = /^[0-9]{10}$/  
+  const regex = /^[0-9]{10}$/
   if (!regex.test(value)) return 'Invalid 10-digit phone number'
   return true
 }
@@ -73,11 +72,11 @@ const requiredValidator = (value) => {
 }
 
 const statusText = computed(() => {
-  return currentClient.value.status === 1 ? 'Active' : 'Inactive'
+  return currentClient.value.status == 1 ? 'Active' : 'Inactive'
 })
 
 const statusColor = computed(() => {
-  return currentClient.value.status === 1 ? 'success' : 'error'
+  return currentClient.value.status == 1 ? 'success' : 'error'
 })
 
 // Handle file upload
@@ -88,7 +87,7 @@ const handleFileSelect = (event) => {
       showAlert('Please select a valid image file', 'error')
       return
     }
-    
+
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
       showAlert('Image size must be less than 5MB', 'error')
       return
@@ -156,8 +155,7 @@ const handleSubmit = async () => {
     }
     await updateClient(currentClient.value.id, updateData)
     showAlert('Client updated successfully!', 'success')
-    
-    // Refresh data
+
     await loadClientData()
     isEditMode.value = false
     showPasswordFields.value = false
@@ -206,20 +204,13 @@ onMounted(async () => {
   </div>
 
   <div v-else>
+
     <!-- Header -->
     <VCard class="mb-6" elevation="0" style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
       <VCardText class="pa-6">
-        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
-          <div class="d-flex align-center">
-            <VBtn
-              icons
-              variant="flat"
-              size="large"
-              class="ma-4"
-             @click="router.push({ name: 'apps-client-list' })"
-            >
-              <IconArrowLeft :size="40" />
-            </VBtn>
+        <VRow align="center" justify="space-between">
+          <!-- Left Section: Avatar and Titles -->
+          <VCol cols="12" md="8" class="d-flex align-center flex-wrap gap-4">
             <VAvatar size="56" color="primary" variant="tonal" class="me-4">
               <IconWorldWww :size="32" stroke-width="2" />
             </VAvatar>
@@ -231,48 +222,35 @@ onMounted(async () => {
                 {{ isEditMode ? 'Update client information' : 'View and manage client information' }}
               </p>
             </div>
-          </div>
-
-          <div class="d-flex gap-3">
-            <VChip
-              :color="statusColor"
-              variant="tonal"
-              size="large"
-            >
+            <VChip class="mt-1 ml-4" :color="statusColor" variant="tonal" size="large">
               {{ statusText }}
             </VChip>
+          </VCol>
 
-            <VBtn
-              v-if="!isEditMode"
-              color="primary"
-              prepend-icon="tabler-edit"
-              @click="enableEditMode"
-            >
-              Edit Client
+          <!-- Right Section: Back Button -->
+          <VCol cols="12" md="4" class="d-flex justify-end">
+            <VBtn variant="flat" @click="router.push({ name: 'apps-client-list' })">
+              <VIcon icon="tabler-arrow-left" class="me-2" />
+              Back to List
             </VBtn>
-          </div>
-        </div>
+          </VCol>
+        </VRow>
       </VCardText>
     </VCard>
 
+
     <!-- View Mode -->
-    <VCard v-if="!isEditMode" elevation="0" style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
+    <VCard v-if="!isEditMode" elevation="0"
+      style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
       <VCardText class="pa-6">
         <VRow>
           <!-- Profile Picture Section -->
           <VCol cols="12" class="mb-4">
-            <div class="border rounded pa-6 text-center" style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));">
-              <VAvatar
-                size="140"
-                :color="currentClient.profile_pic ? 'transparent' : 'primary'"
-                variant="tonal"
-                class="mb-4 elevation-3"
-              >
-                <VImg
-                  v-if="currentClient.profile_pic"
-                  :src="currentClient.profile_pic"
-                  cover
-                />
+            <div class="border rounded pa-6 text-center"
+              style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));">
+              <VAvatar size="140" :color="currentClient.profile_pic ? 'transparent' : 'primary'" variant="tonal"
+                class="mb-4 elevation-3">
+                <VImg v-if="currentClient.profile_pic" :src="currentClient.profile_pic" cover />
                 <span v-else class="text-h2 font-weight-bold">
                   {{ currentClient.name ? currentClient.name.charAt(0).toUpperCase() : '?' }}
                 </span>
@@ -404,55 +382,34 @@ onMounted(async () => {
           <VRow>
             <!-- Profile Picture Upload Section -->
             <VCol cols="12" class="mb-4">
-              <div class="border rounded pa-6" style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));">
+              <div class="border rounded pa-6"
+                style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));">
                 <h3 class="text-h6 font-weight-semibold mb-4">Profile Picture</h3>
-                
+
                 <div class="d-flex align-center flex-wrap gap-4">
-                  <VAvatar
-                    size="120"
-                    :color="profileImagePreview ? 'transparent' : 'grey-lighten-3'"
-                    class="elevation-2"
-                  >
-                    <VImg
-                      v-if="profileImagePreview"
-                      :src="profileImagePreview"
-                      cover
-                    />
+                  <VAvatar size="120" :color="profileImagePreview ? 'transparent' : 'grey-lighten-3'"
+                    class="elevation-2">
+                    <VImg v-if="profileImagePreview" :src="profileImagePreview" cover />
                     <span v-else class="text-h3 text-grey">
                       {{ form.name ? form.name.charAt(0).toUpperCase() : '?' }}
                     </span>
                   </VAvatar>
 
                   <div class="flex-grow-1">
-                    <input
-                      ref="fileInputRef"
-                      type="file"
-                      accept="image/*"
-                      style="display: none"
-                      @change="handleFileSelect"
-                    />
-                    
+                    <input ref="fileInputRef" type="file" accept="image/*" style="display: none"
+                      @change="handleFileSelect" />
+
                     <div class="d-flex gap-3 mb-2">
-                      <VBtn
-                        color="primary"
-                        variant="tonal"
-                        prepend-icon="tabler-upload"
-                        @click="triggerFileInput"
-                      >
+                      <VBtn color="primary" variant="tonal" prepend-icon="tabler-upload" @click="triggerFileInput">
                         Upload Photo
                       </VBtn>
-                      
-                      <VBtn
-                        v-if="profileImagePreview"
-                        color="error"
-                        variant="outlined"
-                        prepend-icon="tabler-x"
-                        @click="removeProfileImage"
-                      >
+
+                      <VBtn v-if="profileImagePreview" color="error" variant="outlined" prepend-icon="tabler-x"
+                        @click="removeProfileImage">
                         Remove
                       </VBtn>
                     </div>
-                    
+
                     <p class="text-caption text-medium-emphasis mb-0">
                       Allowed JPG, PNG or JPEG. Max size of 5MB
                     </p>
@@ -467,51 +424,25 @@ onMounted(async () => {
             </VCol>
 
             <VCol cols="12" md="6">
-              <AppTextField
-                v-model="form.name"
-                label="Full Name"
-                placeholder="Enter full name"
-                :rules="[rules.required]"
-                prepend-inner-icon="tabler-user"
-                variant="outlined"
-                density="comfortable"
-              />
+              <AppTextField v-model="form.name" label="Full Name" placeholder="Enter full name"
+                :rules="[rules.required]" prepend-inner-icon="tabler-user" variant="outlined" density="comfortable" />
             </VCol>
 
             <VCol cols="12" md="6">
-              <AppTextField
-                v-model="form.email"
-                label="Email Address"
-                placeholder="john@example.com"
-                type="email"
-                :rules="[rules.required, rules.email]"
-                prepend-inner-icon="tabler-mail"
-                variant="outlined"
-                density="comfortable"
-              />
+              <AppTextField v-model="form.email" label="Email Address" placeholder="john@example.com" type="email"
+                :rules="[rules.required, rules.email]" prepend-inner-icon="tabler-mail" variant="outlined"
+                density="comfortable" />
             </VCol>
 
             <VCol cols="12" md="6">
-              <AppTextField
-                v-model="form.phone"
-                label="Phone Number"
-                placeholder="Enter 10-digit number"
-                :rules="[requiredValidator, phoneValidator]"
-                prepend-inner-icon="tabler-phone"
-                variant="outlined"
-                density="comfortable"
-              />
+              <AppTextField v-model="form.phone" label="Phone Number" placeholder="Enter 10-digit number"
+                :rules="[requiredValidator, phoneValidator]" prepend-inner-icon="tabler-phone" variant="outlined"
+                density="comfortable" />
             </VCol>
 
             <VCol cols="12" md="6">
-              <AppTextField
-                v-model="form.designation"
-                label="Designation"
-                placeholder="e.g., Manager, Director"
-                prepend-inner-icon="tabler-briefcase"
-                variant="outlined"
-                density="comfortable"
-              />
+              <AppTextField v-model="form.designation" label="Designation" placeholder="e.g., Manager, Director"
+                prepend-inner-icon="tabler-briefcase" variant="outlined" density="comfortable" />
             </VCol>
 
             <!-- Company Information Section -->
@@ -520,96 +451,54 @@ onMounted(async () => {
             </VCol>
 
             <VCol cols="12" md="6">
-              <AppTextField
-                v-model="form.company_name"
-                label="Company Name"
-                placeholder="Enter company name"
-                prepend-inner-icon="tabler-building"
-                variant="outlined"
-                density="comfortable"
-              />
+              <AppTextField v-model="form.company_name" label="Company Name" placeholder="Enter company name"
+                prepend-inner-icon="tabler-building" variant="outlined" density="comfortable" />
             </VCol>
 
             <VCol cols="12" md="6">
-              <AppTextField
-                model-value="Client"
-                label="Role"
-                prepend-inner-icon="tabler-shield"
-                variant="outlined"
-                density="comfortable"
-                readonly
-                disabled
-              />
+              <AppTextField model-value="Client" label="Role" prepend-inner-icon="tabler-shield" variant="outlined"
+                density="comfortable" readonly disabled />
             </VCol>
 
             <VCol cols="12" md="6">
-              <AppSelect
-                v-model="form.status"
-                :items="[
-                  { title: 'Active', value: 1 },
-                  { title: 'Inactive', value: 2 }
-                ]"
-                label="Account Status"
-                prepend-inner-icon="tabler-circle-dot"
-                variant="outlined"
-                density="comfortable"
-              />
+              <AppSelect v-model="form.status" :items="[
+                { title: 'Active', value: 1 },
+                { title: 'Inactive', value: 2 }
+              ]" label="Account Status" prepend-inner-icon="tabler-circle-dot" variant="outlined"
+                density="comfortable" />
             </VCol>
 
             <!-- Change Password Section -->
             <VCol cols="12" class="mt-4">
               <div class="d-flex align-center justify-space-between mb-4">
                 <h3 class="text-h6 font-weight-semibold mb-0">Change Password</h3>
-                <VSwitch
-                  v-model="showPasswordFields"
-                  label="Update Password"
-                  color="primary"
-                  hide-details
-                  density="compact"
-                />
+                <VSwitch v-model="showPasswordFields" label="Update Password" color="primary" hide-details
+                  density="compact" />
               </div>
             </VCol>
 
             <template v-if="showPasswordFields">
               <VCol cols="12" md="6">
-                <AppTextField
-                  v-model="form.password"
-                  :rules="passwordRules"
-                  label="New Password"
-                  placeholder="Enter new password"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  autocomplete="new-password"
-                  prepend-inner-icon="tabler-lock"
+                <AppTextField v-model="form.password" :rules="passwordRules" label="New Password"
+                  placeholder="Enter new password" :type="isPasswordVisible ? 'text' : 'password'"
+                  autocomplete="new-password" prepend-inner-icon="tabler-lock"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                  variant="outlined"
-                  density="comfortable"
-                />
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible" variant="outlined"
+                  density="comfortable" />
               </VCol>
 
               <VCol cols="12" md="6">
-                <AppTextField
-                  v-model="form.password_confirmation"
-                  :rules="[confirmPasswordValidator]"
-                  label="Confirm New Password"
-                  placeholder="Re-enter new password"
-                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                  autocomplete="new-password"
+                <AppTextField v-model="form.password_confirmation" :rules="[confirmPasswordValidator]"
+                  label="Confirm New Password" placeholder="Re-enter new password"
+                  :type="isConfirmPasswordVisible ? 'text' : 'password'" autocomplete="new-password"
                   prepend-inner-icon="tabler-lock-check"
                   :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
-                  variant="outlined"
-                  density="comfortable"
-                />
+                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible" variant="outlined"
+                  density="comfortable" />
               </VCol>
 
               <VCol cols="12">
-                <VAlert
-                  type="info"
-                  variant="tonal"
-                  density="compact"
-                  class="mb-0"
-                >
+                <VAlert type="info" variant="tonal" density="compact" class="mb-0">
                   <div class="text-caption">
                     <strong>Password Requirements:</strong>
                     <ul class="mt-1 mb-0 pl-4">
@@ -626,24 +515,13 @@ onMounted(async () => {
             <VDivider class="mb-6" />
             <VCol cols="12" class="mt-6 d-flex justify-end">
               <div class="d-flex  space-between gap-4">
-                <VBtn
-                  :loading="submitting"
-                  color="primary"
-                  type="submit"
-                  size="large"
-                  prepend-icon="tabler-device-floppy"
-                >
+                <VBtn :loading="submitting" color="primary" type="submit" size="large"
+                  prepend-icon="tabler-device-floppy">
                   Save Changes
                 </VBtn>
-                
-                <VBtn
-                  variant="flat"
-                  color="error"
-                  size="large"
-                  prepend-icon="tabler-x"
-                  @click="cancelEdit"
-                  :disabled="submitting"
-                >
+
+                <VBtn variant="flat" color="error" size="large" prepend-icon="tabler-x" @click="cancelEdit"
+                  :disabled="submitting">
                   Cancel
                 </VBtn>
               </div>

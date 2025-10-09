@@ -52,7 +52,6 @@ export function useClientApi() {
       const result = await useApi(createUrl("api/user/get",{query : body}), {
         method: "POST",
       });
-      console.log("Clients API Result:", result);
       clients.value = result.data.value.data.resource;
       const apiPagination = result.data.value.data.pagination;
 
@@ -229,7 +228,6 @@ export function useClientApi() {
       const result = await useApi("api/user/list", {
         method: "POST",
       });
-      console.log("Client List API Result:", result);
       ClientList.value = result?.data?.value?.clients;
       return result;
     } catch (err) {

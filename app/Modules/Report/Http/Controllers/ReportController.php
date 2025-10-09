@@ -22,7 +22,7 @@ class ReportController extends BaseController
             'resource' => ReportResource::class,
         ];
     }
-
+    
     public function backlinkshow(Request $request, $id)
     {
         $perPage = $request->get('per_page', 10);

@@ -54,7 +54,6 @@ watch(
   async () => {
     if (reportId.value) {
       await loadReportData();
-      console.log("after request body", unref(requestBody));
     }
   },
   { deep: true }
@@ -218,8 +217,6 @@ watch(selectedDomain, (newDomain) => {
     searchScope.value = "global";
   }
   selectedDomain.value = newDomain;
-  console.log("searchScope changed:", newDomain);
-  console.log("searchScope:", selectedDomain.value);
 });
 
 watch(searchScope, (newScope) => {

@@ -61,7 +61,6 @@ const createDealData = ref({
 })
 
 const onSubmit = () => {
-  console.log('createDealData :>> ', createDealData.value)
 }
 </script>
 

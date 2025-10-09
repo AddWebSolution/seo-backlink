@@ -47,10 +47,15 @@ class ClientDomainController extends BaseController
             ], 400);
         }
 
-        $filters = request()->only(['search', 'status', 'domain']);
-        $perPage = request()->get('per_page', 10);
+        $searchTerm = request()->get('searchTerm');
+        $filters = request()->get('filters', '{}'); 
+        $filters = json_decode($filters, true); 
+        $perPage = request()->get('perPage', 10);
+        $sortField = request()->get('sortField', 'id');
+        $sortOrder = request()->get('sortOrder', 'desc');
+        
 
-        $result = $this->service->getClientDomains($id, $perPage, $filters);
+        $result = $this->service->getClientDomains($id, $perPage, $searchTerm,$filters ,$sortField, $sortOrder);
 
         return response()->json([
             'success' => true,
