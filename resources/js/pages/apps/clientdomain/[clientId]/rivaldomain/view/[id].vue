@@ -90,14 +90,10 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
     <!-- Modern Header with Gradient Background -->
     <VCard class="mb-8 overflow-hidden" elevation="2" color="grey lighten-4">
       <VCardText class="pa-8">
-        <VRow align="start" justify="space-between">
+        <VRow align="center" justify="space-between">
           <!-- Left Column: Domain Info -->
           <VCol cols="12" md="8">
-            <VBtn color="primary" variant="flat" :to="{ name: 'apps-clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to List
-            </VBtn>
-
+            
             <div class="mb-8 pt-6">
               <h2 class="text-h3 font-weight-bold mb-2">
                 {{ riavlDomain.title || 'Domain Details' }}
@@ -126,7 +122,13 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
               <VIcon icon="tabler-trash" class="me-2" />
               Delete
             </VBtn>
+
+            <VBtn color="primary" variant="flat" :to="{ name: 'apps-clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
+              <VIcon icon="tabler-arrow-left" class="me-2" />
+              Back to List
+            </VBtn>
           </VCol>
+          
         </VRow>
       </VCardText>
     </VCard>

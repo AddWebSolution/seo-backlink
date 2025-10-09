@@ -10,7 +10,7 @@ import { useAbility } from "@casl/vue";
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Title", key: "title", align: "center", width: "130px" },
+  { title: "Title", key: "title", align: "center", width: "200px" },
   { title: "Target URL", key: "target_url", align: "center", width: "140px" },
   { title: "DA", key: "domain_authority", align: "start", width: "80px" },
   { title: "DR", key: "domain_rating", align: "start", width: "80px" },
