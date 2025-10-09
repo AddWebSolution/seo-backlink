@@ -23,7 +23,7 @@ export default [
   { heading: 'Domains' },
   {
     title: 'Domain',
-    icon: { icon: 'tabler-user' },
+    icon: { icon: 'tabler-world' },
     action: 'view',
     subject: 'clientdomain',
     to : 'apps-clientdomain-list',
