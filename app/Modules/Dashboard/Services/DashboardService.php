@@ -52,17 +52,33 @@ class DashboardService extends BaseService
             ->toArray();
     }
 
+    private function getRivalDomainMonthlyCounts()
+    {
+        if ($this->isAdmin) {
+            $query = RivalDomain::query();
+        } else {
+            $query = $this->user->rivalDomains(); 
+        }
+
+        return $query
+            ->selectRaw('MONTH(rival_domains.created_at) as month, COUNT(*) as total')
+            ->whereYear('rival_domains.created_at', date('Y'))
+            ->groupByRaw('MONTH(rival_domains.created_at)')
+            ->pluck('total', 'month')
+            ->toArray();
+    }
+
     public function monthlystats()
     {   
         $stats = [];
 
         $stats = [
             'domains' => $this->getMonthlyCounts(ClientDomain::class, $this->isAdmin ? null : $this->userId, 'client_id'),
-            'rivalDomains' => $this->getMonthlyCounts(RivalDomain::class, $this->isAdmin ? null : $this->userId, 'client_id'),
+            'rivalDomains' => $this->getRivalDomainMonthlyCounts(),
             'backlinks' => $this->getMonthlyCounts(BacklinkDatum::class, $this->isAdmin ? null : $this->userId, 'client_id'),
             'keywords' => $this->getMonthlyCounts(Keyword::class),
             'reports' => $this->getMonthlyCounts(Report::class, $this->isAdmin ? null : $this->userId, 'client_id'),
-            'keywordReports' => $this->getMonthlyCounts(KeywordReport::class, $this->isAdmin ? null : $this->userId, 'client_id'),
+            'keywordReports' => $this->getMonthlyCounts(KeywordReport::class)
         ];
 
         foreach ($stats as &$data) {

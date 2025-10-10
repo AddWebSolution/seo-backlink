@@ -72,7 +72,7 @@ const chartConfigs = computed(() => {
       legend: { show: false },
       tooltip: { enabled: true },
       xaxis: { categories: months, axisBorder: { show: true, color: borderColor }, axisTicks: { show: false }, labels: { style: { colors: labelColor, fontSize: '13px', fontFamily: 'Public Sans' } } },
-      yaxis: { labels: { offsetX: -15, style: { fontSize: '13px', colors: labelColor, fontFamily: 'Public Sans' } }, min: 0, tickAmount: 6 },
+      yaxis: { labels: { offsetX: -15, style: { fontSize: '13px', colors: labelColor, fontFamily: 'Public Sans' } }, min: 0, tickAmount: 8 },
       responsive: [
         { breakpoint: 1441, options: { plotOptions: { bar: { columnWidth: '41%' } } } },
         { breakpoint: 590, options: { plotOptions: { bar: { columnWidth: '61%' } }, yaxis: { labels: { show: false } }, grid: { padding: { right: 0, left: -20 } }, dataLabels: { style: { fontSize: '12px', fontWeight: '400' } } } }
