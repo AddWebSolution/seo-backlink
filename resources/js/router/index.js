@@ -24,7 +24,7 @@ function recursiveLayouts(route) {
 }
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory('/'),
   scrollBehavior(to) {
     if (to.hash) return { el: to.hash, behavior: 'smooth', top: 60 };
     return { top: 0 };
