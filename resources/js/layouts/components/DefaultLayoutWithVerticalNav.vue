@@ -1,6 +1,7 @@
 <script setup>
 import { themeConfig } from '@themeConfig'
 import { useAbility } from '@casl/vue'
+import NavSearchBar from './NavSearchBar.vue'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
@@ -26,17 +27,17 @@ const filteredNav = computed(() => getFilteredNav(ability))
         <IconBtn id="vertical-nav-toggle-btn" class="ms-n3 d-lg-none" @click="toggleVerticalOverlayNavActive(true)">
           <VIcon size="26" icon="tabler-menu-2" />
         </IconBtn>
-
+        
         <!-- <NavSearchBar class="ms-lg-n3" /> -->
         <VSpacer />
+        
         <UserProfile/>
-
         <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
-          :languages="themeConfig.app.i18n.langConfig" />
+        :languages="themeConfig.app.i18n.langConfig" />
         <NavbarThemeSwitcher />
-        <!-- <NavbarShortcuts /> -->
-        <!-- <NavBarNotifications class="me-1" /> -->
-      </div>
+          <NavbarShortcuts />
+          <NavBarNotifications class="me-1" />
+        </div>
     </template>
 
     <div class="d-flex align-center">

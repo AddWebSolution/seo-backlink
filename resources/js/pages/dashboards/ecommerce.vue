@@ -1,5 +1,5 @@
 <script setup>
-import EcommerceCongratulationsJohn from '@/views/dashboards/ecommerce/EcommerceCongratulationsJohn.vue'
+import EcommerceCongratulationsJohn from '@/views/dashboards/ecommerce/EcommerceCongratulationsUser.vue'
 import EcommerceEarningReports from '@/views/dashboards/ecommerce/EcommerceEarningReports.vue'
 import EcommerceExpensesRadialBarCharts from '@/views/dashboards/ecommerce/EcommerceExpensesRadialBarCharts.vue'
 import EcommerceGeneratedLeads from '@/views/dashboards/ecommerce/EcommerceGeneratedLeads.vue'

@@ -1,105 +1,52 @@
 <script setup>
-import AnalyticsAverageDailySales from '@/views/dashboards/analytics/AnalyticsAverageDailySales.vue'
-import AnalyticsEarningReportsWeeklyOverview from '@/views/dashboards/analytics/AnalyticsEarningReportsWeeklyOverview.vue'
-import AnalyticsMonthlyCampaignState from '@/views/dashboards/analytics/AnalyticsMonthlyCampaignState.vue'
-import AnalyticsProjectTable from '@/views/dashboards/analytics/AnalyticsProjectTable.vue'
-import AnalyticsSalesByCountries from '@/views/dashboards/analytics/AnalyticsSalesByCountries.vue'
-import AnalyticsSalesOverview from '@/views/dashboards/analytics/AnalyticsSalesOverview.vue'
-import AnalyticsSourceVisits from '@/views/dashboards/analytics/AnalyticsSourceVisits.vue'
-import AnalyticsSupportTracker from '@/views/dashboards/analytics/AnalyticsSupportTracker.vue'
-import AnalyticsTotalEarning from '@/views/dashboards/analytics/AnalyticsTotalEarning.vue'
-import AnalyticsWebsiteAnalytics from '@/views/dashboards/analytics/AnalyticsWebsiteAnalytics.vue'
+import EcommerceCongratulationsUser from '@/views/dashboards/ecommerce/EcommerceCongratulationsUser.vue'
+import EcommerceStatistics from '@/views/dashboards/ecommerce/EcommerceStatistics.vue'
+import CrmActivityTimeline from '@/views/dashboards/crm/CrmActivityTimeline.vue'
+import EcommerceGeneratedLeads from '@/views/dashboards/ecommerce/EcommerceGeneratedLeads.vue'
+import EcommerceExpensesRadialBarCharts from '@/views/dashboards/ecommerce/EcommerceExpensesRadialBarCharts.vue'
+import CrmEarningReportsYearlyOverview from '@/views/dashboards/crm/CrmEarningReportsYearlyOverview.vue'
+import EcommerceTotalProfitLineCharts from '@/views/dashboards/ecommerce/EcommerceTotalProfitLineCharts.vue'
 </script>
 
 <template>
   <VRow class="match-height">
-    <!-- 👉 Website analytics -->
-    <VCol
-      cols="12"
-      md="6"
-    >
-      <AnalyticsWebsiteAnalytics />
+
+    <!-- Left Column: Cards & Charts -->
+    <VCol cols="12" md="8" lg="4">
+      <VRow >
+        <VCol cols="12" sm="6" md="12" lg="12">
+          <EcommerceCongratulationsUser />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="12" lg="12">
+          <EcommerceTotalProfitLineCharts />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="12" lg="12">
+          <EcommerceExpensesRadialBarCharts />
+        </VCol>
+
+        <!-- Uncomment if needed -->
+        <!-- <VCol cols="12" md="12">
+          <EcommerceGeneratedLeads class="h-300" />
+        </VCol> -->
+      </VRow>
     </VCol>
 
-    <!-- 👉 Average Daily Sales -->
-    <VCol
-      cols="12"
-      md="3"
-      sm="6"
-    >
-      <AnalyticsAverageDailySales />
+    <!-- Right Column: Main Stats -->
+    <VCol cols="12" md="12" lg="8">
+      <EcommerceStatistics class="h-100" />
     </VCol>
 
-    <!-- 👉 Sales Overview -->
-    <VCol
-      cols="12"
-      md="3"
-      sm="6"
-    >
-      <AnalyticsSalesOverview />
-    </VCol>
-
-    <!-- 👉 Earning Reports Weekly Overview -->
-    <VCol
-      cols="12"
-      md="6"
-    >
-      <AnalyticsEarningReportsWeeklyOverview />
-    </VCol>
-
-    <!-- 👉 Support Tracker -->
-    <!-- <VCol
-      cols="12"
-      md="6"
-    >
-      <AnalyticsSupportTracker />
+    <!-- Example of additional component stacked responsively -->
+    <!-- <VCol cols="12" sm="12" md="6" lg="6">
+      <CrmActivityTimeline />
     </VCol> -->
 
-    <!-- 👉 Sales by Countries -->
-    <!-- <VCol
-      cols="12"
-      sm="6"
-      lg="4"
-    >
-      <AnalyticsSalesByCountries />
-    </VCol> -->
-
-    <!-- 👉 Total Earning -->
-    <!-- <VCol
-      cols="12"
-      sm="6"
-      lg="4"
-    >
-      <AnalyticsTotalEarning />
-    </VCol> -->
-
-    <!-- 👉 Monthly Campaign State -->
-    <!-- <VCol
-      cols="12"
-      sm="6"
-      lg="4"
-    >
-      <AnalyticsMonthlyCampaignState />
-    </VCol> -->
-
-    <!-- 👉 Source Visits -->
-    <!-- <VCol
-      cols="12"
-      sm="6"
-      lg="4"
-    >
-      <AnalyticsSourceVisits />
-    </VCol> -->
-
-    <!-- 👉 Project Table -->
-    <!-- <VCol
-      cols="12"
-      lg="8"
-    >
-      <AnalyticsProjectTable />
-    </VCol> -->
+    <!-- All other components can follow the same pattern -->
   </VRow>
 </template>
+
 
 <style lang="scss">
 @use "@core-scss/template/libs/apex-chart.scss";
