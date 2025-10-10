@@ -2,10 +2,10 @@
 export default [
   { heading: 'Dashboard' },
   {
-    title: 'SEO Overview',
+    title: 'Dashboard',
     icon: { icon: 'tabler-dashboard' },
-    action: 'view',    
-    subject: 'dashboard', 
+    // action: 'view',    
+    // subject: 'dashboard', 
     to: 'dashboards-analytics',
   },
   { heading: 'Clients' },

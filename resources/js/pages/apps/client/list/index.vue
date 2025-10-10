@@ -306,6 +306,31 @@ const handleDragLeave = (e) => {
   isDragOver.value = false;
 };
 
+// const summaryStats = computed(() => {
+//   const totalKeywords = clients.value.reduce(
+//     (sum, report) => sum + (report.length || 0),
+//     0
+//   );
+//   const totalAccepted = clients.value.reduce(
+//     (sum, report) => sum + (report.accepted_keywords || 0),
+//     0
+//   );
+//   const totalRejected = clients.value.reduce(
+//     (sum, report) => sum + (report.rejected_keywords || 0),
+//     0
+//   );
+//   const overallSuccessRate =
+//     totalKeywords > 0 ? Math.round((totalAccepted / totalKeywords) * 100) : 0;
+
+//   return {
+//     totalReports: clients.value.length,
+//     totalKeywords,
+//     totalAccepted,
+//     totalRejected,
+//     overallSuccessRate,
+//   };
+// });
+
 // Import dialog function
 const handleImportClients = async () => {
   if (!selectedFile.value) {
@@ -443,6 +468,67 @@ const updateOptions = async (options) => {
       </VRow>
     </VContainer>
   </VCard>
+
+
+   <!-- Summary Stats Cards -->
+
+  <!-- <VRow class="mb-6">
+    <VCol cols="12" sm="6" md="3">
+      <VCard class="text-center pa-4" elevation="1" color="primary" variant="tonal">
+        <VAvatar color="primary" size="40" class="mb-3">
+          <VIcon icon="tabler-files" color="white" />
+        </VAvatar>
+        <div class="text-h5 font-weight-bold text-primary">
+          {{ summaryStats.totalReports }}
+        </div>
+        <div class="text-body-2 text-medium-emphasis">Total Reports</div>
+      </VCard>
+    </VCol>
+    <VCol cols="12" sm="6" md="2">
+      <VCard class="text-center pa-4" elevation="1" color="info" variant="tonal">
+        <VAvatar color="info" size="40" class="mb-3">
+          <VIcon icon="tabler-link" color="white" />
+        </VAvatar>
+        <div class="text-h5 font-weight-bold text-info">
+          {{ summaryStats.totalKeywords.toLocaleString() }}
+        </div>
+        <div class="text-body-2 text-medium-emphasis">Total Keywords</div>
+      </VCard>
+    </VCol>
+    <VCol cols="12" sm="6" md="2">
+      <VCard class="text-center pa-4" elevation="1" color="success" variant="tonal">
+        <VAvatar color="success" size="40" class="mb-3">
+          <VIcon icon="tabler-check" color="white" />
+        </VAvatar>
+        <div class="text-h5 font-weight-bold text-success">
+          {{ summaryStats.totalAccepted.toLocaleString() }}
+        </div>
+        <div class="text-body-2 text-medium-emphasis">Accepted</div>
+      </VCard>
+    </VCol>
+    <VCol cols="12" sm="6" md="2">
+      <VCard class="text-center pa-4" elevation="1" color="error" variant="tonal">
+        <VAvatar color="error" size="40" class="mb-3">
+          <VIcon icon="tabler-check" color="white" />
+        </VAvatar>
+        <div class="text-h5 font-weight-bold text-error">
+          {{ summaryStats.totalRejected.toLocaleString() }}
+        </div>
+        <div class="text-body-2 text-medium-emphasis">Rejected</div>
+      </VCard>
+    </VCol>
+    <VCol cols="12" sm="6" md="3">
+      <VCard class="text-center pa-4" elevation="1" color="warning" variant="tonal">
+        <VAvatar color="warning" size="40" class="mb-3">
+          <VIcon icon="tabler-percentage" color="white" />
+        </VAvatar>
+        <div class="text-h5 font-weight-bold text-warning">
+          {{ summaryStats.overallSuccessRate.toLocaleString() }}%
+        </div>
+        <div class="text-body-2 text-medium-emphasis">Success Rate</div>
+      </VCard>
+    </VCol>
+  </VRow> -->
 
   <!-- Enhanced Search & Filter Section -->
   <VCard class="mb-6" elevation="1">

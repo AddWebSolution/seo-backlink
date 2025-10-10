@@ -13,4 +13,5 @@ return [
     App\Modules\KeywordReport\Providers\KeywordReportServiceProvider::class,
     App\Modules\KeywordDatum\Providers\KeywordDatumServiceProvider::class,
     App\Modules\RivalDomain\Providers\RivalDomainServiceProvider::class,    
+    App\Modules\Dashboard\Providers\DashboardServiceProvider::class,
 ];

@@ -125,7 +125,7 @@ const chartOptions = computed(() => {
 </script>
 
 <template>
-  <VCard class="overflow-visible">
+  <VCard class="overflow-visible pt-5 mb-12">
     <VCardText class="d-flex justify-space-between">
       <div class="d-flex flex-column">
         <div class="mb-auto">

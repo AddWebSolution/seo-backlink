@@ -3,6 +3,7 @@
 namespace App\Modules\User\Models;
 
 use App\Enums\UserRole;
+use App\Modules\RivalDomain\Models\RivalDomain;
 use App\Enums\UserStatus;
 use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use Laravel\Sanctum\HasApiTokens;
@@ -54,6 +55,18 @@ class User extends Authenticatable
     public function backlinks()
     {
         return $this->hasMany(BacklinkDatum::class, 'client_id', 'id');
+    }
+
+    public function rivalDomains()
+    {
+        return $this->hasManyThrough(
+            RivalDomain::class,    
+            ClientDomain::class,    
+            'client_id',            
+            'client_domain_id',     
+            'id',                  
+            'id'                   
+        );
     }
 
     public function clientDomains()
