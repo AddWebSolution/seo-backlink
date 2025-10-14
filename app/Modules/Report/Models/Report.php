@@ -65,6 +65,15 @@ class Report extends BaseModel
             ->toArray();
     }
 
+    public function getRivalDomains(): array
+    {
+        return $this->backlinks()
+            ->whereNotNull('target_domain')
+            ->distinct()
+            ->pluck('target_url', 'target_domain')
+            ->toArray();
+    }
+
     public function getDomainsCount(): int
     {
         return $this->backlinks()

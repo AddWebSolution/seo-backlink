@@ -28,6 +28,16 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::post('get/{id}', [UserController::class, 'show'])->name('show');
 			//});
 
+			Route::get('/webhook/data', function () {
+				$data = [
+					'value' => 6,
+					'message' => 'Hello from Laravel',
+					'timestamp' => now(),
+				];
+
+				return response()->json($data);
+			});
+
 			Route::post('list', [UserController::class, 'clientList'])->name('clientList');
 
 			Route::post('client/domains', [UserController::class, 'clientDomains'])->name('clientDomains');

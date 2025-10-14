@@ -7,6 +7,7 @@ export function useDomainApi() {
   const { showAlert } = useAlert();
 
   const domains = ref([]);
+  const backlinkhistory = ref([]);
   const pagination = ref({
     total: 0,
     currentPage: 1,
@@ -115,6 +116,35 @@ export function useDomainApi() {
       loading.value = false;
     }
   };
+
+
+   const fetchClientDomainsHistory = async (id,filters = {}, page = null) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const body = {
+        ...filters,
+      };
+
+      const result = await useApi(
+        createUrl(`api/backlinkhistory/clientdomain/history/compare/${id}`, { query: body }),
+        {
+          method: "POST",
+        }
+      );
+
+      backlinkhistory.value = result.data.value;
+
+      return result;
+    } catch (err) {
+      error.value = err;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
 
   // import domains
 
@@ -283,6 +313,7 @@ export function useDomainApi() {
 
   return {
     domains: readonly(domains),
+    backlinkhistory: readonly(backlinkhistory),
     pagination: pagination,
     domainList: domainList,
     currentDomain: readonly(currentDomain),
@@ -292,6 +323,7 @@ export function useDomainApi() {
     // Methods
     fetchDomains,
     fetchClientDomains,
+    fetchClientDomainsHistory,
     fetchDomainList,
     importDomains,
     fetchDomain,

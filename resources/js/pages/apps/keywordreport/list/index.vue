@@ -17,6 +17,7 @@ const headers = [
 
 const { 
   reports, 
+  pagination,
   loading, 
   error,
   fetchKeywordReports, 
@@ -629,7 +630,7 @@ const applyFilters = async () => {
         <TablePagination
           v-model:page="page"
           :items-per-page="itemsPerPage"
-          :total-items="totalProduct"
+          :total-items="totalReports"
         />
       </template>
     </VDataTableServer>

@@ -32,6 +32,15 @@ export const clientRoutes = [
     meta: { title: "Client Domain List" }
   },
   {
+    path: "/client/:id?/clientdomain/history",
+    name: "apps-domain-clientdomain-history",
+    component: () => import("@/pages/apps/clientdomain/history/[id].vue"),
+    props: true,
+    action: 'create',
+    subject: 'client',
+    meta: { title: "Client Domain History" }
+  },
+  {
     path: "/client/:clientId?/clientdomain/:domainId?/view",
     name: "apps-domain-clientdomain-view",
     component: () => import("@/pages/apps/domain/clientdomain/view/[domainId].vue"),

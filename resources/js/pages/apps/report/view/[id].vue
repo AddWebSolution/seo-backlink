@@ -18,6 +18,7 @@ const {
 const searchQuery = ref("");
 const statusFilter = ref("");
 const selectedDomain = ref("");
+const selectedRivalDomain = ref("");
 const allSeenDomains = ref(new Set());
 
 const uiState = reactive({
@@ -32,6 +33,7 @@ const requestBody = computed(() => ({
   search: searchQuery.value,
   status: statusFilter.value,
   domain: selectedDomain.value,
+  rival_domain: selectedRivalDomain.value,
   sort_by: uiState.sortBy[0]?.key || "id",
   sort_order: uiState.sortBy[0]?.order || "desc",
 }));
@@ -60,12 +62,14 @@ watch(
   { deep: true }
 );
 
-watch([searchQuery, statusFilter, selectedDomain], () => {
+watch([searchQuery, statusFilter, selectedDomain, selectedRivalDomain], () => {
   uiState.page = 1;
 });
 
 const report = computed(() => currentReport.value?.report ?? {});
 const backlinksDomains = computed(() => currentReport.value?.domains ?? {});
+
+const backlinksRivalDomains = computed(() => currentReport.value?.rival_domains ?? {});
 
 const accepted_backlinks = computed(() => {
   return parseInt(report.value?.accepted_backlinks || 0, 10);
@@ -134,6 +138,18 @@ const domainOptions = computed(() => {
   });
   return options;
 });
+
+const rivalDomainOptions = computed(() => {
+  const options = [{ title: "All Rival Domains", value: "" }];
+  Object.entries(backlinksRivalDomains.value).forEach(([title, targetUrl]) => {
+    options.push({
+      title,
+      value: targetUrl,
+    });
+  });
+  return options;
+});
+
 
 const getStatusConfig = (status) => {
   if (status === "accepted")
@@ -460,9 +476,9 @@ const serverItems = computed(() => ({
               <p class="text-body-2 text-medium-emphasis mb-1">Success Rate</p>
               <h4 class="text-h4 font-weight-bold text-secondary">
                 {{
-                stats.total
-                ? Math.round((accepted_backlinks / stats.total) * 100)
-                : 0
+                  stats.total
+                    ? Math.round((accepted_backlinks / stats.total) * 100)
+                    : 0
                 }}%
               </h4>
             </VCardText>
@@ -472,8 +488,8 @@ const serverItems = computed(() => ({
 
       <!-- Enhanced Filters Card -->
       <VCard elevation="2" class="mb-6">
-        <VCardTitle class="d-flex align-center pa-6">
-          <VAvatar color="primary" variant="tonal" class="me-3">
+        <VCardTitle class="d-flex align-center pa-6 flex-wrap">
+          <VAvatar color="primary" variant="tonal" class="me-3 mb-2 mb-md-0">
             <VIcon icon="tabler-filter" />
           </VAvatar>
           <div>
@@ -488,8 +504,8 @@ const serverItems = computed(() => ({
           <!-- Search Scope Toggle -->
           <VRow class="mb-4">
             <VCol cols="12">
-              <VBtnToggle v-model="searchScope" color="primary" variant="outlined" mandatory class="w-100">
-                <VBtn value="global" class="flex-grow-1">
+              <VBtnToggle v-model="searchScope" color="primary" variant="outlined" mandatory class="w-100 flex-wrap">
+                <VBtn value="global" class="flex-grow-1 mb-2 mb-md-0 me-md-2">
                   <VIcon icon="tabler-world" class="me-2" />
                   Search All Backlinks
                 </VBtn>
@@ -501,11 +517,24 @@ const serverItems = computed(() => ({
             </VCol>
           </VRow>
 
-          <VRow>
+          <VRow class="g-3">
             <!-- Domain Filter -->
-            <VCol cols="12" md="3">
+            <VCol cols="12" sm="12" md="2">
               <VSelect v-model="selectedDomain" :items="domainOptions" item-title="title" item-value="value"
-                variant="outlined" label="Select Domain" hide-details clearable :disabled="searchScope === 'global'">
+                variant="outlined" label="Select Domain" hide-details clearable :disabled="selectedDomain === 'global'">
+                <template #selection="{ item }">
+                  <div class="d-flex align-center">
+                    <VIcon icon="tabler-world" class="me-2" size="16" />
+                    <span>{{ item.title }}</span>
+                  </div>
+                </template>
+              </VSelect>
+            </VCol>
+
+            <!-- Rival Domain Filter -->
+            <VCol cols="12" sm="6" md="2">
+              <VSelect v-model="selectedRivalDomain" :items="rivalDomainOptions" item-title="title" item-value="value"
+                variant="outlined" label="Select Rival Domain" hide-details clearable :disabled="selectedDomain === ''">
                 <template #selection="{ item }">
                   <div class="d-flex align-center">
                     <VIcon icon="tabler-world" class="me-2" size="16" />
@@ -516,29 +545,31 @@ const serverItems = computed(() => ({
             </VCol>
 
             <!-- Search Field -->
-            <VCol cols="12" md="4">
-              <VTextField v-model="searchQuery" variant="outlined" label="Search backlinks..." :placeholder="
-                  searchScope === 'domain' && selectedDomain
-                    ? `Search in ${selectedDomain}...`
-                    : 'Search by domain, URL, or anchor text'
+            <VCol cols="12" sm="12" md="2">
+              <VTextField v-model="searchQuery" variant="outlined" label="Search backlinks..." :placeholder="searchScope === 'domain' && selectedDomain
+                  ? `Search in ${selectedDomain}...`
+                  : 'Search by domain, URL, or anchor text'
                 " hide-details clearable prepend-inner-icon="tabler-search" @keyup.enter="handleSearch" />
             </VCol>
 
             <!-- Status Filter -->
-            <VCol cols="12" md="2">
+            <VCol cols="12" sm="6" md="1" lg="1">
               <VSelect v-model="statusFilter" :items="statusOptions" item-title="title" item-value="value"
                 variant="outlined" label="Status" hide-details clearable prepend-inner-icon="tabler-flag" />
             </VCol>
 
-            <VCol cols="12" md="1">
-              <VSelect v-model="uiState.itemsPerPage" :items="[10,20,50,100,200]" item-title="title" item-value="value"
+            <!-- Items per page -->
+            <VCol cols="12" sm="6" md="1" lg="1">
+              <VSelect v-model="uiState.itemsPerPage" :items="[10, 20, 50, 100, 200]" item-title="title" item-value="value"
                 variant="outlined" label="Per Page" hide-details prepend-inner-icon="tabler-file-description" />
             </VCol>
 
-            <VCol cols="12" md="1">
-               <VBtn variant="outlined" color="secondary" @click="clearFilters"
-                :disabled="!searchQuery && !statusFilter && !selectedDomain" prepend-icon="tabler-filter-x">
-                Clear Filters
+            <!-- Clear Filters -->
+            <VCol cols="12" sm="12" md="2">
+              <VBtn variant="outlined" color="secondary" @click="clearFilters"
+                :disabled="!searchQuery && !statusFilter && !selectedDomain" prepend-icon="tabler-filter-x"
+                class="w-100">
+                Clear
               </VBtn>
             </VCol>
           </VRow>
@@ -563,14 +594,13 @@ const serverItems = computed(() => ({
               <VChip v-if="statusFilter" size="small" color="warning" variant="tonal" closable
                 @click:close="statusFilter = ''">
                 <VIcon icon="tabler-flag" class="me-1" size="14" />
-                Status:
-                {{ statusOptions.find((s) => s.value === statusFilter)?.title }}
+                Status: {{statusOptions.find((s) => s.value === statusFilter)?.title}}
               </VChip>
-
             </div>
           </div>
         </VCardText>
       </VCard>
+
 
       <!-- DataTable Card -->
       <VCard elevation="2" class="mb-6">
@@ -644,10 +674,9 @@ const serverItems = computed(() => ({
           <!-- Type Column -->
           <template #item.do_follow="{ item }">
             <VChip :color="item.do_follow ? 'success' : 'error'" variant="tonal" size="small">
-              <VIcon :icon="
-                  item.do_follow
-                    ? 'tabler-circles-relation'
-                    : 'tabler-space-off'
+              <VIcon :icon="item.do_follow
+                  ? 'tabler-circles-relation'
+                  : 'tabler-space-off'
                 " size="14" class="me-1" />
               {{ item.do_follow ? "DoFollow" : "NoFollow" }}
             </VChip>
@@ -655,10 +684,9 @@ const serverItems = computed(() => ({
 
           <!-- Spam Score Column -->
           <template #item.spam_score="{ item }">
-            <VChip :color="
-                (item.spam_score || 0) > 50
-                  ? 'error'
-                  : (item.spam_score || 0) > 20
+            <VChip :color="(item.spam_score || 0) > 50
+                ? 'error'
+                : (item.spam_score || 0) > 20
                   ? 'warning'
                   : 'success'
               " variant="tonal" size="small">
@@ -680,7 +708,7 @@ const serverItems = computed(() => ({
               <VIcon icon="tabler-network" size="16" class="me-1" />
               <span class="font-weight-medium">{{
                 item.domain_rank || 0
-                }}</span>
+              }}</span>
             </div>
           </template>
 
@@ -695,16 +723,14 @@ const serverItems = computed(() => ({
           <!-- Actions Column -->
           <template #item.actions="{ item }">
             <VTooltip text="View Details">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small">
-                <router-link
-                  :to="{ name: 'apps-report-backlink-view', params: { id: item.id } }"
-                >
-                  <VIcon icon="tabler-eye" size="24" />
-                </router-link>
-              </IconBtn>
-            </template>
-          </VTooltip>
+              <template #activator="{ props }">
+                <IconBtn v-bind="props" size="small">
+                  <router-link :to="{ name: 'apps-report-backlink-view', params: { id: item.id } }">
+                    <VIcon icon="tabler-eye" size="24" />
+                  </router-link>
+                </IconBtn>
+              </template>
+            </VTooltip>
           </template>
 
           <!-- No data slot -->
@@ -716,9 +742,9 @@ const serverItems = computed(() => ({
               <h5 class="text-h5 mb-2">No Backlinks Found</h5>
               <p class="text-body-2 text-medium-emphasis">
                 {{
-                searchQuery || statusFilter || selectedDomain
-                ? "No backlinks match your current filters."
-                : "No backlinks available for this report."
+                  searchQuery || statusFilter || selectedDomain
+                    ? "No backlinks match your current filters."
+                    : "No backlinks available for this report."
                 }}
               </p>
               <VBtn v-if="searchQuery || statusFilter || selectedDomain" variant="outlined" color="primary"

@@ -49,6 +49,9 @@ const { ClientList, fetchClientList } = useClientApi();
 const authStore = useAuthStore();
 const ability = useAbility();
 
+const deleteDialog = ref(false)
+const deleteId = ref(null)
+
 const {
   domains,
   pagination,
@@ -83,6 +86,19 @@ const importResult = ref({
   message: "",
   success: false,
 });
+
+function openDeleteDialog(id) {
+  deleteId.value = id
+  deleteDialog.value = true
+}
+
+function confirmDelete() {
+  if (deleteId.value) {
+    handleDeleteDomain(deleteId.value)
+  }
+  deleteDialog.value = false
+}
+
 
 // Excel Import Dialog State
 const importDialog = ref(false);
@@ -653,7 +669,20 @@ onMounted(async () => {
                     name: 'apps-clientdomain-view',
                     params: { clientId: item.client_id, domainId: item.id },
                   }">
-                  <VIcon icon="tabler-eye" size="24" />
+                  <VIcon icon="tabler-eye" size="20" />
+                </router-link>
+              </IconBtn>
+            </template>
+          </VTooltip>
+
+          <VTooltip text="View history">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small">
+                <router-link :to="{
+                  name: 'apps-domain-clientdomain-history',
+                  params: { id: item.id },
+                }">
+                  <VIcon color="info" icon="tabler-chart-bar-popular" size="20" />
                 </router-link>
               </IconBtn>
             </template>
@@ -661,10 +690,27 @@ onMounted(async () => {
 
           <VTooltip text="Delete">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" color="error" icon="tabler-trash" @click="handleDeleteDomain(item.id)"
-                size="small" />
+              <IconBtn v-bind="props" color="error" icon="tabler-trash" size="small"
+                @click="openDeleteDialog(item.id)" />
             </template>
           </VTooltip>
+          
+          <template>
+            <!-- Confirm Delete Dialog -->
+            <VDialog v-model="deleteDialog" max-width="400">
+              <VCard>
+                <VCardTitle class="text-h6">Confirm Deletion</VCardTitle>
+                <VCardText>
+                  Are you sure you want to delete this domain? This action can’t be undone.
+                </VCardText>
+
+                <VCardActions class="justify-end">
+                  <VBtn variant="text" @click="deleteDialog = false">Cancel</VBtn>
+                  <VBtn color="error" @click="confirmDelete">Delete</VBtn>
+                </VCardActions>
+              </VCard>
+            </VDialog>
+          </template>
         </div>
       </template>
 

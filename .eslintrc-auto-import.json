@@ -387,6 +387,7 @@
     "useRivalDomainApi": true,
     "useAuthApi": true,
     "registerRouters": true,
-    "registerRoutes": true
+    "registerRoutes": true,
+    "useDashboardApi": true
   }
 }
