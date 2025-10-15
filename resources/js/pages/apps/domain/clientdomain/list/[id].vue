@@ -621,20 +621,19 @@ onMounted(async () => {
         <span>{{ item.country }}</span>
       </template>
 
-      
       <template #item.manage_domains="{ item }">
         <div class="d-flex align-center gap-1">
-          <VChip color="info" variant="outlined" size="small">
-            {{ item.rival_domains_count }}
-          </VChip>
-
+          
           <VTooltip text="View Rival Domains">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="$router.push({
                 name: 'apps-domain-clientdomain-rivaldomain-list',
                 params: { clientId: item.client_id, domainId: item.id }
               })">
-                <VIcon color="success" icon="tabler-world" size="20" />
+              <VChip color="info" variant="tonal" size="small">
+                {{ item.rival_domains_count }}
+                <VIcon color="success" icon="tabler-world" size="20" class="ml-2" />
+              </VChip>
               </IconBtn>
             </template>
           </VTooltip>

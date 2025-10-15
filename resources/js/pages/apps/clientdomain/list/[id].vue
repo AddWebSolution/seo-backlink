@@ -645,9 +645,6 @@ onMounted(async () => {
 
       <template #item.manage_domains="{ item }">
         <div class="d-flex ml-4">
-          <VChip color="info" variant="outlined" size="small" class="ma-1">
-            {{ item.rival_domain_count }}
-          </VChip>
           <VTooltip text="View Rival Domains">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="
@@ -656,7 +653,10 @@ onMounted(async () => {
                   params: { clientId: item.client_id, domainId: item.id },
                 })
                 ">
-                <VIcon color="success" icon="tabler-world" size="20" />
+                <VChip color="info" variant="tonal" size="small" class="ma-1">
+                  {{ item.rival_domain_count }}
+                  <VIcon color="success" icon="tabler-world" size="20" class="ml-2" />
+                </VChip>
               </IconBtn>
             </template>
           </VTooltip>

@@ -731,9 +731,6 @@ const updateOptions = async (options) => {
 
       <template #item.manage_domains="{ item }">
         <div class="d-flex ml-2">
-          <VChip color="info" variant="outlined" size="small" class="ma-1">
-            {{ item.domain_count }}
-          </VChip>
           <VTooltip v-if="ability.can('view', 'rivaldomain')" text="View Domains for This Client">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="
@@ -742,7 +739,10 @@ const updateOptions = async (options) => {
                   params: { id: item.id },
                 })
                 ">
-                <VIcon color="success" icon="tabler-world" size="20" />
+                <VChip color="info" variant="tonal" size="small" class="ma-1">
+                  {{ item.domain_count }}
+                  <VIcon color="success" icon="tabler-world" size="20" class="ml-2" />
+                </VChip>
               </IconBtn>
             </template>
           </VTooltip>
