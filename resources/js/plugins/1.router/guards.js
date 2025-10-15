@@ -1,38 +1,38 @@
-import { canNavigate } from '@layouts/plugins/casl'
+// import { canNavigate } from '@layouts/plugins/casl'
 
-export const setupGuards = router => {
-  // 👉 router.beforeEach
-  // Docs: https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards
-  router.beforeEach(to => {
+// export const setupGuards = router => {
+//   // 👉 router.beforeEach
+//   // Docs: https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards
+//   router.beforeEach(to => {
 
-    // console.log(router.getRoutes().map(r => r.name))
-
-
-    const token = useCookie('accessToken').value
-
-    const role_id = useCookie('role_id').value
-
-    // console.log('Navigating to:', to.fullPath)
-    // console.log('User token:', token)
-    const isLoggedIn = !!token
+//     // console.log(router.getRoutes().map(r => r.name))
 
 
-    // console.log('Navigating to:', to.name)
-    // console.log('Can navigate?', canNavigate(to))
-    // console.log('isLoggedIn?', isLoggedIn)
+//     const token = useCookie('accessToken').value
 
-    // console.log('Route name:', to.name)
+//     const role_id = useCookie('role_id').value
+
+//     // console.log('Navigating to:', to.fullPath)
+//     // console.log('User token:', token)
+//     const isLoggedIn = !!token
 
 
-    if (to.meta.public || to.name === 'login') return
+//     // console.log('Navigating to:', to.name)
+//     // console.log('Can navigate?', canNavigate(to))
+//     // console.log('isLoggedIn?', isLoggedIn)
 
-    if (!isLoggedIn) {
-      return { name: 'login', query: { to: to.fullPath !== '/' ? to.fullPath : undefined } }
-    }
+//     // console.log('Route name:', to.name)
 
-    if (!canNavigate(to) && to.matched.length) {
-      return { name: 'not-authorized' }
-    }
-  })
 
-}
+//     if (to.meta.public || to.name === 'login') return
+
+//     if (!isLoggedIn) {
+//       return { name: 'login', query: { to: to.fullPath !== '/' ? to.fullPath : undefined } }
+//     }
+
+//     if (!canNavigate(to) && to.matched.length) {
+//       return { name: 'not-authorized' }
+//     }
+//   })
+
+// }
