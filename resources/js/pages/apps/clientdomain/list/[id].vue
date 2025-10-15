@@ -679,8 +679,8 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                  name: 'apps-domain-clientdomain-history',
-                  params: { id: item.id },
+                  name: 'apps-clientdomain-history',
+                  params: { id: item.id  , view : 'domain' },
                 }">
                   <VIcon color="info" icon="tabler-chart-bar-popular" size="20" />
                 </router-link>

@@ -622,7 +622,7 @@ onMounted(async () => {
       </template>
 
       <template #item.manage_domains="{ item }">
-        <VTooltip  text="View Rival Domains">
+        <VTooltip text="View Rival Domains">
           <template #activator="{ props }">
             <IconBtn class="ml-4" v-bind="props" size="small" @click="$router.push({
               name: 'apps-domain-clientdomain-rivaldomain-list',
@@ -642,6 +642,19 @@ onMounted(async () => {
                 <router-link
                   :to="{ name: 'apps-domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
+                </router-link>
+              </IconBtn>
+            </template>
+          </VTooltip>
+
+          <VTooltip text="View history">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small">
+                <router-link :to="{
+                  name: 'apps-domain-clientdomain-history',
+                  params: {  view : 'client', id: item.id },
+                }">
+                  <VIcon color="info" icon="tabler-chart-bar-popular" size="20" />
                 </router-link>
               </IconBtn>
             </template>
