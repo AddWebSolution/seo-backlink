@@ -23,7 +23,7 @@ const headers = [
     align: "center",
     width: "40px",
   },
-  { title: "Status", key: "status", align: "center", width: "120px" },
+  { title: "Status", key: "status", align: "center", width: "60px" },
   {
     title: "Approval",
     key: "approval_status",
@@ -34,8 +34,9 @@ const headers = [
   {
     title: "Manage Domains",
     key: "manage_domains",
+    align : "center",
     sortable: false,
-    width: "120px",
+    width: "140px",
   },
   {
     title: "Actions",
@@ -644,6 +645,9 @@ onMounted(async () => {
 
       <template #item.manage_domains="{ item }">
         <div class="d-flex ml-4">
+          <VChip color="info" variant="outlined" size="small" class="ma-1">
+            {{ item.rival_domain_count }}
+          </VChip>
           <VTooltip text="View Rival Domains">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="
@@ -694,7 +698,7 @@ onMounted(async () => {
                 @click="openDeleteDialog(item.id)" />
             </template>
           </VTooltip>
-          
+
           <template>
             <!-- Confirm Delete Dialog -->
             <VDialog v-model="deleteDialog" max-width="400">

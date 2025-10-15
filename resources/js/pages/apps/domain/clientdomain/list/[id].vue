@@ -621,17 +621,24 @@ onMounted(async () => {
         <span>{{ item.country }}</span>
       </template>
 
+      
       <template #item.manage_domains="{ item }">
-        <VTooltip text="View Rival Domains">
-          <template #activator="{ props }">
-            <IconBtn class="ml-4" v-bind="props" size="small" @click="$router.push({
-              name: 'apps-domain-clientdomain-rivaldomain-list',
-              params: { clientId: item.client_id, domainId: item.id }
-            })">
-              <VIcon color="success" icon="tabler-world" size="20" />
-            </IconBtn>
-          </template>
-        </VTooltip>
+        <div class="d-flex align-center gap-1">
+          <VChip color="info" variant="outlined" size="small">
+            {{ item.rival_domains_count }}
+          </VChip>
+
+          <VTooltip text="View Rival Domains">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="$router.push({
+                name: 'apps-domain-clientdomain-rivaldomain-list',
+                params: { clientId: item.client_id, domainId: item.id }
+              })">
+                <VIcon color="success" icon="tabler-world" size="20" />
+              </IconBtn>
+            </template>
+          </VTooltip>
+        </div>
       </template>
 
       <template #item.actions="{ item }">

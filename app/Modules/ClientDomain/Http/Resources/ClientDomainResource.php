@@ -14,6 +14,8 @@ class ClientDomainResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return array_merge(parent::toArray($request), [
+            'rival_domain_count' => $this->rivalDomains()->count(),
+        ]);
     }
 }
