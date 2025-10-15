@@ -45,6 +45,7 @@ class BacklinkHistoryService extends BaseService
 
         return [
             'client_history' => $clientHistory,
+            'client_id' => $client->client_id,
             'rival_history' => $rivalHistory,
         ];
     }

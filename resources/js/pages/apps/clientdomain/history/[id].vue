@@ -1,18 +1,25 @@
 <script setup>
 import { useDomainApi } from "@/composables/domainApi";
-import { reactive, computed, ref, onMounted, watch } from "vue";
+import { reactive, computed, ref, onMounted, watch, unref } from "vue";
 import { useRoute } from "vue-router";
 import DonutChart from "@/pages/charts/DonutChart.vue";
 import VueApexCharts from "vue3-apexcharts";
 import MultiBarChart from "@/pages/charts/MultiBarChart.vue";
 import { useTheme } from "vuetify"
 import BarChart from "@/pages/charts/BarChart.vue";
+import { useAbility } from "@casl/vue";
+import useAuthStore from "@/router/store/auth";
 
 
 const route = useRoute();
-const theme = useTheme()
+const theme = useTheme();
+const ability = useAbility();
+const authStore  = useAuthStore();
 
 const clientDomainId = computed(() => route.params.id);
+
+const view = computed(() => route.params.view);
+
 
 const {
   backlinkhistory,
@@ -31,6 +38,9 @@ const selectedChart = ref("trend");
 const selectedHistoryDate = ref(null);
 const viewMode = ref("comparison");
 const selectedRivalDomain = ref(null);
+
+
+const clientId = computed(() => backlinkhistory.value?.client_id);
 
 
 onMounted(async () => {
@@ -138,6 +148,9 @@ const selectedRivalData = computed(() => {
   return rivals;
 });
 
+
+console.log('view',view);
+
 const selectedRivalDomainData = computed(() => {
   if (!selectedRivalDomain.value || !selectedHistoryDate.value) return null;
   const rivalHistory = rivalsByDomain.value[selectedRivalDomain.value] || [];
@@ -164,7 +177,6 @@ const latestSelectedRivalData = computed(() => {
 const showSideBySide = computed(() => {
   return !['trend', 'comparison'].includes(selectedChart.value) && viewMode.value === 'comparison';
 });
-
 
 // CHART 2: Comparison Bar Chart
 const comparisonChartOptions = computed(() => {
@@ -329,6 +341,7 @@ const statsCards = computed(() => {
     },
   ];
 });
+
 </script>
 
 <template>
@@ -351,9 +364,14 @@ const statsCards = computed(() => {
             </div>
           </VCol>
           <VCol cols="12" md="4" class="d-flex justify-end">
-            <VBtn variant="flat" color="primary" :to="{ name: 'apps-clientdomain-list' }">
+            <VBtn variant="flat" color="primary" :to="{
+              name: ability.can('view', 'client')
+                ? (view === 'client' ? 'apps-domain-clientdomain-list' : 'apps-clientdomain-list')
+                : 'apps-clientdomain-list',
+              params: ability.can('view', 'client') ? { id: clientId } : {},
+            }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to Domains
+              {{ ability.can('view', 'client') ? 'Back to Client' : 'Back to Domain' }}
             </VBtn>
           </VCol>
         </VRow>
@@ -366,7 +384,7 @@ const statsCards = computed(() => {
             <VBtnToggle v-model="viewMode" color="primary" variant="outlined" divided mandatory class="w-100">
               <VBtn value="client" class="flex-grow-1">
                 <VIcon icon="tabler-user" class="me-2" />
-                Client Only
+                {{ latestClientData?.target?.toUpperCase() }}
               </VBtn>
               <VBtn value="comparison" class="flex-grow-1">
                 <VIcon icon="tabler-users" class="me-2" />
@@ -621,7 +639,7 @@ const statsCards = computed(() => {
             <VueApexCharts type="bar" :height="400" :options="comparisonChartOptions.chartOptions"
               :series="comparisonChartOptions.series" />
           </div>
-           <!-- Types Chart -->
+          <!-- Types Chart -->
           <div v-if="selectedChart === 'types'">
             <DonutChart :data="getChartDataForDomain(selectedClientData, 'types')" title="Client Link Types" />
           </div>
@@ -857,14 +875,6 @@ const statsCards = computed(() => {
   }
 }
 
-.v-card {
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
-  }
-}
 
 @media (max-width: 768px) {
   .comparison-table {
