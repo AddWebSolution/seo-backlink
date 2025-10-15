@@ -88,6 +88,10 @@ const isDragOver = ref(false);
 const sortBy = ref();
 const orderBy = ref();
 
+
+const deleteDialog = ref(false)
+const deleteId = ref(null)
+
 // Build filters object
 const buildFilters = () => {
   const filters = {};
@@ -115,6 +119,19 @@ const loadRivalDomains = async (id = clientDomainId.value) => {
   const filters = buildFilters();
   await fetchClientRivalDomains(id,filters, pagination.value.page);
 };
+
+function openDeleteDialog(id) {
+  deleteId.value = id
+  deleteDialog.value = true
+}
+
+function confirmDelete() {
+  if (deleteId.value) {
+    handleDeleteDomain(deleteId.value)
+  }
+  deleteDialog.value = false
+}
+
 
 const clearAllFilters = async () => {
   selectedStatus.value = null;
@@ -638,10 +655,27 @@ onMounted(async () => {
 
           <VTooltip text="Delete">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" color="error" icon="tabler-trash" @click="handleDeleteDomain(item.id)"
-                size="small" />
+              <IconBtn v-bind="props" color="error" icon="tabler-trash" size="small"
+                @click="openDeleteDialog(item.id)" />
             </template>
           </VTooltip>
+          
+          <template>
+            <!-- Confirm Delete Dialog -->
+            <VDialog v-model="deleteDialog" max-width="400">
+              <VCard>
+                <VCardTitle class="text-h6">Confirm Deletion</VCardTitle>
+                <VCardText>
+                  Are you sure you want to delete this domain? This action can’t be undone.
+                </VCardText>
+
+                <VCardActions class="justify-end">
+                  <VBtn variant="text" @click="deleteDialog = false">Cancel</VBtn>
+                  <VBtn color="error" @click="confirmDelete">Delete</VBtn>
+                </VCardActions>
+              </VCard>
+            </VDialog>
+          </template>
         </div>
       </template>
 

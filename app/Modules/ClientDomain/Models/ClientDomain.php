@@ -3,6 +3,7 @@
 namespace App\Modules\ClientDomain\Models;
 
 use Addweb\Base\Model\BaseModel;
+use App\Modules\BacklinkHistory\Models\BacklinkHistory;
 use App\Modules\Client\Models\Client;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,5 +51,10 @@ class ClientDomain extends BaseModel
      public function rivalDomains()
     {
         return $this->hasMany(RivalDomain::class, 'client_domain_id', 'id');
+    }
+
+    public function backlinkHistory()
+    {
+        return $this->hasMany(BacklinkHistory::class, 'client_domain_id', 'id');
     }
 }

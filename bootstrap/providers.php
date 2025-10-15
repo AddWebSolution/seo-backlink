@@ -14,4 +14,5 @@ return [
     App\Modules\KeywordDatum\Providers\KeywordDatumServiceProvider::class,
     App\Modules\RivalDomain\Providers\RivalDomainServiceProvider::class,    
     App\Modules\Dashboard\Providers\DashboardServiceProvider::class,
+    App\Modules\BacklinkHistory\Providers\BacklinkHistoryServiceProvider::class,
 ];

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('rival_domains', function (Blueprint $table) {
             $table->bigIncrements('id'); // primary key
             $table->unsignedBigInteger('client_domain_id')->nullable();
+            $table->unsignedBigInteger('backlink_history_id')->nullable();
             $table->string('source_url')->nullable();
             $table->string('title');
             $table->string('target_url');

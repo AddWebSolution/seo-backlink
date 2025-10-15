@@ -69,16 +69,26 @@ class ReportService extends BaseService
             });
         }
 
+        if (!empty($filters['rival_domain'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->orwhere('target_url', $filters['rival_domain'])
+                    ->orWhere('target_domain', $filters['rival_domain']);
+            });
+        }
+
         $query->orderBy($filters['sort_by'], $filters['sort_order']);
 
         $backlinks = $query->paginate($perPage);
 
         $domains = $report->getDomains();
 
+        $rivalDomains = $report->getRivalDomains();
+
         return [
             'report'    => $report,
             'backlinks' => $backlinks,
-            'domains'   => $domains
+            'domains'   => $domains,
+            'rival_domains' => $rivalDomains,
         ];
     }
 

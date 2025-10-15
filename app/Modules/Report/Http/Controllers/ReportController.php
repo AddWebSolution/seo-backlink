@@ -30,6 +30,7 @@ class ReportController extends BaseController
         $filters = [
             'search'          => $request->get('search'),
             'domain'          => $request->get('domain'),
+            'rival_domain' => $request->get('rival_domain'),
             'status'          => $request->get('status'),
             'sort_by'        => $request->get('sort_by', 'id'),
             'sort_order'     => $request->get('sort_order', 'desc'),
@@ -41,7 +42,8 @@ class ReportController extends BaseController
             'success'   => true,
             'report'    => $result['report'],
             'backlinks' => $result['backlinks'],
-            'domains'       => $result['domains']
+            'domains'       => $result['domains'],
+            'rival_domains' => $result['rival_domains']
         ]);
     }
 
