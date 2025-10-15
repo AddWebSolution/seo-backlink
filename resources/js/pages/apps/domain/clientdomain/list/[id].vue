@@ -631,8 +631,8 @@ onMounted(async () => {
                 params: { clientId: item.client_id, domainId: item.id }
               })">
               <VChip color="info" variant="tonal" size="small">
+               <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
                 {{ item.rival_domains_count }}
-                <VIcon color="success" icon="tabler-world" size="20" class="ml-2" />
               </VChip>
               </IconBtn>
             </template>

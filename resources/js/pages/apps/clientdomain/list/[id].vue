@@ -34,13 +34,14 @@ const headers = [
   {
     title: "Manage Domains",
     key: "manage_domains",
-    align : "center",
+    align  : "center",
     sortable: false,
-    width: "140px",
+    width: "100px",
   },
   {
     title: "Actions",
     key: "actions",
+    align  : "center",
     sortable: false,
     width: "120px",
   },
@@ -644,24 +645,21 @@ onMounted(async () => {
 
 
       <template #item.manage_domains="{ item }">
-        <div class="d-flex ml-4">
-          <VTooltip text="View Rival Domains">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="
-                $router.push({
-                  name: 'apps-clientdomain-rivaldomain-list',
-                  params: { clientId: item.client_id, domainId: item.id },
-                })
-                ">
-                <VChip color="info" variant="tonal" size="small" class="ma-1">
-                  {{ item.rival_domain_count }}
-                  <VIcon color="success" icon="tabler-world" size="20" class="ml-2" />
-                </VChip>
-              </IconBtn>
-            </template>
-          </VTooltip>
-        </div>
+        <VTooltip text="View Rival Domains">
+          <template #activator="{ props }">
+            <IconBtn v-bind="props" size="small" class="d-flex align-center px-2" @click="$router.push({
+              name: 'apps-clientdomain-rivaldomain-list',
+              params: { clientId: item.client_id, domainId: item.id },
+            })">
+              <VChip color="info" variant="tonal" size="small" class="d-flex align-center px-2 ml-10">
+                <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
+                <span class="text-caption text-info">{{ item.rival_domain_count }}</span>
+              </VChip>
+            </IconBtn>
+          </template>
+        </VTooltip>
       </template>
+
 
 
       <template #item.actions="{ item }">

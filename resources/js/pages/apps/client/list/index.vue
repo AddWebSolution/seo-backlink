@@ -21,11 +21,13 @@ const headers = [
   {
     title: "Manage Domains",
     key: "manage_domains",
-    width: "110px",
+    align  : "center",
+    width: "200px",
   },
   {
     title: "Actions",
     key: "actions",
+    align  : "center",
     sortable: false,
     width: "60px",
   },
@@ -730,7 +732,6 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.manage_domains="{ item }">
-        <div class="d-flex ml-2">
           <VTooltip v-if="ability.can('view', 'rivaldomain')" text="View Domains for This Client">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="
@@ -740,18 +741,17 @@ const updateOptions = async (options) => {
                 })
                 ">
                 <VChip color="info" variant="tonal" size="small" class="ma-1">
+                 <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
                   {{ item.domain_count }}
-                  <VIcon color="success" icon="tabler-world" size="20" class="ml-2" />
                 </VChip>
               </IconBtn>
             </template>
           </VTooltip>
-        </div>
       </template>
 
 
       <template #item.actions="{ item }">
-        <div class="d-flex">
+        <div class="d-flex ml-10">
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
