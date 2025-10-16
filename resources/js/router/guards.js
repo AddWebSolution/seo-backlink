@@ -11,6 +11,8 @@ router.beforeEach((to) => {
 
   if (!isLoggedIn) return { name: 'login', query: { to: to.fullPath } }
 
+  console.log('roles',to.meta.roles);
+
   if (to.meta.roles && !to.meta.roles.includes(roleId))
     return { name: 'not-authorized' }
 

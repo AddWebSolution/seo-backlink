@@ -1,6 +1,6 @@
 export const clientRoutes = [
   {
-    path: '/clients/list',
+    path: '/client/list',
     name: 'apps-client-list',
     component: () => import('@/pages/apps/client/list/index.vue'),
     props: true,
@@ -12,7 +12,7 @@ export const clientRoutes = [
     }
   },
   {
-    path: "/clients/:id",
+    path: "/client/:id",
     name: "apps-client-view",
     component: () => import("@/pages/apps/client/view/[id].vue"),
     props: true,
@@ -24,7 +24,7 @@ export const clientRoutes = [
     }
   },
   {
-    path: "/clients/:id/edit",
+    path: "/client/:id/edit",
     name: "apps-client-edit",
     component: () => import("@/pages/apps/client/edit/[id].vue"),
     props: true,
