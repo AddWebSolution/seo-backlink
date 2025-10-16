@@ -26,4 +26,21 @@ class BacklinkHistoryController extends BaseController
         $data = $this->service->fetchHistoryData($id);
         return $data;
     }
+
+    public function updateorcreate(StoreBacklinkHistoryRequest $request)
+    {
+        $data = $request->input();
+
+        if (isset($data[0])) {
+            $data = $data[0];
+        }
+
+        $record = $this->service->updateOrCreateHistory($data);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $record
+        ]);
+    }
+
 }

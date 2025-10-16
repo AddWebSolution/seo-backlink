@@ -3,6 +3,7 @@
 namespace App\Modules\RivalDomain\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use App\Modules\RivalDomain\Listeners\SendRivalDomainToN8nListener;
 use App\Modules\RivalDomain\Events\AfterRivalDomainStoreEvent;
 use App\Modules\RivalDomain\Events\BeforeRivalDomainStoreEvent;
 use App\Modules\RivalDomain\Events\AfterRivalDomainUpdateEvent;
@@ -16,7 +17,9 @@ class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
         BeforeRivalDomainStoreEvent::class => [],
-        AfterRivalDomainStoreEvent::class => [],
+        AfterRivalDomainStoreEvent::class => [
+            SendRivalDomainToN8nListener::class
+        ],
         BeforeRivalDomainUpdateEvent::class => [],
         AfterRivalDomainUpdateEvent::class => [],
         BeforeRivalDomainDeleteEvent::class => [],

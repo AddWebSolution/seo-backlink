@@ -3,6 +3,7 @@
 namespace App\Modules\BacklinkHistory\Services;
 
 use Addweb\Base\Services\BaseService;
+use App\Modules\BacklinkHistory\Events\AfterBacklinkHistoryStoreEvent;
 use App\Modules\BacklinkHistory\Models\BacklinkHistory;
 use App\Modules\ClientDomain\Models\ClientDomain;
 
@@ -27,7 +28,7 @@ class BacklinkHistoryService extends BaseService
         if (!$client) {
             return null;
         }
-        $clientDomain = preg_replace('/\s+/', '', strtolower($client->title)); 
+        $clientDomain = preg_replace('/\s+/', '', strtolower($client->title));
         $clientHistory = BacklinkHistory::where('client_domain_id', $clientDomainId)
             ->where('target', 'like', "%{$clientDomain}%")
             ->orderBy('history_date', 'asc')
@@ -49,5 +50,22 @@ class BacklinkHistoryService extends BaseService
             'client_id' => $client->client_id,
             'rival_history' => $rivalHistory,
         ];
+    }
+    public function updateOrCreateHistory(array $data): BacklinkHistory
+    {
+
+        $backlinkHistory = BacklinkHistory::updateOrCreate(
+            [
+                'client_domain_id' => $data['client_domain_id'],
+                'rival_domain_id' => $data['rival_domain_id'],
+                'history_date' => $data['history_date'],
+                'target' => $data['target'],
+            ],
+            $data
+        );
+
+       event(new AfterBacklinkHistoryStoreEvent($backlinkHistory));
+
+        return $backlinkHistory;
     }
 }
