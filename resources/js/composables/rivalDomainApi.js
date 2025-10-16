@@ -215,7 +215,7 @@ export function useRivalDomainApi() {
     loading.value = true;
     error.value = null;
 
-    try {s
+    try {
       const result = await useApi(`api/rivaldomain/update/${id}`, {
         method: "POST",
         body: payload,

@@ -130,7 +130,6 @@ class ClientDomainService extends BaseService
     public function getClientDomains($clientId, int $perPage = 10, $searchTerm , $filters, string $sortField = 'id', string $sortOrder = 'desc')
     {
          $query = ClientDomain::where('client_id', $clientId)
-        ->where('status', 1)
         ->withCount('rivalDomains'); 
 
         if (!empty($searchTerm )) {

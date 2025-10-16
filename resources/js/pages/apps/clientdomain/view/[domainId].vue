@@ -498,7 +498,7 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
     </VDialog>
 
     <!-- Edit Drawer -->
-    <DomainEditDrawer v-model:is-drawer-open="isEditDrawerOpen" :domain="domain" @success="handleEditSuccess" />
+    <DomainEditDrawer v-model:is-drawer-open="isEditDrawerOpen" :domain="currentDomain" @success="handleEditSuccess" />
   </div>
 </template>
 
