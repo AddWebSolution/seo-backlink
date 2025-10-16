@@ -154,10 +154,10 @@ const getStatusConfig = (status) => {
     return {
       color: "success",
       icon: "tabler-progress-check",
-      text: "Available",
+      text: "Active",
     };
   if (status == 2)
-    return { color: "error", icon: "tabler-progress-x", text: "Unavailable" };
+    return { color: "error", icon: "tabler-progress-x", text: "Inactive" };
 };
 
 const handleExportReports = () => {

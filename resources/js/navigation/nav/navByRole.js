@@ -11,7 +11,8 @@ export function filterNav(items, ability) {
       continue
     }
     
-    if (item.action && item.subject && !ability.can(item.action, item.subject)) {
+    // Safely check meta
+    if (item.meta && item.meta.action && item.meta.subject && !ability.can(item.meta.action, item.meta.subject)) {
       continue
     }
     
@@ -39,6 +40,7 @@ export function filterNav(items, ability) {
     return false
   })
 }
+
 
 // Don't export filtered nav directly at module level
 // Export a function to get filtered nav instead

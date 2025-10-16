@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ability, updateAbilities } from '@/plugins/casl/ability'
+import { ability ,updateAbilities } from '../casl/ability'
 
 const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -24,6 +24,7 @@ const useAuthStore = defineStore('auth', {
   getters: {
     isSuperAdmin: state => state.user?.roles?.some(r => r.name == 'super_admin'),
     isClient: state => state.user?.roles?.some(r => r.name == 'client'),
+    roleId: state => state.user?.role_id || state.user?.role || null,
   },
   persist: true, 
 })

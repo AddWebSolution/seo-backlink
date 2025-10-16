@@ -164,10 +164,10 @@ const getStatusConfig = (status) => {
     return {
       color: "success",
       icon: "tabler-progress-check",
-      text: "Available",
+      text: "Active",
     };
   if (status == 2)
-    return { color: "error", icon: "tabler-progress-x", text: "Unavailable" };
+    return { color: "error", icon: "tabler-progress-x", text: "Inactive" };
 };
 
 const applyFilters = async () => {
@@ -622,16 +622,22 @@ onMounted(async () => {
       </template>
 
       <template #item.manage_domains="{ item }">
-        <VTooltip text="View Rival Domains">
-          <template #activator="{ props }">
-            <IconBtn class="ml-4" v-bind="props" size="small" @click="$router.push({
-              name: 'apps-domain-clientdomain-rivaldomain-list',
-              params: { clientId: item.client_id, domainId: item.id }
-            })">
-              <VIcon color="success" icon="tabler-world" size="20" />
-            </IconBtn>
-          </template>
-        </VTooltip>
+        <div class="d-flex align-center gap-1">
+          
+          <VTooltip text="View Rival Domains">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="$router.push({
+                name: 'apps-domain-clientdomain-rivaldomain-list',
+                params: { clientId: item.client_id, domainId: item.id }
+              })">
+              <VChip color="info" variant="tonal" size="small">
+               <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
+                {{ item.rival_domains_count }}
+              </VChip>
+              </IconBtn>
+            </template>
+          </VTooltip>
+        </div>
       </template>
 
       <template #item.actions="{ item }">

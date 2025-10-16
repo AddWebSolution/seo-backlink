@@ -4,17 +4,18 @@ export default [
   {
     title: 'Dashboard',
     icon: { icon: 'tabler-dashboard' },
-    // action: 'view',    
-    // subject: 'dashboard', 
     to: 'dashboards-analytics',
   },
   { heading: 'Clients' },
   {
     title: 'Client',
+    to: 'apps-client-list',
     icon: { icon: 'tabler-user' },
-    action: 'view',
-    subject: 'client',
-    to : 'apps-client-list',
+    meta: {
+      action: 'view',
+      subject: 'client',
+      roles: [1],
+    },
     // children: [
     //   { title: 'Client List', to: 'apps-client-list', action: 'view', subject: 'client', icon: { icon: 'tabler-list' } },
     //   { title: 'Add Client', to: 'apps-client-add', action: 'create', subject: 'client', icon: { icon: 'tabler-circle-plus' } },
@@ -24,9 +25,12 @@ export default [
   {
     title: 'Domain',
     icon: { icon: 'tabler-world' },
-    action: 'view',
-    subject: 'clientdomain',
-    to : 'apps-clientdomain-list',
+    to: 'apps-clientdomain-list',
+    meta: {
+      action: 'view',
+      subject: 'clientdomain',
+      roles: [1, 3],
+    },
     // children: [
     //   { title: 'Domain List', to: 'apps-clientdomain-list', action: 'view', subject: 'clientdomain', icon: { icon: 'tabler-list' } },
     //   { title: 'Domain Add', to: 'apps-clientdomain-add', action: 'create', subject: 'clientdomain', icon: { icon: 'tabler-circle-plus' } },
@@ -35,10 +39,13 @@ export default [
   { heading: 'Backlinks' },
   {
     title: 'Backlink Report',
-    action: 'view',
-    subject: 'report', 
     icon: { icon: 'tabler-report' },
-    to : 'apps-report-list',
+    to: 'apps-report-list',
+    meta: {
+      action: 'view',
+      subject: 'report',
+      roles: [1, 3],
+    },
     // children: [
     //   { title: 'Report List', to: 'apps-report-list', action: 'view', subject: 'report', icon: { icon: 'tabler-list' } },
     // ],
@@ -47,10 +54,13 @@ export default [
   { heading: 'Keywords' },
   {
     title: 'Keyword',
-    action: 'view',
-    subject: 'keyword', 
     icon: { icon: 'tabler-key' },
-    to : 'apps-keyword-list',
+    to: 'apps-keyword-list',
+    meta: {
+      action: 'view',
+      subject: 'keyword',
+      roles: [1, 3],
+    },
     // children: [
     //   { title: 'Keyword', to: 'apps-keyword-list', action: 'view', subject: 'keyword', icon: { icon: 'tabler-list' } },
     //   { title: 'Add Keyword', to: 'apps-keyword-add', action: 'create', subject: 'keyword', icon: { icon: 'tabler-circle-plus' } },
@@ -60,9 +70,12 @@ export default [
   {
     title: 'Report',
     icon: { icon: 'tabler-report' },
-    action: 'view',
-    subject: 'keywordreport', 
-    to : 'apps-keywordreport-list',
+    to: 'apps-keywordreport-list',
+    meta: {
+      action: 'view',
+      subject: 'keywordreport',
+      roles: [1, 3],
+    },
     // children: [
     //   { title: 'Report List', to: 'apps-keywordreport-list', action: 'view', subject: 'keywordreport', icon: { icon: 'tabler-list' } },
     // ],

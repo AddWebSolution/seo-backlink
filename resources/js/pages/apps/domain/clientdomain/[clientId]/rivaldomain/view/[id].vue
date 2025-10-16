@@ -1,9 +1,9 @@
 <script setup>
-import DomainEditDrawer from '@/views/apps/domain/DomainEditDrawer.vue';
 import { useRivalDomainApi } from "@/composables/rivalDomainApi";
 import { IconCheck, IconClock, IconX } from '@tabler/icons-vue';
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import RivalDomainEditDrawer from '@/views/apps/rivaldomain/RivalDomainEditDrawer.vue';
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +13,7 @@ const {
   loading, 
   error,
   fetchRivalDomain,
+  updateRivalDomain,
   showAlert 
 } = useRivalDomainApi()
 
@@ -35,9 +36,9 @@ onMounted(async () => {
 // Handle edit success
 const handleEditSuccess = async (updatedDomain) => {
   try {
-    await updateDomain(rivalDomainId.value, updatedDomain)
+    await updateRivalDomain(rivalDomainId.value, updatedDomain)
     isEditDrawerOpen.value = false
-    await fetchDomain(rivalDomainId.value)
+    await fetchRivalDomain(rivalDomainId.value)
   } catch (error) {
     console.error('Update failed:', error)
   }
@@ -56,9 +57,12 @@ const handleDeleteDomain = async () => {
 }
 
 const getStatusConfig = (status) => {
-  return status == 1
-    ? { color: 'green', icon: IconCheck, text: 'Available' }
-    : { color: 'red', icon: IconX, text: 'Unavailable' }
+  if (status == 1) {
+    return { color: 'success', icon: IconCheck, text: 'Active' }
+
+  }
+  if (status == 2)
+    return { color: 'error', icon: IconX, text: 'Inactive' }
 }
 
 const getApprovalStatusConfig = (status) => {
@@ -90,14 +94,10 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
     <!-- Modern Header with Gradient Background -->
     <VCard class="mb-8 overflow-hidden" elevation="2" color="grey lighten-4">
       <VCardText class="pa-8">
-        <VRow align="start" justify="space-between">
+        <VRow align="center" justify="space-between">
           <!-- Left Column: Domain Info -->
           <VCol cols="12" md="8">
-            <VBtn color="primary" variant="flat" :to="{ name: 'apps-domain-clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to List
-            </VBtn>
-
+            
             <div class="mb-8 pt-6">
               <h2 class="text-h3 font-weight-bold mb-2">
                 {{ riavlDomain.title || 'Domain Details' }}
@@ -117,14 +117,21 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
 
           <!-- Right Column: Actions -->
           <VCol cols="12" md="4" class="d-flex justify-end gap-3">
+            
+            <VBtn color="error" variant="elevated" @click="showDeleteDialog = true">
+              <VIcon icon="tabler-trash" class="me-2" />
+              Delete
+            </VBtn>
+
             <VBtn variant="flat" @click="isEditDrawerOpen = true">
               <VIcon icon="tabler-edit" class="me-2" />
               Edit Domain
             </VBtn>
-
-            <VBtn color="error" variant="elevated" @click="showDeleteDialog = true">
-              <VIcon icon="tabler-trash" class="me-2" />
-              Delete
+            
+            
+            <VBtn color="primary" variant="flat" :to="{ name: 'apps-domain-clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
+              <VIcon icon="tabler-arrow-left" class="me-2" />
+              Back to List
             </VBtn>
           </VCol>
         </VRow>
@@ -151,7 +158,7 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
       <!-- Status Overview Cards -->
       <VRow class="mb-8">
         <VCol cols="12" md="6">
-          <VCard elevation="2" class="h-100" color="success" variant="tonal">
+          <VCard elevation="2" class="h-100" :color="getStatusConfig(riavlDomain.status).color" variant="tonal">
             <VCardText class="pa-6">
               <div class="d-flex align-center">
                 <VAvatar size="56" :color="getStatusConfig(riavlDomain.status).color" variant="tonal" class="me-4">
@@ -208,7 +215,7 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
                   <VIcon icon="tabler-tag" class="me-2 text-primary" size="20" />
-                  <span class="text-body-2 font-weight-medium text-high-emphasis">Client ID</span>
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Client Domain ID</span>
                 </div>
                 <p class="text-h6 mb-0 ml-7">{{ riavlDomain.client_domain_id || 'Not specified' }}</p>
               </div>
@@ -497,7 +504,7 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
     </VDialog>
 
     <!-- Edit Drawer -->
-    <DomainEditDrawer v-model:is-drawer-open="isEditDrawerOpen" :domain="domain" @success="handleEditSuccess" />
+    <RivalDomainEditDrawer v-model:is-drawer-open="isEditDrawerOpen" :domain="currentRivalDomain" @success="handleEditSuccess" />
   </div>
 </template>
 

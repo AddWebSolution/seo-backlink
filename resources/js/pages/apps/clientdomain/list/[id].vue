@@ -23,7 +23,7 @@ const headers = [
     align: "center",
     width: "40px",
   },
-  { title: "Status", key: "status", align: "center", width: "120px" },
+  { title: "Status", key: "status", align: "center", width: "60px" },
   {
     title: "Approval",
     key: "approval_status",
@@ -34,12 +34,14 @@ const headers = [
   {
     title: "Manage Domains",
     key: "manage_domains",
+    align  : "center",
     sortable: false,
-    width: "120px",
+    width: "100px",
   },
   {
     title: "Actions",
     key: "actions",
+    align  : "center",
     sortable: false,
     width: "120px",
   },
@@ -172,10 +174,10 @@ const getStatusConfig = (status) => {
     return {
       color: "success",
       icon: "tabler-progress-check",
-      text: "Available",
+      text: "Active",
     };
   if (status == 2)
-    return { color: "error", icon: "tabler-progress-x", text: "Unavailable" };
+    return { color: "error", icon: "tabler-progress-x", text: "Inactive" };
 };
 
 const applyFilters = async () => {
@@ -643,21 +645,21 @@ onMounted(async () => {
 
 
       <template #item.manage_domains="{ item }">
-        <div class="d-flex ml-4">
-          <VTooltip text="View Rival Domains">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="
-                $router.push({
-                  name: 'apps-clientdomain-rivaldomain-list',
-                  params: { clientId: item.client_id, domainId: item.id },
-                })
-                ">
-                <VIcon color="success" icon="tabler-world" size="20" />
-              </IconBtn>
-            </template>
-          </VTooltip>
-        </div>
+        <VTooltip text="View Rival Domains">
+          <template #activator="{ props }">
+            <IconBtn v-bind="props" size="small" class="d-flex align-center px-2" @click="$router.push({
+              name: 'apps-clientdomain-rivaldomain-list',
+              params: { clientId: item.client_id, domainId: item.id },
+            })">
+              <VChip color="info" variant="tonal" size="small" class="d-flex align-center px-2 ml-10">
+                <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
+                <span class="text-caption text-info">{{ item.rival_domain_count }}</span>
+              </VChip>
+            </IconBtn>
+          </template>
+        </VTooltip>
       </template>
+
 
 
       <template #item.actions="{ item }">
@@ -694,7 +696,7 @@ onMounted(async () => {
                 @click="openDeleteDialog(item.id)" />
             </template>
           </VTooltip>
-          
+
           <template>
             <!-- Confirm Delete Dialog -->
             <VDialog v-model="deleteDialog" max-width="400">

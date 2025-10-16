@@ -2,7 +2,7 @@ import { layoutConfig } from '@layouts/config'
 import  useAuthStore from '@/router/store/auth'
 import { cookieRef, useLayoutConfigStore } from '@layouts/stores/config'
 import { _setDirAttr } from '@layouts/utils'
-import { updateAbilities } from '@/plugins/casl/ability'
+import { updateAbilities } from '@/router/casl/ability'
 
 // 🔌 Plugin
 export const createLayouts = userConfig => {
