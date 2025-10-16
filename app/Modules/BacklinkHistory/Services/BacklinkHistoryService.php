@@ -27,8 +27,9 @@ class BacklinkHistoryService extends BaseService
         if (!$client) {
             return null;
         }
+        $clientDomain = preg_replace('/\s+/', '', strtolower($client->title)); 
         $clientHistory = BacklinkHistory::where('client_domain_id', $clientDomainId)
-            ->where('target', 'like', '%' . $client->title . '%')
+            ->where('target', 'like', "%{$clientDomain}%")
             ->orderBy('history_date', 'asc')
             ->get()
             ->keyBy('history_date');
@@ -39,7 +40,7 @@ class BacklinkHistoryService extends BaseService
 
         $rivalHistory = BacklinkHistory::whereIn('rival_domain_id', $rivalIds)
             ->where('client_domain_id', $clientDomainId)
-            ->where('target', 'not like', '%' . $client->title . '%')
+            ->where('target', 'not like', "%{$clientDomain}%")
             ->orderBy('history_date', 'asc')
             ->get();
 
