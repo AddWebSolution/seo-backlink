@@ -10,13 +10,8 @@ class SendRivalDomainToN8nListener
 {
     public function handle(AfterRivalDomainStoreEvent $event)
     {
-        $rivalDomain = $event->rivalDomain->load([
-            'clientDomain.client',
-            'clientDomain.rivalDomains' => function ($q) {
-                $q->where('status', 1)
-                    ->select('id', 'client_domain_id', 'title', 'target_url');
-            }
-        ]);
+
+        $rivalDomain = $event->rivalDomain->load('clientDomain');
 
         $clientDomain = $rivalDomain->clientDomain;
         $client = User::find($clientDomain->client_id);
@@ -25,14 +20,12 @@ class SendRivalDomainToN8nListener
             return;
         }
 
-        $rivalDomains = $clientDomain->rivalDomains->map(function ($rd) {
-            return [
-                'id' => $rd->id,
-                'client_domain_id' => $rd->client_domain_id,
-                'title' => trim($rd->title),
-                'target_url' => $rd->target_url,
-            ];
-        })->toArray();
+        $newRivalDomainPayload = [
+            'id' => $rivalDomain->id,
+            'client_domain_id' => $rivalDomain->client_domain_id,
+            'title' => trim($rivalDomain->title),
+            'target_url' => $rivalDomain->target_url,
+        ];
 
         $payload = [
             'id' => $client->id,
@@ -43,11 +36,12 @@ class SendRivalDomainToN8nListener
                     'client_id' => $clientDomain->client_id,
                     'title' => trim($clientDomain->title),
                     'target_url' => $clientDomain->target_url,
-                    'rival_domains' => $rivalDomains,
+                    'rival_domains' => [$newRivalDomainPayload],
                 ]
             ]
         ];
 
+        
         Http::post(
             env("Six_MONTH_BACKLINK_WEBHOOK"), // six month data flow
             $payload

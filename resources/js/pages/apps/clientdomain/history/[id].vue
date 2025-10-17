@@ -199,6 +199,39 @@ const comparisonChartOptions = computed(() => {
     })
   }
 
+  const barCount = domains.length
+  const isHorizontal = barCount > 10
+  
+  let dynamicHeight = 400
+  if (isHorizontal && barCount > 10) {
+    dynamicHeight = Math.min(800, 300 + (barCount * 35))
+  }
+  
+  let barWidth
+  if (barCount <= 3) {
+    barWidth = '45%'
+  } else if (barCount <= 6) {
+    barWidth = '40%'
+  } else if (barCount <= 10) {
+    barWidth = '35%'
+  } else {
+    barWidth = '80%' 
+  }
+  
+  const showDataLabels = barCount <= 20
+  const dataLabelFontSize = barCount > 15 ? '9px' : barCount > 10 ? '10px' : '12px'
+  const axisLabelFontSize = barCount > 15 ? '9px' : '10px'
+
+  const seriesData = []
+
+  domains.forEach((domain, i) => {
+    seriesData.push({
+      name: domain,
+      data: [values[i]],
+    })
+  })
+
+
   return {
     series: [
       {
@@ -209,50 +242,98 @@ const comparisonChartOptions = computed(() => {
     chartOptions: {
       chart: {
         type: "bar",
-        height: 400,
-        toolbar: { show: true },
+        height: dynamicHeight,
+        toolbar: {
+          show: barCount > 6,
+          tools: {
+            zoom: true,
+            zoomin: true,
+            zoomout: true,
+            pan: true,
+            reset: true,
+          },
+        },
+        zoom: {
+          enabled: true,
+          type: isHorizontal ? 'y' : 'x',
+          autoScaleYaxis: true,
+        },
         background: "transparent",
       },
       plotOptions: {
         bar: {
-          horizontal: false,
-          columnWidth: "35%",
+          horizontal: isHorizontal,
+          columnWidth: barWidth,
+          barHeight: barWidth,
           distributed: true,
+          dataLabels: {
+            position: isHorizontal ? 'right' : 'top',
+          },
+          endingShape: 'rounded',
         },
       },
-      colors: ["#7367F0", "#FF9F43", "#28C76F", "#EA5455", "#00CFE8"],
+      colors: [
+        "#7367F0", "#FF9F43", "#28C76F", "#EA5455", "#00CFE8",
+        "#826AF9", "#FDB528", "#8A2BE2", "#FF1493", "#20B2AA",
+        "#FFD700", "#FF4500", "#9C27B0", "#00BCD4", "#4CAF50",
+        "#FF5722", "#795548", "#607D8B", "#E91E63", "#3F51B5",
+        "#FFEB3B", "#009688", "#673AB7", "#FF6F00", "#00695C"
+      ],
       xaxis: {
         categories: domains,
         labels: {
+          rotate: !isHorizontal && barCount > 5 ? -45 : 0,
+          rotateAlways: !isHorizontal && barCount > 8,
+          trim: true,
           style: {
             colors: isDark ? "#E0E0E0" : "#6E6B7B",
+            fontSize: axisLabelFontSize,
           },
+          maxHeight: !isHorizontal && barCount > 8 ? 120 : undefined,
         },
+        tickPlacement: 'on',
       },
       yaxis: {
         reversed: selectedMetric.value === "rank",
         labels: {
           style: {
             colors: isDark ? "#E0E0E0" : "#6E6B7B",
+            fontSize: axisLabelFontSize,
           },
+          maxWidth: isHorizontal ? 180 : undefined,
         },
       },
       legend: {
+        show: false, 
         labels: {
           colors: isDark ? "#E0E0E0" : "#6E6B7B",
         },
       },
       grid: {
         borderColor: isDark ? "#444" : "#E0E0E0",
+        padding: {
+          top: showDataLabels && !isHorizontal ? 25 : 10,
+          right: showDataLabels && isHorizontal ? 30 : 10,
+          bottom: !isHorizontal && barCount > 8 ? 20 : 10,
+          left: 10,
+        },
       },
       tooltip: {
         theme: isDark ? "dark" : "light",
+        y: {
+          formatter: val => val,
+        },
       },
       dataLabels: {
-        enabled: true,
+        enabled: showDataLabels,
+        offsetY: isHorizontal ? 0 : -20,
+        offsetX: isHorizontal ? 5 : 0,
         style: {
           colors: [isDark ? "#E0E0E0" : "#000"],
+          fontSize: dataLabelFontSize,
+          fontWeight: 500,
         },
+        formatter: val => val || '',
       },
     },
   }
