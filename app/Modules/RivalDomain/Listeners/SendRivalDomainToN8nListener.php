@@ -14,7 +14,7 @@ class SendRivalDomainToN8nListener
             'clientDomain.client',
             'clientDomain.rivalDomains' => function ($q) {
                 $q->where('status', 1)
-                  ->select('id', 'client_domain_id', 'title', 'target_url');
+                    ->select('id', 'client_domain_id', 'title', 'target_url');
             }
         ]);
 
@@ -22,7 +22,7 @@ class SendRivalDomainToN8nListener
         $client = User::find($clientDomain->client_id);
 
         if (!$client) {
-            return; 
+            return;
         }
 
         $rivalDomains = $clientDomain->rivalDomains->map(function ($rd) {
@@ -49,7 +49,12 @@ class SendRivalDomainToN8nListener
         ];
 
         Http::post(
-            'http://localhost:5678/webhook-test/bc2adfa4-1598-4b5b-ae7b-7e3f88456510',
+            env("Six_MONTH_BACKLINK_WEBHOOK"), // six month data flow
+            $payload
+        );
+
+        Http::post(
+            env('CURRENT_MONTH_BACKLINK_WEBHOOK'), // current month data flow
             $payload
         );
     }

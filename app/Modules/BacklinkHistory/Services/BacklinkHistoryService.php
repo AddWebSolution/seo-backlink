@@ -29,8 +29,16 @@ class BacklinkHistoryService extends BaseService
             return null;
         }
         $clientDomain = preg_replace('/\s+/', '', strtolower($client->title));
+        $clientDomainUrl = preg_replace([
+            '/^https?:\/\//',
+            '/^www\./',
+            '/\/.*$/',
+            '/\s+/',
+        ], '', strtolower($client->target_url));
+
         $clientHistory = BacklinkHistory::where('client_domain_id', $clientDomainId)
             ->where('target', 'like', "%{$clientDomain}%")
+            ->orWhere('target', 'like', "%{$clientDomainUrl}%")
             ->orderBy('history_date', 'asc')
             ->get()
             ->keyBy('history_date');
@@ -64,7 +72,7 @@ class BacklinkHistoryService extends BaseService
             $data
         );
 
-       event(new AfterBacklinkHistoryStoreEvent($backlinkHistory));
+        event(new AfterBacklinkHistoryStoreEvent($backlinkHistory));
 
         return $backlinkHistory;
     }

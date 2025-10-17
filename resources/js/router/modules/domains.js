@@ -53,7 +53,7 @@ export const domainRoutes = [
     component: () => import("@/pages/apps/clientdomain/history/[id].vue"),
     props: true,
     meta: {
-      title: "Client Domain History",
+      title: "Domain History",
       action: "view",
       subject: "clientdomain",
       roles: [1 ,3] 
