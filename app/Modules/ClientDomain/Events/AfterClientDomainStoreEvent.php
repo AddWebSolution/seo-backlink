@@ -2,6 +2,7 @@
 
 namespace App\Modules\ClientDomain\Events;
 
+use App\Modules\ClientDomain\Listeners\SendClientDomainToN8nListener;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -17,7 +18,6 @@ class AfterClientDomainStoreEvent
      */
     public function __construct(public ClientDomain $clientDomain)
     {
-        //
     }
 
     /**
@@ -28,7 +28,7 @@ class AfterClientDomainStoreEvent
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('channel-name'),
+            new SendClientDomainToN8nListener,
         ];
     }
 }

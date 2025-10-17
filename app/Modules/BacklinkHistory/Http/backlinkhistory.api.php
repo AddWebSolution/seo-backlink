@@ -15,8 +15,8 @@ Route::group(['middleware' => ['api','auth:sanctum']], function () {
 			Route::post('clientdomain/history/compare/{id}', [BacklinkHistoryController::class, 'fetchHistoryData'])->name('fetch-history-data');
 			//Route::group(['middleware' => ['can:Create BacklinkHistory']], function () {
 				Route::post('store', [BacklinkHistoryController::class, 'store'])->name('store');
+				Route::post('updateorcreate', [BacklinkHistoryController::class, 'updateorcreate'])->name('updateorcreate');
 			//});
-
 
 			//Route::group(['middleware' => ['can:Update BacklinkHistory']], function () {
 				Route::post('update/{id}', [BacklinkHistoryController::class, 'update'])->name('update');

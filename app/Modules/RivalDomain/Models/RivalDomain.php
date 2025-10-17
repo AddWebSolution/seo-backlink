@@ -3,11 +3,12 @@
 namespace App\Modules\RivalDomain\Models;
 
 use Addweb\Base\Model\BaseModel;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Modules\RivalDomain\Observers\RivalDomainObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Modules\ClientDomain\Models\ClientDomain;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Modules\RivalDomain\Observers\RivalDomainObserver;
 
 #[ObservedBy([RivalDomainObserver::class])]
 class RivalDomain extends BaseModel
@@ -26,6 +27,11 @@ class RivalDomain extends BaseModel
         return $factoryClass::new();
     }
 
+    public function clientDomain()
+    {
+        return $this->belongsTo(ClientDomain::class, 'client_domain_id');
+    }
+    
     /**
      * Get the attributes that should be cast.
      *

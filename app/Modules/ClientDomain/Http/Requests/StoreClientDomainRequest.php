@@ -6,7 +6,7 @@ use Addweb\Base\Requests\BaseRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 class StoreClientDomainRequest extends BaseRequest
-{
+{   
     /**
      * Determine if the user is authorized to make this request.
      */

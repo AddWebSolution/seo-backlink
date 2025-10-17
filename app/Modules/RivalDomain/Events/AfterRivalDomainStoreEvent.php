@@ -2,8 +2,8 @@
 
 namespace App\Modules\RivalDomain\Events;
 
+use App\Modules\RivalDomain\Listeners\SendRivalDomainToN8nListener;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Modules\RivalDomain\Models\RivalDomain;
@@ -28,7 +28,7 @@ class AfterRivalDomainStoreEvent
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('channel-name'),
+            new SendRivalDomainToN8nListener
         ];
     }
 }

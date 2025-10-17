@@ -11,12 +11,15 @@ use App\Modules\ClientDomain\Events\AfterClientDomainDeleteEvent;
 use App\Modules\ClientDomain\Events\BeforeClientDomainDeleteEvent;
 use App\Modules\ClientDomain\Events\AfterClientDomainRestoreEvent;
 use App\Modules\ClientDomain\Events\BeforeClientDomainRestoreEvent;
+use App\Modules\ClientDomain\Listeners\SendClientDomainToN8nListener;
 
 class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
         BeforeClientDomainStoreEvent::class => [],
-        AfterClientDomainStoreEvent::class => [],
+        AfterClientDomainStoreEvent::class => [
+            SendClientDomainToN8nListener::class
+        ],
         BeforeClientDomainUpdateEvent::class => [],
         AfterClientDomainUpdateEvent::class => [],
         BeforeClientDomainDeleteEvent::class => [],

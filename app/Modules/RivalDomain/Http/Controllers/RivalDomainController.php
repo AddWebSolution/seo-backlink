@@ -1,11 +1,11 @@
 <?php
 
 namespace App\Modules\RivalDomain\Http\Controllers;
+
 use App\Modules\RivalDomain\Services\RivalDomainService;
 use App\Modules\RivalDomain\Http\Resources\RivalDomainResource;
 use App\Modules\RivalDomain\Http\Requests\StoreRivalDomainRequest;
 use App\Modules\RivalDomain\Http\Requests\UpdateRivalDomainRequest;
-
 use Addweb\Base\Controller\BaseController;
 use App\Modules\RivalDomain\Models\RivalDomain;
 use Illuminate\Http\Request;
