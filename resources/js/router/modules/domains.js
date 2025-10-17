@@ -48,7 +48,7 @@ export const domainRoutes = [
     }
   },
   {
-    path: "/:view?/clientdomain/:id?/history",
+    path: "/:view?/:id?/history",
     name: "apps-clientdomain-history",
     component: () => import("@/pages/apps/clientdomain/history/[id].vue"),
     props: true,

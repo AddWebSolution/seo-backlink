@@ -49,7 +49,10 @@ class BacklinkHistoryService extends BaseService
 
         $rivalHistory = BacklinkHistory::whereIn('rival_domain_id', $rivalIds)
             ->where('client_domain_id', $clientDomainId)
-            ->where('target', 'not like', "%{$clientDomain}%")
+            ->where(function ($q) use ($clientDomain, $clientDomainUrl) {
+                $q->where('target', 'not like', "%{$clientDomain}%")
+                    ->where('target', 'not like', "%{$clientDomainUrl}%");
+            })
             ->orderBy('history_date', 'asc')
             ->get();
 
@@ -61,16 +64,19 @@ class BacklinkHistoryService extends BaseService
     }
     public function updateOrCreateHistory(array $data): BacklinkHistory
     {
+        $target = trim(strtolower($data['target']));
 
-        $backlinkHistory = BacklinkHistory::updateOrCreate(
-            [
-                'client_domain_id' => $data['client_domain_id'],
-                'rival_domain_id' => $data['rival_domain_id'],
-                'history_date' => $data['history_date'],
-                'target' => $data['target'],
-            ],
-            $data
-        );
+        $backlinkHistory = BacklinkHistory::where('client_domain_id', $data['client_domain_id'])
+            ->where('rival_domain_id', $data['rival_domain_id']) 
+            ->where('history_date', $data['history_date'])
+            ->whereRaw('LOWER(TRIM(target)) = ?', $target)
+            ->first();
+
+        if ($backlinkHistory) {
+            $backlinkHistory->update($data);
+        } else {
+            $backlinkHistory = BacklinkHistory::create($data);
+        }
 
         event(new AfterBacklinkHistoryStoreEvent($backlinkHistory));
 
