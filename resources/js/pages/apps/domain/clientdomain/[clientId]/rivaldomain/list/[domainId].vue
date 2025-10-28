@@ -373,7 +373,7 @@ onMounted(async () => {
 
     <VCardText class="pt-0">
       <!-- Primary Search Bar -->
-       <VRow align="end" justify="space-between">
+      <VRow align="end" justify="space-between">
         <VCol cols="12" md="6">
           <AppTextField v-model="searchQuery" placeholder="Search by title, URL, or any domain details..."
             prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
@@ -653,8 +653,10 @@ onMounted(async () => {
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
-          <VBtn color="primary" :to="{ name: 'apps-domain-add' }">
-            <VIcon icon="tabler-plus" class="me-2" />
+          <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push({
+            name: 'apps-domain-clientdomain-rivaldomain-add',
+            params: { clientId: clientId, domainId: clientDomainId }
+          })">
             Add First Rival Domain
           </VBtn>
         </div>
