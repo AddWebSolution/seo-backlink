@@ -726,14 +726,14 @@ onMounted(async () => {
             started.
           </p>
 
-          <VBtn color="primary" prepend-icon="tabler-plus" @click="
+          <!-- <VBtn color="primary" prepend-icon="tabler-plus" @click="
             $router.push({
               name: 'apps-clientdomain-add',
               params: { id: clientId },
             })
             ">
             Add First Domain
-          </VBtn>
+          </VBtn> -->
         </div>
       </template>
 
