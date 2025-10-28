@@ -659,7 +659,7 @@ onMounted(async () => {
                 @click="openDeleteDialog(item.id)" />
             </template>
           </VTooltip>
-          
+
           <template>
             <!-- Confirm Delete Dialog -->
             <VDialog v-model="deleteDialog" max-width="400">
@@ -688,7 +688,11 @@ onMounted(async () => {
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
-          <VBtn color="primary" :to="{ name: 'apps-domain-add' }">
+          
+          <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push({
+            name: 'apps-clientdomain-rivaldomain-add',
+            params: { clientId: clientId, domainId: clientDomainId }
+          })">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Rival Domain
           </VBtn>

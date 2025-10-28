@@ -725,8 +725,13 @@ onMounted(async () => {
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
-          <VBtn color="primary" :to="{ name: 'apps-domain-add' }">
-            <VIcon icon="tabler-plus" class="me-2" />
+
+          <VBtn color="primary" prepend-icon="tabler-plus" @click="
+            $router.push({
+              name: 'apps-clientdomain-add',
+              params: { id: clientId },
+            })
+            ">
             Add First Domain
           </VBtn>
         </div>
