@@ -39,7 +39,6 @@ const { visible, message, type } = useAlert()
   word-break: break-word;
 }
 
-/* Large Desktop (1920px and above) */
 @media (min-width: 1920px) {
   .custom-alert {
     right: 48px;
@@ -52,7 +51,6 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* Desktop (1024px - 1919px) */
 @media (min-width: 1024px) and (max-width: 1919px) {
   .custom-alert {
     right: 32px;
@@ -61,7 +59,6 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* Tablet (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .custom-alert {
     right: 24px;
@@ -75,7 +72,6 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* Mobile Landscape & Small Tablets (600px - 767px) */
 @media (min-width: 600px) and (max-width: 767px) {
   .custom-alert {
     right: 16px;
@@ -91,7 +87,6 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* Mobile Portrait (480px - 599px) */
 @media (min-width: 480px) and (max-width: 599px) {
   .custom-alert {
     right: 12px;
@@ -108,7 +103,6 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* Small Mobile (320px - 479px) */
 @media (max-width: 479px) {
   .custom-alert {
     right: 8px;
@@ -125,7 +119,6 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* Very Small Devices (below 320px) */
 @media (max-width: 319px) {
   .custom-alert {
     right: 4px;
@@ -138,7 +131,6 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* Landscape Orientation on Mobile */
 @media (max-height: 500px) and (orientation: landscape) {
   .custom-alert {
     bottom: 8px;
@@ -151,21 +143,18 @@ const { visible, message, type } = useAlert()
   }
 }
 
-/* High DPI Displays */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .custom-alert {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
 }
 
-/* Reduced Motion Preference */
 @media (prefers-reduced-motion: reduce) {
   .custom-alert {
     transition: none;
   }
 }
 
-/* Dark Mode Support (if needed) */
 @media (prefers-color-scheme: dark) {
   .custom-alert {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
