@@ -18,7 +18,7 @@ export const domainRoutes = [
     props: true,
     meta: {
       title: "Domain Edit",
-      action: "edit",
+      action: "update",
       subject: "clientdomain",
       roles: [1] 
     }
