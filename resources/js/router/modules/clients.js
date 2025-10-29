@@ -30,7 +30,7 @@ export const clientRoutes = [
     props: true,
     meta: {
       title: "Client Edit",
-      action: 'edit',
+      action: 'update',
       subject: 'client',
       roles: [1],
     }
