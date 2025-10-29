@@ -4,17 +4,15 @@
     :type="type"
     dense
     closable
-    title="Alert"
-    variant="elevated"
-    style="position: fixed; top: 150px; left: 50%; transform: translateX(-50%); max-width: 600px; width: 90%; z-index: 1000;"
+    variant="flat"
+    style="position: fixed; bottom: 20px; right: 20px; max-width: 600px; width: auto; z-index: 1000;"
   >
-    <span class="text-body-1">{{ message }}</span>
+    <span class="text-body-1 text-white">{{ message }}</span>
   </VAlert>
-</template>   
-
+</template>
 
 <script setup>
-import { useAlert } from '@/composables/useAlert.js';
+import { useAlert } from '@/composables/useAlert.js'
 
-const { visible, message, type } = useAlert();
+const { visible, message, type } = useAlert()
 </script>

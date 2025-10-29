@@ -6,7 +6,7 @@ const type = ref('info');
 let timeout = null;
 
 export const useAlert = () => {
-  const showAlert = (msg, alertType = 'info', duration = 6000) => {
+  const showAlert = (msg, alertType = 'info', duration = 3000) => {
     message.value = msg;
     type.value = alertType;
     visible.value = true;
