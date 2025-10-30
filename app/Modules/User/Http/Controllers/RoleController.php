@@ -23,7 +23,7 @@ class RoleController extends Controller
             'permissions' => ['required', 'array', 'min:1'],
             'permissions.*' => [
                 'string',
-                Rule::exists('permissions', 'name'), 
+                Rule::exists('permissions', 'name'),
             ],
         ]);
 
@@ -46,6 +46,50 @@ class RoleController extends Controller
         ]);
     }
 
+    public function update(Request $request, $roleId)
+    {
+        $role = Role::find($roleId);
+
+        if (!$role) {
+            return response()->json([
+                'message' => 'Role not found',
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('roles', 'name')->ignore($role->id),
+            ],
+            'permissions' => ['required', 'array', 'min:1'],
+            'permissions.*' => [
+                'string',
+                Rule::exists('permissions', 'name'),
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $role->update([
+            'name' => $request->name,
+        ]);
+
+        $role->syncPermissions($request->permissions);
+
+        return response()->json([
+            'message' => 'Role updated successfully',
+            'data' => $role->load('permissions'),
+        ]);
+    }
+
+
     public function roleList()
     {
         $roles = Role::select('name', 'guard_name')->get();
@@ -61,6 +105,22 @@ class RoleController extends Controller
 
         return response()->json([
             'data' => $permissions,
+        ]);
+    }
+
+    public function rolePermission($roleId)
+    {
+        $role = Role::find($roleId);
+
+        if (!$role) {
+            return response()->json(['message' => 'Role not found'], 404);
+        }
+
+        $role->load('permissions');
+
+        return response()->json([
+            'success' => true,
+            'data' => $role
         ]);
     }
 }
