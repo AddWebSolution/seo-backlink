@@ -14,7 +14,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:isDialogVisible', 'update:refresh'])
 
-const { createRole, fetchPermissions, permissions: permissionModules, loading } = useRolePermissions()
+const { createRole, updateRole, fetchRoleDetails, fetchPermissions, permissions: permissionModules, loading } = useRolePermissions()
 
 const isSelectAll = ref(false)
 const role = ref('')
@@ -39,17 +39,25 @@ const checkIfAllSelected = () => {
 
 watch(
     () => props.isDialogVisible,
-    newValue => {
+    async newValue => {
       if (newValue) {
         role.value = props.roleName
         selectedPermissions.value = []
+        validationErrors.value = ''
 
-        if (props.roleId > 0 && props.permissions.length > 0) {
-          selectedPermissions.value = props.permissions.map(p => p.name || p)
+        await fetchPermissions()
+
+
+        console.log(props.roleId)
+        if (props.roleId > 0) {
+          const roleDetails = await fetchRoleDetails(props.roleId)
+          console.log('Role details response:', roleDetails)
+          if (roleDetails?.permissions) {
+            selectedPermissions.value = roleDetails.permissions.map(p => p.name || p)
+          }
           nextTick(() => (isSelectAll.value = checkIfAllSelected()))
         }
 
-        validationErrors.value = ''
       }
     },
 )
@@ -73,7 +81,7 @@ watch(
 
 const onSubmit = async () => {
   const roleData = {
-    id: props.roleId,
+    // id: props.roleId,
     name: role.value,
     permission: selectedPermissions.value,
   }
@@ -82,7 +90,11 @@ const onSubmit = async () => {
   if (!valid) return
 
   try {
-    await createRole(roleData)
+    if (props.roleId > 0) {
+      await updateRole(props.roleId, roleData)
+    } else {
+      await createRole(roleData)
+    }
     emit('update:refresh', true)
     emit('update:isDialogVisible', false)
   } catch (err) {

@@ -77,6 +77,35 @@ export function useRolePermissions() {
         }
     };
 
+    // Fetch specific role details for pre-selection
+    const fetchRoleDetails = async (id) => {
+        try {
+            const response = await useApi(`/api/user/role/view/${id}`, { method: 'GET' })
+            return response?.data?.value?.data || response?.data?.data || null
+        } catch (err) {
+            console.error('Error fetching role details:', err)
+            showAlert('Failed to fetch role details', 'error')
+            return null
+        }
+    }
+
+    // Update existing role
+    const updateRole = async (roleId, roleData) => {
+        loading.value = true
+        try {
+            const result = await useApi(`/api/user/role/update/${roleId}`, {
+                method: 'POST',
+                body: roleData,
+            })
+            showAlert('Role updated successfully!', 'success')
+            return result
+        } catch (err) {
+            showAlert('Failed to update role', 'error')
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
 
     // Create role
     const createRole = async (payload) => {
@@ -106,6 +135,8 @@ export function useRolePermissions() {
         error: readonly(error),
         fetchRoles,
         fetchPermissions,
+        fetchRoleDetails,
         createRole,
+        updateRole,
     };
 }
