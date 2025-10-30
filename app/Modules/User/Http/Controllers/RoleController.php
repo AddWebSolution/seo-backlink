@@ -92,7 +92,7 @@ class RoleController extends Controller
 
     public function roleList()
     {
-        $roles = Role::select('name', 'guard_name')->get();
+        $roles = Role::select('id','name', 'guard_name')->get();
 
         return response()->json([
             'data' => $roles,
@@ -101,7 +101,7 @@ class RoleController extends Controller
 
     public function permissionsList()
     {
-        $permissions = Permission::select('name', 'guard_name')->get();
+        $permissions = Permission::select('id','name', 'guard_name')->get();
 
         return response()->json([
             'data' => $permissions,
