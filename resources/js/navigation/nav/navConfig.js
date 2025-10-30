@@ -80,4 +80,19 @@ export default [
     //   { title: 'Report List', to: 'apps-keywordreport-list', action: 'view', subject: 'keywordreport', icon: { icon: 'tabler-list' } },
     // ],
   },
+
+    { heading: 'Settings' },
+    {
+        title: 'Role & Permissions',
+        icon: { icon: 'tabler-lock' },
+        to: 'apps-role-permissions-list',
+        // meta: {
+        //     action: 'view',
+        //     subject: 'report',
+        //     roles: [1, 3],
+        // },
+        // children: [
+        //   { title: 'Report List', to: 'apps-report-list', action: 'view', subject: 'report', icon: { icon: 'tabler-list' } },
+        // ],
+    },
 ]
