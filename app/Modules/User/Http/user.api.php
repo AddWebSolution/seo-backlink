@@ -46,6 +46,13 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 
 			//Route::group(['middleware' => ['can:Create User']], function () {
 			Route::post('store', [UserController::class, 'store'])->name('store');
+
+			Route::post('role/create', [RoleController::class, 'store'])->name('roleCreate');
+
+			Route::get('role/all', [RoleController::class, 'roleList'])->name('roleList');
+
+			Route::get('role/permissions', [RoleController::class , 'permissionsList']);
+
 			//});
 
 			Route::post('upload/profile/pic', [UserController::class, 'updateProfilePic'])->name('upload_profile_pic');
