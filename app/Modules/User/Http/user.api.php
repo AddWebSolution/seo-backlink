@@ -49,9 +49,13 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 
 			Route::post('role/create', [RoleController::class, 'store'])->name('roleCreate');
 
+			Route::post('role/update/{roleId}', [RoleController::class, 'update'])->name('roleUpdate');
+
 			Route::get('role/all', [RoleController::class, 'roleList'])->name('roleList');
 
 			Route::get('role/permissions', [RoleController::class , 'permissionsList']);
+
+			Route::get('role/view/{roleId}', [RoleController::class , 'rolePermission']);
 
 			//});
 
