@@ -92,8 +92,9 @@ class RoleController extends Controller
 
     public function roleList()
     {
-        $roles = Role::select('id','name', 'guard_name')->get();
-
+        $roles = Role::select('id', 'name', 'guard_name')
+        ->withCount('permissions')
+        ->get();
         return response()->json([
             'data' => $roles,
         ]);
