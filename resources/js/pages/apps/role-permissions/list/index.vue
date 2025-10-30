@@ -2,53 +2,35 @@
 <script setup>
 import { IconLock, IconChartLine } from "@tabler/icons-vue";
 import RoleDialog from "@/pages/apps/role-permissions/RoleDialog.vue";
+import {useRolePermissions} from "@/composables/rolePermissionApi.js";
 
-const loading = ref(false)
-const roles = ref([])
+const {
+  roles,
+  permissions,
+  fetchRoles,
+  // fetchPermissions,
+  createRole,
+  loading,
+} = useRolePermissions();
+
 const roleId = ref('')
 const roleName = ref('')
 
 const isAddRoleDialogVisible = ref(false)
 const selectedPermission = ref([])
-// const { hasPermission } = usePermission()
 
 const editRole = (value, permissions, name) => {
   roleName.value = name
   roleId.value = value
-  selectedPermission.value = permissions
+  // selectedPermission.value = permissions
+  selectedPermission.value = permissions.map(p => p.name || p);
   isAddRoleDialogVisible.value = true
 }
 
-const getRoles = async () => {
-  try {
-    loading.value = true
-
-    const res = await $api('/roles', {
-      method: 'GET',
-
-      onResponseError({ response }) {
-        errors.value = response._data.errors
-      },
-    })
-
-    if(res.success == true) {
-      roles.value = res.data
-    }
-
-  } catch (err) {
-    console.error(err)
-  } finally {
-    loading.value = false
-  }
+const refreshData = async () => {
+  // getRoles()
+  await fetchRoles();
 }
-
-const refreshData = () => {
-  getRoles()
-}
-
-onMounted(() => {
-  getRoles()
-})
 
 const addRole = () => {
   roleId.value = 0
@@ -56,6 +38,11 @@ const addRole = () => {
   selectedPermission.value = []
   isAddRoleDialogVisible.value = true
 }
+
+onMounted(async () => {
+  await fetchRoles();
+  // await fetchPermissions();
+});
 </script>
 
 <template>
@@ -112,8 +99,8 @@ const addRole = () => {
     </template>
     <template v-else>
       <VCol
-          v-for="item in roles"
-          :key="item.role"
+          v-for="(item, index) in roles"
+          :key="index"
           cols="12"
           sm="6"
           lg="4"
@@ -128,7 +115,7 @@ const addRole = () => {
                 <div class="d-flex align-center">
                   <a
                       href="javascript:void(0)"
-                      @click="editRole(item.id, item.permissions, item.name)"
+                      @click="editRole(item.id, item.permissions ?? [], item.name)"
                   >
                     Edit Role
                   </a>
@@ -138,7 +125,7 @@ const addRole = () => {
           </VCardText>
           <VCardText class="d-flex align-center pb-4">
             <div class="text-body-1">
-              Total {{ item.permissions.length }} Permissions
+              Total {{ item.permissions?.length || 0 }} Permissions
             </div>
 
             <VSpacer />
