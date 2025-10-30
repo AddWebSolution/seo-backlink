@@ -48,10 +48,10 @@ watch(
         await fetchPermissions()
 
 
-        console.log(props.roleId)
+        // console.log(props.roleId)
         if (props.roleId > 0) {
           const roleDetails = await fetchRoleDetails(props.roleId)
-          console.log('Role details response:', roleDetails)
+          // console.log('Role details response:', roleDetails)
           if (roleDetails?.permissions) {
             selectedPermissions.value = roleDetails.permissions.map(p => p.name || p)
           }
