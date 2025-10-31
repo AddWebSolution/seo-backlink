@@ -12,7 +12,7 @@ use App\Modules\User\Events\UserLoggedInEvent;
 class AuthService
 {
     /**
-     * Register a new user
+     * Register a new client
      */
     public function register(array $data): User
     {
@@ -24,6 +24,25 @@ class AuthService
         ]);
 
         $user->assignRole('client');
+
+        event(new UserRegisteredEvent($user));
+
+        return $user;
+    }
+
+    /**
+     * Register a new user
+     */
+    public function userRegister(array $data): User
+    {
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        $user->assignRole($data['role']);
 
         event(new UserRegisteredEvent($user));
 
