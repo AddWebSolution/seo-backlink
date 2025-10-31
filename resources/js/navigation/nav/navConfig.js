@@ -20,7 +20,21 @@ export default [
     //   { title: 'Client List', to: 'apps-client-list', action: 'view', subject: 'client', icon: { icon: 'tabler-list' } },
     //   { title: 'Add Client', to: 'apps-client-add', action: 'create', subject: 'client', icon: { icon: 'tabler-circle-plus' } },
     // ],
-  },
+  }, { heading: 'Users' },
+ {
+    title: 'User',
+    to: 'apps-users-list',
+    icon: { icon: 'tabler-user' },
+    // meta: {
+    //     action: 'view',
+    //     subject: 'client',
+    //     roles: [1],
+    // },
+    // children: [
+    //   { title: 'Client List', to: 'apps-client-list', action: 'view', subject: 'client', icon: { icon: 'tabler-list' } },
+    //   { title: 'Add Client', to: 'apps-client-add', action: 'create', subject: 'client', icon: { icon: 'tabler-circle-plus' } },
+    // ],
+ },
   { heading: 'Domains' },
   {
     title: 'Domain',
