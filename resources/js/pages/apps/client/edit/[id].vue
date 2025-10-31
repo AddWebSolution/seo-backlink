@@ -31,7 +31,7 @@ const form = ref({
   email: '',
   company_name: '',
   website: '',
-  role: '3',
+  role:'2',
   designation: '',
   status: 1,
   profile_pic: '',

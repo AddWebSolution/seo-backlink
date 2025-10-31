@@ -93,7 +93,7 @@ class UserService extends BaseService
             'updated_at',
             'deleted_at'
         )
-        ->whereNot('role', '3')
+        ->whereNot('role', '2')
         ->whereNot('role', '1')
         ->orderBy('name');
 
