@@ -177,6 +177,30 @@ export function useClientApi() {
     }
   };
 
+
+  // create User
+  const createUser = async (payload) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await useApi("api/auth/user/register", {
+        method: "POST",
+        body: payload,
+      });
+
+      showAlert("User created successfully!", "success");
+      await fetchUsers();
+      return result;
+    } catch (err) {
+      error.value = err;
+      showAlert("Failed to create User", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   // update Client
   const updateClient = async (id, payload) => {
     loading.value = true;
@@ -252,12 +276,12 @@ export function useClientApi() {
       const result = await useApi("api/user/list", {
         method: "POST",
       });
-      UserList.value = result?.data?.value?.users;
+      UserList.value = result?.data?.value?.data?.resource;
       return result;
     } catch (err) {
       error.value = err;
       UserList.value = [];
-      showAlert("Failed to load Client list", "error");
+      showAlert("Failed to load User list", "error");
       throw err;
     } finally {
       loading.value = false;
@@ -268,7 +292,7 @@ export function useClientApi() {
     clients: readonly(clients),
     pagination : pagination,
     ClientList: ClientList,
-    UserList : UserList,
+    users: readonly(UserList),
     currentClient: readonly(currentClient),
     loading: readonly(loading),
     error: readonly(error),
@@ -276,6 +300,7 @@ export function useClientApi() {
     // Methods
     fetchclients,
     fetchClientList,
+    createUser,
     fetchUsers,
     importclients,
     fetchClient,
