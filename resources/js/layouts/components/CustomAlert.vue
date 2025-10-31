@@ -33,7 +33,7 @@ const { visible, message, type } = useAlert()
 }
 
 .alert-text {
-  font-size: 1rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   color: white;
   word-break: break-word;
@@ -48,7 +48,7 @@ const { visible, message, type } = useAlert()
   }
   
   .alert-text {
-    font-size: 1.125rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -71,7 +71,7 @@ const { visible, message, type } = useAlert()
   }
   
   .alert-text {
-    font-size: 0.9375rem;
+    font-size: 0.62rem;
   }
 }
 
@@ -87,7 +87,7 @@ const { visible, message, type } = useAlert()
   }
   
   .alert-text {
-    font-size: 0.875rem;
+    font-size: 0.475rem;
   }
 }
 
@@ -103,7 +103,7 @@ const { visible, message, type } = useAlert()
   }
   
   .alert-text {
-    font-size: 0.875rem;
+    font-size: 0.675rem;
     line-height: 1.4;
   }
 }
