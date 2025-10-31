@@ -27,7 +27,7 @@ class UserService extends BaseService
     public string $sortOrder = 'desc';
 
     protected function loadRelations(): void
-    {
+    {   
         $this->query->where('role', 2);
 
         $this->loadExtraRelation();
@@ -76,7 +76,7 @@ class UserService extends BaseService
 
     public function userList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = User::with('roles:id,name')
+        $query = User::with(['roles:id,name'])
             ->whereDoesntHave('roles', function ($q) {
                 $q->whereIn('id', [1, 2]);
             })
@@ -96,6 +96,21 @@ class UserService extends BaseService
             $query->where('status', $filters['status']);
         }
 
-        return $query->paginate($perPage);
+        $users = $query->paginate($perPage);
+
+        $users->getCollection()->transform(function ($user) {
+            $role = $user->roles->first();
+            $user->role = $role ? [
+                'id' => $role->id,
+                'name' => $role->name,
+            ] : null;
+
+            unset($user->roles);
+
+            return $user;
+        });
+
+        return $users;
     }
+
 }
