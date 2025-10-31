@@ -366,7 +366,6 @@ onMounted(async () => {
                 :loading="submitting"
                 color="primary"
                 type="submit"
-                size="large"
                 prepend-icon="tabler-check"
               >
                 Create Client
@@ -375,7 +374,6 @@ onMounted(async () => {
               <VBtn
                 variant="flat"
                 color="error"
-                size="large"
                 prepend-icon="tabler-x"
                 @click="router.back()"
               >
