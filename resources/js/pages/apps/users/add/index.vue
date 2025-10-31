@@ -253,7 +253,7 @@ onMounted(async () => {
           <VCol cols="12" md="4">
             <AppSelect
                 v-model="form.role"
-                :items="roles.map(r => ({ title: r.name, value: r.name }))"
+                :items="roles.map(r => ({ title: r.name, value: r.id }))"
                 label="Role"
                 prepend-inner-icon="tabler-shield"
                 variant="outlined"

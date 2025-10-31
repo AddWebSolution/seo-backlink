@@ -200,7 +200,7 @@ const getStatusConfig = (status) => {
 };
 
 const getRoleConfig = (status) => {
-  if (status == "3")
+  if (status == "2")
     return {
       color: "info",
       icon: "tabler-user",
@@ -621,9 +621,10 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.role="{ item }">
-        <VChip :color="getRoleConfig(item.role)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getRoleConfig(item.role)?.icon || 'tabler-circle'" size="14" class="me-1" />
-          {{ getRoleConfig(item.role)?.text || "Unknown" }}
+        <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
+          <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
+<!--          {{ getRoleConfig(item.role)?.text || "Unknown" }}-->
+          {{ item.role.name }}
         </VChip>
       </template>
 
@@ -640,7 +641,7 @@ const updateOptions = async (options) => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-client-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'apps-users-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
                 </router-link>
               </IconBtn>
@@ -649,7 +650,7 @@ const updateOptions = async (options) => {
 
           <VTooltip text="Edit Client">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-client-edit', params: { id: item.id } }">
+              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-users-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />
               </IconBtn>
             </template>

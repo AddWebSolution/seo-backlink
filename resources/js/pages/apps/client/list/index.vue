@@ -206,13 +206,13 @@ const getStatusConfig = (status) => {
 };
 
 const getRoleConfig = (status) => {
-  if (status == "3")
+  if (status == "client")
     return {
       color: "info",
       icon: "tabler-user",
       text: "Client",
     };
-  if (status == "1")
+  if (status == "superadmin")
     return { color: "error", icon: "tabler-user", text: "SuperAdmin" };
 };
 
@@ -718,9 +718,10 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.role="{ item }">
-        <VChip :color="getRoleConfig(item.role)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getRoleConfig(item.role)?.icon || 'tabler-circle'" size="14" class="me-1" />
-          {{ getRoleConfig(item.role)?.text || "Unknown" }}
+        <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
+          <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
+<!--          {{ getRoleConfig(item.role)?.text || "Unknown" }}-->
+          {{ item.role.name }}
         </VChip>
       </template>
 
