@@ -83,7 +83,7 @@ const onSubmit = async () => {
   const roleData = {
     // id: props.roleId,
     name: role.value,
-    permission: selectedPermissions.value,
+    permissions: selectedPermissions.value,
   }
 
   const { valid } = await refPermissionForm.value.validate()

@@ -125,7 +125,7 @@ onMounted(async () => {
           </VCardText>
           <VCardText class="d-flex align-center pb-4">
             <div class="text-body-1">
-              Total {{ item.permissions?.length || 0 }} Permissions
+              Total {{ item.permissions_count || 0 }} Permissions
             </div>
 
             <VSpacer />
