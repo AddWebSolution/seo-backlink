@@ -38,7 +38,9 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 				return response()->json($data);
 			});
 
-			Route::post('list', [UserController::class, 'clientList'])->name('clientList');
+			Route::post('client/list', [UserController::class, 'clientList'])->name('clientList');
+
+			Route::post('list', [UserController::class, 'userList'])->name('userList');
 
 			Route::post('client/domains', [UserController::class, 'clientDomains'])->name('clientDomains');
 

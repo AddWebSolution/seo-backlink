@@ -16,7 +16,9 @@ export function useClientApi() {
     page: 1,
   });
   const ClientList = ref();
+  const UserList = ref();
   const currentClient = ref(null);
+  const currentUser = ref(null);
   const loading = ref(false);
   const error = ref(null);
 
@@ -225,7 +227,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi("api/user/list", {
+      const result = await useApi("api/user/client/list", {
         method: "POST",
       });
       ClientList.value = result?.data?.value?.clients;
@@ -240,10 +242,33 @@ export function useClientApi() {
     }
   };
 
+
+    // get User list
+  const fetchUserList = async () => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await useApi("api/user/list", {
+        method: "POST",
+      });
+      UserList.value = result?.data?.value?.users;
+      return result;
+    } catch (err) {
+      error.value = err;
+      UserList.value = [];
+      showAlert("Failed to load Client list", "error");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     clients: readonly(clients),
     pagination : pagination,
     ClientList: ClientList,
+    UserList : UserList,
     currentClient: readonly(currentClient),
     loading: readonly(loading),
     error: readonly(error),
@@ -251,6 +276,7 @@ export function useClientApi() {
     // Methods
     fetchclients,
     fetchClientList,
+    fetchUserList,
     importclients,
     fetchClient,
     downloadTemplate,

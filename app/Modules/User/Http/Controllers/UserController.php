@@ -41,6 +41,19 @@ class UserController extends BaseController
         ]);
     }
 
+    public function UserList()
+    {
+        $users = User::select('id', 'name', 'company_name', 'phone', 'email')
+            ->whereNot('role', '3')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'users' => $users,
+        ]);
+    }
+
     public function clientDomains()
     {
         return User::query()
