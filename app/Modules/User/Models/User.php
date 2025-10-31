@@ -3,16 +3,17 @@
 namespace App\Modules\User\Models;
 
 use App\Enums\UserRole;
-use App\Modules\RivalDomain\Models\RivalDomain;
 use App\Enums\UserStatus;
-use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
 use App\Modules\User\Observers\UserObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Modules\RivalDomain\Models\RivalDomain;
 use App\Modules\ClientDomain\Models\ClientDomain;
-use Illuminate\Database\Eloquent\Builder;
+use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -42,6 +43,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'role' => Role::class,
             'status' => UserStatus::class,
         ];
     }
