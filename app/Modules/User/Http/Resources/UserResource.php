@@ -16,6 +16,7 @@ class UserResource extends JsonResource
     {
          return array_merge(parent::toArray($request), [
             'domain_count' => $this->clientDomains()->count(),
+            'role' => $this->roles->first()?->only(['id', 'name']),
         ]);
     }
 }
