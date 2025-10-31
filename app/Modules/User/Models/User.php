@@ -42,7 +42,6 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
-            'role'   => UserRole::class,
             'status' => UserStatus::class,
         ];
     }
