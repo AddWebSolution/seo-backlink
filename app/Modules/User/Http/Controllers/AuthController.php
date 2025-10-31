@@ -22,6 +22,16 @@ class AuthController extends Controller
         ], 201);
     }
 
+    public function userRegister(RegisterUserRequest $request)
+    {
+        $user = $this->service->userRegister($request->validated());
+
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user'    => $user
+        ], 201);
+    }
+
    public function login(LoginUserRequest $request)
 {
     try {

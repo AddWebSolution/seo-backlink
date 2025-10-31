@@ -40,19 +40,28 @@ class UserController extends BaseController
             'clients' => $clients,
         ]);
     }
+     public function UserList(Request $request)
+    {   
+        $filters = $request->only(['search', 'status']);
+        $perPage = $request->input('per_page', 10);
 
-    public function UserList()
-    {
-        $users = User::select('id', 'name', 'company_name', 'phone', 'email')
-            ->whereNot('role', '3')
-            ->orderBy('name')
-            ->get();
+        $users = $this->service->UserList($filters, $perPage);
 
         return response()->json([
+            'data' => [
+                'resource' => $users->items(),
+                'pagination' => [
+                    'total' => $users->total(),
+                    'currentPage' => $users->currentPage(),
+                    'perPage' => $users->perPage(),
+                    'lastPage' => $users->lastPage(),
+                ],
+            ],
+            'message' => 'Resource Fetched',
             'success' => true,
-            'users' => $users,
         ]);
     }
+
 
     public function clientDomains()
     {

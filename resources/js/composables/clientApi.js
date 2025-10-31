@@ -244,7 +244,7 @@ export function useClientApi() {
 
 
     // get User list
-  const fetchUserList = async () => {
+  const fetchUsers = async () => {
     loading.value = true;
     error.value = null;
 
@@ -276,7 +276,7 @@ export function useClientApi() {
     // Methods
     fetchclients,
     fetchClientList,
-    fetchUserList,
+    fetchUsers,
     importclients,
     fetchClient,
     downloadTemplate,

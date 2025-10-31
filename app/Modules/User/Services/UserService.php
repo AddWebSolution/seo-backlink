@@ -73,4 +73,44 @@ class UserService extends BaseService
 
         return $query->paginate($perPage);
     }
+
+    public function userList(array $filters = [], int $perPage = 10): LengthAwarePaginator
+    {   
+        $query = User::select(
+            'id',
+            'employee_id',
+            'name',
+            'email',
+            'phone',
+            'company_name',
+            'designation',
+            'dob',
+            'role',
+            'status',
+            'profile_pic',
+            'email_verified_at',
+            'created_at',
+            'updated_at',
+            'deleted_at'
+        )
+        ->whereNot('role', '3')
+        ->whereNot('role', '1')
+        ->orderBy('name');
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->paginate($perPage);
+    }
 }
