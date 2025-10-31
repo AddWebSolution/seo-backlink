@@ -28,7 +28,7 @@ class UserService extends BaseService
 
     protected function loadRelations(): void
     {
-        $this->query->where('role', 3);
+        $this->query->where('role', 2);
 
         $this->loadExtraRelation();
     }
