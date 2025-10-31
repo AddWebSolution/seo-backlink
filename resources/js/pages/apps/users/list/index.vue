@@ -27,17 +27,18 @@ const headers = [
 
 const {
   clients,
+  users,
   pagination,
   loading,
   error,
   fetchclients,
+  fetchUsers,
   downloadTemplate,
   updateClient,
   importclients,
   deleteClient,
   showAlert,
 } = useClientApi();
-
 const ability = useAbility();
 
 // Filters
@@ -127,7 +128,8 @@ const buildFilters = () => {
 
 const loadClients = async () => {
   const filters = buildFilters();
-  await fetchclients(filters, pagination.value.page);
+  // await fetchclients(filters, pagination.value.page);
+  await fetchUsers(filters, pagination.value.page);
 };
 
 // Open dialog for a client
@@ -604,7 +606,7 @@ const updateOptions = async (options) => {
 
     <!-- Enhanced Data Table -->
     <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows" :headers="headers" show-select :items="clients" :loading="loading"
+      v-model:model-value="selectedRows" :headers="headers" show-select :items="users" :loading="loading"
       :items-length="pagination.total" loading-text="Fetching clients, please wait..." hover
       @update:options="updateOptions">
       <template #item.website="{ item }">
@@ -676,14 +678,14 @@ const updateOptions = async (options) => {
       <template #no-data>
         <div class="text-center pa-8">
           <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
-          <h3 class="text-h6 mb-2">No clients found</h3>
+          <h3 class="text-h6 mb-2">No user found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Try adjusting your search criteria or add a new client to get
+            Try adjusting your search criteria or add a new user to get
             started.
           </p>
-          <VBtn color="primary" @click="$router.push('/apps/client/add')">
+          <VBtn color="primary" @click="$router.push('/apps/users/add')">
             <VIcon icon="tabler-plus" class="me-2" />
-            Add First Client
+            Add First User
           </VBtn>
         </div>
       </template>
