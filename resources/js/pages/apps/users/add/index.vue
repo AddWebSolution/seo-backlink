@@ -11,7 +11,7 @@ const {
 } = useRolePermissions();
 
 const router = useRouter()
-const { createClient, fetchClientList, showAlert } = useClientApi()
+const { createUser, fetchClientList, showAlert } = useClientApi()
 
 const form = ref({
   name: '',
@@ -103,7 +103,7 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    await createClient(form.value)
+    await createUser(form.value)
     showAlert('User created successfully!', 'success')
     router.push({ name: 'apps-users-list' })
   } catch (err) {
