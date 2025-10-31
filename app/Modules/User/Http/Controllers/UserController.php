@@ -31,7 +31,7 @@ class UserController extends BaseController
     public function clientList()
     {
         $clients = User::select('id', 'name', 'company_name', 'phone', 'email')
-            ->where('role', '3')
+            ->where('role', '2')
             ->orderBy('name')
             ->get();
 
