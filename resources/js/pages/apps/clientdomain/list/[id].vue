@@ -325,37 +325,30 @@ onMounted(async () => {
 <template>
   <!-- Header Section -->
   <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
-    <VRow align="start" justify="space-between">
-      <VCol cols="12" md="8">
-        <div class="d-flex align-center">
-          <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-            <IconWorldWww stroke="{2}" />
-          </VAvatar>
-          <div>
-            <h1 class="text-h3 font-weight-bold mb-1">Domain Management</h1>
-            <p class="text-body-1 text-medium-emphasis mb-0">
-              Manage and monitor your domain portfolio
-            </p>
+    <VContainer fluid>
+      <VRow align="center">
+        <VCol cols="12" md="8">
+          <div class="d-flex align-center">
+            <VAvatar size="64" color="primary" variant="elevated" class="me-4">
+              <VIcon icon="tabler-user"></VIcon>
+            </VAvatar>
+            <div>
+              <h1 class="text-h3 font-weight-bold mb-1">Domain Management</h1>
+              <p class="text-body-1 text-medium-emphasis mb-0">
+                Manage and monitor your domain portfolio
+              </p>
+            </div>
           </div>
-        </div>
-      </VCol>
+        </VCol>
+      </VRow>
+    </VContainer>
 
-      <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
+    <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Clients
         </VBtn>
       </VCol> -->
-
-      <VCol cols="12" class="mt-4">
-        <div v-if="currentClient" class="d-flex align-center">
-          <VChip color="primary" class="ms-3 pa-4" variant="flat" size="large" elevation="2" outlined>
-            <VIcon icon="tabler-user" class="me-2" />
-            Client Name : {{ currentClient.name }}
-          </VChip>
-        </div>
-      </VCol>
-    </VRow>
   </VCard>
 
   <!-- Enhanced Search & Filter Section -->

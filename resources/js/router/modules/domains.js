@@ -8,7 +8,7 @@ export const domainRoutes = [
       title: "Domain View",
       action: "view",
       subject: "clientdomain",
-      roles: [1 ,3] 
+      roles: [1 ,2] 
     }
   },
   {
@@ -32,7 +32,7 @@ export const domainRoutes = [
       title: "Add Client Domain",
       action: "create",
       subject: "clientdomain",
-      roles: [1,3] 
+      roles: [1,2] 
     }
   },
   {
@@ -44,7 +44,7 @@ export const domainRoutes = [
       title: "Client Domain List",
       action: "view",
       subject: "clientdomain",
-      roles: [1 ,3] 
+      roles: [1 ,2] 
     }
   },
   {
@@ -56,7 +56,7 @@ export const domainRoutes = [
       title: "Domain History",
       action: "view",
       subject: "clientdomain",
-      roles: [1 ,3] 
+      roles: [1 ,2] 
     }
   },
   {
@@ -68,7 +68,7 @@ export const domainRoutes = [
       title: "Client Domain View",
       action: "view",
       subject: "clientdomain",
-      roles: [1 ,3] 
+      roles: [1 ,2] 
     }
   },
 ];

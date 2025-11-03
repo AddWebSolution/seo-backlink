@@ -1,17 +1,22 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useClientApi } from "@/composables/clientApi"
+import { useUserApi } from '@/composables/userApi';
 import { useRouter } from 'vue-router'
+import {useRolePermissions} from "@/composables/rolePermissionApi.js";
+
+const {
+  roles,
+  fetchRoles,
+  loading,
+} = useRolePermissions();
 
 const router = useRouter()
-const { createClient, fetchClientList, showAlert } = useClientApi()
+const { createUser, fetchUserList, showAlert } = useUserApi()
 
 const form = ref({
   name: '',
   email: '',
-  company_name: '',
-  role: '2', 
-  designation: '',
+  role: '',
   status: 1,
   profile_pic: '',
   phone: '',
@@ -98,9 +103,9 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    await createClient(form.value)
-    showAlert('Client created successfully!', 'success')
-    router.push({ name: 'apps-client-list' })
+    await createUser(form.value)
+    showAlert('User created successfully!', 'success')
+    router.push({ name: 'apps-users-list' })
   } catch (err) {
     console.error(err)
     showAlert(err.response?.data?.message || 'Failed to create client.', 'error')
@@ -110,6 +115,8 @@ const handleSubmit = async () => {
 }
 
 onMounted(async () => {
+  await fetchUserList()
+  await fetchRoles()
 })
 </script>
 
@@ -122,9 +129,9 @@ onMounted(async () => {
            <VIcon icon="tabler-user" ></VIcon>
         </VAvatar>
         <div>
-          <h1 class="text-h4 font-weight-bold mb-1">Add New Client</h1>
+          <h1 class="text-h4 font-weight-bold mb-1">Add New User</h1>
           <p class="text-body-2 text-medium-emphasis mb-0">
-            Create a new client account with secure credentials
+            Create a new user account with secure credentials
           </p>
         </div>
       </div>
@@ -230,7 +237,7 @@ onMounted(async () => {
           </VCol>
 
           <!-- Phone -->
-          <VCol cols="12" md="6">
+          <VCol cols="12" md="4">
             <AppTextField
               v-model="form.phone"
               label="Phone Number"
@@ -242,50 +249,24 @@ onMounted(async () => {
             />
           </VCol>
 
-          <!-- Designation -->
-          <VCol cols="12" md="6">
-            <AppTextField
-              v-model="form.designation"
-              label="Designation"
-              placeholder="e.g., Manager, Director"
-              prepend-inner-icon="tabler-briefcase"
-              variant="outlined"
-              density="comfortable"
+          <!-- Role -->
+          <VCol cols="12" md="4">
+            <AppSelect
+                v-model="form.role"
+                :items="roles.map(r => ({ title: r.name, value: r.id }))"
+                label="Role"
+                prepend-inner-icon="tabler-shield"
+                variant="outlined"
+                density="comfortable"
+                :loading="loading"
+                placeholder="Select Role"
+                persistent-placeholder
             />
-          </VCol>
 
-          <!-- Company Information Section -->
-          <VCol cols="12" class="mt-4">
-            <h3 class="text-h6 font-weight-semibold mb-4">Company Information</h3>
-          </VCol>
-
-          <!-- Company Name -->
-          <VCol cols="12" md="6">
-            <AppTextField
-              v-model="form.company_name"
-              label="Company Name"
-              placeholder="Enter company name"
-              prepend-inner-icon="tabler-building"
-              variant="outlined"
-              density="comfortable"
-            />
-          </VCol>
-
-          <!-- Role (Hidden or Display Only) -->
-          <VCol cols="12" md="6">
-            <AppTextField
-              model-value="Client"
-              label="Role"
-              prepend-inner-icon="tabler-shield"
-              variant="outlined"
-              density="comfortable"
-              readonly
-              disabled
-            />
           </VCol>
 
           <!-- Status -->
-          <VCol cols="12" md="6">
+          <VCol cols="12" md="4">
             <AppSelect
               v-model="form.status"
               :items="[
@@ -360,14 +341,14 @@ onMounted(async () => {
           <!-- Action Buttons -->
           <VDivider class="mt-6" />
           <VCol cols="12" class="mt-6 d-flex justify-end">
-            <div class=" mt-4 d-flex space-between gap-4">
+            <div class=" d-flex space-between gap-4">
               <VBtn
                 :loading="submitting"
                 color="primary"
                 type="submit"
                 prepend-icon="tabler-check"
               >
-                Create Client
+                Create User
               </VBtn>
               
               <VBtn

@@ -14,8 +14,23 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-         return array_merge(parent::toArray($request), [
-            'domain_count' => $this->clientDomains()->count(),
-        ]);
+        if (!$this->resource) {
+            return [];
+        }
+
+        $array = parent::toArray($request);
+
+        unset($array['roles']);
+
+        $domainCount = method_exists($this, 'clientDomains')
+            ? $this->clientDomains()->count()
+            : 0;
+
+        $array['domain_count'] = $domainCount;
+        $array['role'] = $this->roles->first()?->only(['id', 'name']);
+
+        return $array;
     }
+
+
 }

@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, unref } from "vue";
-import { useClientApi } from "@/composables/clientApi";
+import { useUserApi } from "@/composables/userApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { useAbility } from "@casl/vue";
 
@@ -8,9 +8,7 @@ const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
   { title: "Name", key: "name", align: "center", width: "100px" },
   { title: "E-Mail", key: "email", align: "center", width: "80px" },
-  { title: "Company", key: "company_name", align: "center", width: "80px" },
   { title: "role", key: "role", align: "center", width: "80px" },
-  { title: "designation", key: "designation", align: "center", width: "60px" },
   { title: "Phone", key: "phone", align: "center", width: "100px" },
   {
     title: "Status",
@@ -19,33 +17,26 @@ const headers = [
     width: "110px",
   },
   {
-    title: "Manage Domains",
-    key: "manage_domains",
-    align  : "center",
-    width: "200px",
-  },
-  {
     title: "Actions",
     key: "actions",
     align  : "center",
     sortable: false,
-    width: "60px",
+    width: "100px",
   },
 ];
 
 const {
-  clients,
+  Users,
   pagination,
   loading,
   error,
-  fetchclients,
+  fetchUsers,
   downloadTemplate,
-  updateClient,
-  importclients,
-  deleteClient,
+  updateUser,
+  importUsers,
+  deleteUser,
   showAlert,
-} = useClientApi();
-
+} = useUserApi();
 const ability = useAbility();
 
 // Filters
@@ -133,9 +124,10 @@ const buildFilters = () => {
   return params;
 };
 
-const loadClients = async () => {
+const loadUsers = async () => {
   const filters = buildFilters();
-  await fetchclients(filters, pagination.value.page);
+  // await fetchclients(filters, pagination.value.page);
+  await fetchUsers(filters, pagination.value.page);
 };
 
 // Open dialog for a client
@@ -166,7 +158,7 @@ const saveClient = async () => {
     await updateClient(clientData.value.id, clientData.value);
     showAlert("Client updated successfully!", "success");
     isEditDialogActive.value = false;
-    await loadClients();
+    await loadUsers();
   } catch (error) {
     console.error("Update failed:", error);
     showAlert("Failed to update client", "error");
@@ -181,7 +173,7 @@ const clearAllFilters = async () => {
   selectedCountry.value = "";
   searchQuery.value = "";
   pagination.value.page = 1;
-  await loadClients();
+  await loadUsers();
   showAlert("Filters  Cleared !", "info");
 };
 
@@ -206,27 +198,27 @@ const getStatusConfig = (status) => {
 };
 
 const getRoleConfig = (status) => {
-  if (status == "client")
+  if (status == "2")
     return {
       color: "info",
       icon: "tabler-user",
       text: "Client",
     };
-  if (status == "superadmin")
+  if (status == "1")
     return { color: "error", icon: "tabler-user", text: "SuperAdmin" };
 };
 
 const applyFilters = async () => {
   pagination.value.page = 1;
-  await loadClients();
+  await loadUsers();
 };
 
 const handleDeleteClient = async (id) => {
   try {
-    await deleteClient(id);
+    await deleteUser(id);
     const index = selectedRows.value.findIndex((row) => row === id);
     if (index !== -1) selectedRows.value.splice(index, 1);
-    await loadClients(); // Refresh the list
+    await loadUsers(); // Refresh the list
     showAlert("Client deleted successfully!", "success");
   } catch (error) {
     console.error("Delete failed:", error);
@@ -237,7 +229,7 @@ const handleDeleteClient = async (id) => {
 const handleDeleteClientBatch = async (ids) => {
   loading.value = true;
   try {
-    await Promise.all(ids.map((id) => deleteClient(id)));
+    await Promise.all(ids.map((id) => deleteUser(id)));
     selectedRows.value = [];
     await loadDomains(clientId.value);
   } catch (error) {
@@ -348,7 +340,7 @@ const handleImportClients = async () => {
     if (res.success) {
       showImportResult.value = true;
       selectedFile.value = null;
-      await loadClients();
+      await loadUsers();
     }
   } catch (err) {
     showAlert(err, "error");
@@ -444,7 +436,7 @@ const updateOptions = async (options) => {
     orderBy.value = null
   }
 
-  await loadClients();
+  await loadUsers();
 };
 </script>
 
@@ -459,9 +451,9 @@ const updateOptions = async (options) => {
               <VIcon icon="tabler-user"></VIcon>
             </VAvatar>
             <div>
-              <h1 class="text-h3 font-weight-bold mb-1">Client Management</h1>
+              <h1 class="text-h3 font-weight-bold mb-1">User Management</h1>
               <p class="text-body-1 text-medium-emphasis mb-0">
-                Manage and monitor your client portfolio
+                Manage and monitor your user portfolio
               </p>
             </div>
           </div>
@@ -469,67 +461,6 @@ const updateOptions = async (options) => {
       </VRow>
     </VContainer>
   </VCard>
-
-
-  <!-- Summary Stats Cards -->
-
-  <!-- <VRow class="mb-6">
-    <VCol cols="12" sm="6" md="3">
-      <VCard class="text-center pa-4" elevation="1" color="primary" variant="tonal">
-        <VAvatar color="primary" size="40" class="mb-3">
-          <VIcon icon="tabler-files" color="white" />
-        </VAvatar>
-        <div class="text-h5 font-weight-bold text-primary">
-          {{ summaryStats.totalReports }}
-        </div>
-        <div class="text-body-2 text-medium-emphasis">Total Reports</div>
-      </VCard>
-    </VCol>
-    <VCol cols="12" sm="6" md="2">
-      <VCard class="text-center pa-4" elevation="1" color="info" variant="tonal">
-        <VAvatar color="info" size="40" class="mb-3">
-          <VIcon icon="tabler-link" color="white" />
-        </VAvatar>
-        <div class="text-h5 font-weight-bold text-info">
-          {{ summaryStats.totalKeywords.toLocaleString() }}
-        </div>
-        <div class="text-body-2 text-medium-emphasis">Total Keywords</div>
-      </VCard>
-    </VCol>
-    <VCol cols="12" sm="6" md="2">
-      <VCard class="text-center pa-4" elevation="1" color="success" variant="tonal">
-        <VAvatar color="success" size="40" class="mb-3">
-          <VIcon icon="tabler-check" color="white" />
-        </VAvatar>
-        <div class="text-h5 font-weight-bold text-success">
-          {{ summaryStats.totalAccepted.toLocaleString() }}
-        </div>
-        <div class="text-body-2 text-medium-emphasis">Accepted</div>
-      </VCard>
-    </VCol>
-    <VCol cols="12" sm="6" md="2">
-      <VCard class="text-center pa-4" elevation="1" color="error" variant="tonal">
-        <VAvatar color="error" size="40" class="mb-3">
-          <VIcon icon="tabler-check" color="white" />
-        </VAvatar>
-        <div class="text-h5 font-weight-bold text-error">
-          {{ summaryStats.totalRejected.toLocaleString() }}
-        </div>
-        <div class="text-body-2 text-medium-emphasis">Rejected</div>
-      </VCard>
-    </VCol>
-    <VCol cols="12" sm="6" md="3">
-      <VCard class="text-center pa-4" elevation="1" color="warning" variant="tonal">
-        <VAvatar color="warning" size="40" class="mb-3">
-          <VIcon icon="tabler-percentage" color="white" />
-        </VAvatar>
-        <div class="text-h5 font-weight-bold text-warning">
-          {{ summaryStats.overallSuccessRate.toLocaleString() }}%
-        </div>
-        <div class="text-body-2 text-medium-emphasis">Success Rate</div>
-      </VCard>
-    </VCol>
-  </VRow> -->
 
   <!-- Enhanced Search & Filter Section -->
   <VCard class="mb-6" elevation="1">
@@ -544,11 +475,6 @@ const updateOptions = async (options) => {
           <VIcon icon="tabler-x" class="me-1" />
           Clear All
         </VBtn>
-        <!-- <VBtn variant="text" size="small" @click="showAdvancedFilters = !showAdvancedFilters">
-            <VIcon :icon="showAdvancedFilters ? 'tabler-chevron-up' : 'tabler-chevron-down'
-              " class="me-1" />
-            {{ showAdvancedFilters ? "Less" : "More" }} Filters
-          </VBtn> -->
       </div>
     </VCardTitle>
 
@@ -565,37 +491,12 @@ const updateOptions = async (options) => {
         </VCol>
 
         <VCol cols="12" sm="6" md="3" class="d-flex justify-end">
-          <VBtn color="primary" variant="flat" block @click="loadClients">
+          <VBtn color="primary" variant="flat" block @click="loadUsers">
             <VIcon icon="tabler-search" class="me-2" />
             Search
           </VBtn>
         </VCol>
       </VRow>
-
-      <!-- Advanced Filters -->
-      <!-- <VExpandTransition>
-          <div v-show="showAdvancedFilters">
-            <VDivider class="mb-4" />
-            <VRow>
-              <VCol cols="12" sm="6" md="3">
-                <AppTextField label="Industry" placeholder="Enter industry" variant="outlined" hide-details
-                  prepend-inner-icon="tabler-building" />
-              </VCol>
-              <VCol cols="12" sm="6" md="3">
-                <AppTextField label="City" placeholder="Enter city" variant="outlined" hide-details
-                  prepend-inner-icon="tabler-map-pin" />
-              </VCol>
-              <VCol cols="12" sm="6" md="3">
-                <AppTextField label="State" placeholder="Enter state" variant="outlined" hide-details
-                  prepend-inner-icon="tabler-map" />
-              </VCol>
-              <VCol cols="12" sm="6" md="3">
-                <AppTextField label="Zip Code" placeholder="Enter zip code" variant="outlined" hide-details
-                  prepend-inner-icon="tabler-mail" />
-              </VCol>
-            </VRow>
-          </div>
-        </VExpandTransition> -->
     </VCardText>
   </VCard>
 
@@ -693,8 +594,8 @@ const updateOptions = async (options) => {
         </VBtn>
 
         <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')">
-          Add Client
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/users/add')">
+          Add User
         </VBtn>
       </div>
     </div>
@@ -703,7 +604,7 @@ const updateOptions = async (options) => {
 
     <!-- Enhanced Data Table -->
     <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows" :headers="headers" show-select :items="clients" :loading="loading"
+      v-model:model-value="selectedRows" :headers="headers" show-select :items="Users" :loading="loading"
       :items-length="pagination.total" loading-text="Fetching clients, please wait..." hover
       @update:options="updateOptions">
       <template #item.website="{ item }">
@@ -721,7 +622,7 @@ const updateOptions = async (options) => {
         <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
           <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
 <!--          {{ getRoleConfig(item.role)?.text || "Unknown" }}-->
-          {{ getRoleConfig(item.role.name).text }}
+          {{ item.role.name }}
         </VChip>
       </template>
 
@@ -732,40 +633,21 @@ const updateOptions = async (options) => {
         </VChip>
       </template>
 
-      <template #item.manage_domains="{ item }">
-          <VTooltip v-if="ability.can('view', 'rivaldomain')" text="View Domains for This Client">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="
-                $router.push({
-                  name: 'apps-domain-clientdomain-list',
-                  params: { id: item.id },
-                })
-                ">
-                <VChip color="info" variant="tonal" size="small" class="ma-1">
-                 <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
-                  {{ item.domain_count }}
-                </VChip>
-              </IconBtn>
-            </template>
-          </VTooltip>
-      </template>
-
 
       <template #item.actions="{ item }">
-        <div class="d-flex ml-10">
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-client-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'apps-users-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
                 </router-link>
               </IconBtn>
             </template>
           </VTooltip>
 
-          <VTooltip text="Edit Client">
+          <VTooltip text="Edit User">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-client-edit', params: { id: item.id } }">
+              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-users-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />
               </IconBtn>
             </template>
@@ -787,21 +669,20 @@ const updateOptions = async (options) => {
               </IconBtn>
             </template>
           </VTooltip>
-        </div>
       </template>
 
       <!-- Empty State -->
       <template #no-data>
         <div class="text-center pa-8">
           <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
-          <h3 class="text-h6 mb-2">No clients found</h3>
+          <h3 class="text-h6 mb-2">No user found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Try adjusting your search criteria or add a new client to get
+            Try adjusting your search criteria or add a new user to get
             started.
           </p>
-          <VBtn color="primary" @click="$router.push('/apps/client/add')">
+          <VBtn color="primary" @click="$router.push('/apps/users/add')">
             <VIcon icon="tabler-plus" class="me-2" />
-            Add First Client
+            Add First User
           </VBtn>
         </div>
       </template>
