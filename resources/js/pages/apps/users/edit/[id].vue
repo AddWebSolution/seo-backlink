@@ -9,6 +9,12 @@ const route = useRoute()
 const router = useRouter()
 const { currentUser, fetchUser, updateUser, showAlert } = useUserApi()
 
+const {
+  roles,
+  fetchRoles,
+} = useRolePermissions();
+
+
 const submitting = ref(false)
 const formRef = ref(null)
 const isEditMode = ref(false)
@@ -101,7 +107,7 @@ const loadUserData = async () => {
     currentUser.value = response.data.value
     profileImagePreview.value = response.data.profile_pic
     Object.assign(form.value, currentUser.value)
-    form.value.role = currentUser.value.role ?? null
+    form.value.role = currentUser.value.role?.id ?? null
   } catch (err) {
     console.error(err)
   } finally {
@@ -146,6 +152,7 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   await loadUserData()
+  await fetchRoles()
 })
 </script>
 
@@ -160,7 +167,7 @@ onMounted(async () => {
             <VIcon icon="tabler-user"></VIcon>
           </VAvatar>
           <div>
-            <h1 class="text-h3 font-weight-bold mb-1">Edit Client</h1>
+            <h1 class="text-h3 font-weight-bold mb-1">Edit User</h1>
             <p class="text-body-1 text-medium-emphasis mb-0">
               Edit the details of the client and manage their information.
             </p>
@@ -239,13 +246,15 @@ onMounted(async () => {
 
           <VCol cols="12" md="4">
             <AppTextField v-model="form.phone" label="Phone Number" placeholder="Enter 10-digit number"
-              :rules="[requiredValidator]" prepend-inner-icon="tabler-phone" variant="outlined"
-              density="comfortable" />
+              :rules="[requiredValidator]" prepend-inner-icon="tabler-phone" variant="outlined" density="comfortable" />
           </VCol>
-          <VCol cols="12" md="4">
-            <AppTextField :model-value="form.role?.name ?? ''" label="Role" prepend-inner-icon="tabler-shield"
-              variant="outlined" density="comfortable" readonly disabled />
-          </VCol>
+
+          <!-- Role -->
+            <VCol cols="12" md="4">
+              <AppSelect v-model="form.role" :items="roles.map(r => ({ title: r.name, value: r.id }))" label="Role"
+                prepend-inner-icon="tabler-shield" variant="outlined" density="comfortable" :loading="loading"
+                placeholder="Select Role" persistent-placeholder />
+            </VCol>
 
           <VCol cols="12" md="4">
             <AppSelect v-model="form.status" :items="[

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useClientApi } from "@/composables/clientApi"
+import { useUserApi } from '@/composables/userApi';
 import { useRouter } from 'vue-router'
 import {useRolePermissions} from "@/composables/rolePermissionApi.js";
 
@@ -11,7 +11,7 @@ const {
 } = useRolePermissions();
 
 const router = useRouter()
-const { createUser, fetchClientList, showAlert } = useClientApi()
+const { createUser, fetchUserList, showAlert } = useUserApi()
 
 const form = ref({
   name: '',
@@ -115,7 +115,7 @@ const handleSubmit = async () => {
 }
 
 onMounted(async () => {
-  await fetchClientList()
+  await fetchUserList()
   await fetchRoles()
 })
 </script>
@@ -129,9 +129,9 @@ onMounted(async () => {
            <VIcon icon="tabler-user" ></VIcon>
         </VAvatar>
         <div>
-          <h1 class="text-h4 font-weight-bold mb-1">Add New Client</h1>
+          <h1 class="text-h4 font-weight-bold mb-1">Add New User</h1>
           <p class="text-body-2 text-medium-emphasis mb-0">
-            Create a new client account with secure credentials
+            Create a new user account with secure credentials
           </p>
         </div>
       </div>

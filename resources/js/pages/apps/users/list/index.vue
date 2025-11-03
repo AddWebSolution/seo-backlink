@@ -124,7 +124,7 @@ const buildFilters = () => {
   return params;
 };
 
-const loadClients = async () => {
+const loadUsers = async () => {
   const filters = buildFilters();
   // await fetchclients(filters, pagination.value.page);
   await fetchUsers(filters, pagination.value.page);
@@ -158,7 +158,7 @@ const saveClient = async () => {
     await updateClient(clientData.value.id, clientData.value);
     showAlert("Client updated successfully!", "success");
     isEditDialogActive.value = false;
-    await loadClients();
+    await loadUsers();
   } catch (error) {
     console.error("Update failed:", error);
     showAlert("Failed to update client", "error");
@@ -173,7 +173,7 @@ const clearAllFilters = async () => {
   selectedCountry.value = "";
   searchQuery.value = "";
   pagination.value.page = 1;
-  await loadClients();
+  await loadUsers();
   showAlert("Filters  Cleared !", "info");
 };
 
@@ -210,15 +210,15 @@ const getRoleConfig = (status) => {
 
 const applyFilters = async () => {
   pagination.value.page = 1;
-  await loadClients();
+  await loadUsers();
 };
 
 const handleDeleteClient = async (id) => {
   try {
-    await deleteClient(id);
+    await deleteUser(id);
     const index = selectedRows.value.findIndex((row) => row === id);
     if (index !== -1) selectedRows.value.splice(index, 1);
-    await loadClients(); // Refresh the list
+    await loadUsers(); // Refresh the list
     showAlert("Client deleted successfully!", "success");
   } catch (error) {
     console.error("Delete failed:", error);
@@ -229,7 +229,7 @@ const handleDeleteClient = async (id) => {
 const handleDeleteClientBatch = async (ids) => {
   loading.value = true;
   try {
-    await Promise.all(ids.map((id) => deleteClient(id)));
+    await Promise.all(ids.map((id) => deleteUser(id)));
     selectedRows.value = [];
     await loadDomains(clientId.value);
   } catch (error) {
@@ -340,7 +340,7 @@ const handleImportClients = async () => {
     if (res.success) {
       showImportResult.value = true;
       selectedFile.value = null;
-      await loadClients();
+      await loadUsers();
     }
   } catch (err) {
     showAlert(err, "error");
@@ -436,7 +436,7 @@ const updateOptions = async (options) => {
     orderBy.value = null
   }
 
-  await loadClients();
+  await loadUsers();
 };
 </script>
 
@@ -491,7 +491,7 @@ const updateOptions = async (options) => {
         </VCol>
 
         <VCol cols="12" sm="6" md="3" class="d-flex justify-end">
-          <VBtn color="primary" variant="flat" block @click="loadClients">
+          <VBtn color="primary" variant="flat" block @click="loadUsers">
             <VIcon icon="tabler-search" class="me-2" />
             Search
           </VBtn>
@@ -645,7 +645,7 @@ const updateOptions = async (options) => {
             </template>
           </VTooltip>
 
-          <VTooltip text="Edit Client">
+          <VTooltip text="Edit User">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" :to="{ name: 'apps-users-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />

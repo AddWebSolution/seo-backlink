@@ -157,7 +157,7 @@ export function useUserApi() {
         error.value = null;
 
         try {
-            const result = await useApi("api/auth/user/register", {
+            const result = await useApi("api/auth/register/user", {
                 method: "POST",
                 body: payload,
             });
@@ -207,7 +207,7 @@ export function useUserApi() {
             });
 
             showAlert("Client deleted successfully!", "success");
-            await fetchusers();
+            await fetchUsers();
             return result;
         } catch (err) {
             error.value = err;
@@ -224,14 +224,14 @@ export function useUserApi() {
         error.value = null;
 
         try {
-            const result = await useApi("api/user/client/name/list", {
+            const result = await useApi("api/client/name/list", {
                 method: "POST",
             });
-            ClientList.value = result?.data?.value?.users;
+            UserList.value = result?.data?.value?.users;
             return result;
         } catch (err) {
             error.value = err;
-            ClientList.value = [];
+            UserList.value = [];
             showAlert("Failed to load Client list", "error");
             throw err;
         } finally {
