@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserApi } from '@/composables/userApi'
 import { useAbility } from '@casl/vue'
+import { updateAbilities } from '@/router/casl/ability'
 
 
 const route = useRoute()
@@ -140,6 +141,7 @@ const handleSubmit = async () => {
       delete updateData.password_confirmation
     }
     await updateUser(currentUser.value.id, updateData)
+    updateAbilities()
     await loadUserData()
     router.back()
     showPasswordFields.value = false

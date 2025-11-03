@@ -17,6 +17,7 @@ class RolePermissionSeeder extends Seeder
             'client' => ['view', 'create', 'update', 'delete', 'import','export'],
             'user' => ['view', 'create', 'update', 'delete', 'import','export'],
             'report' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'role_permission'  => ['view', 'create', 'update', 'delete', 'import','export'],
             'clientdomain' => ['view', 'create', 'update', 'delete', 'import','export'],
             'dashboard' => ['view', 'create', 'update', 'delete', 'import','export'],
             'rivaldomain' => ['view', 'create', 'update', 'delete', 'import','export'],

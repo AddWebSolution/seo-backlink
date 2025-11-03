@@ -3,6 +3,7 @@
 import { IconLock, IconChartLine } from "@tabler/icons-vue";
 import RoleDialog from "@/pages/apps/role-permissions/RoleDialog.vue";
 import {useRolePermissions} from "@/composables/rolePermissionApi.js";
+import { useAbility } from "@casl/vue";
 
 const {
   roles,
@@ -15,6 +16,8 @@ const {
 
 const roleId = ref('')
 const roleName = ref('')
+
+const ability = useAbility()
 
 const isAddRoleDialogVisible = ref(false)
 const selectedPermission = ref([])
@@ -113,7 +116,8 @@ onMounted(async () => {
                   {{ item.name }}
                 </h5>
                 <div class="d-flex align-center">
-                  <a
+                  <a  
+                    v-if="ability.can('update', 'role_permission')"
                       href="javascript:void(0)"
                       @click="editRole(item.id, item.permissions ?? [], item.name)"
                   >
@@ -141,6 +145,7 @@ onMounted(async () => {
         lg="4"
     >
       <VCard
+          v-if="ability.can('create', 'role_permission')"
           class="h-100"
           :ripple="false"
       >
@@ -155,6 +160,7 @@ onMounted(async () => {
               </div>
               <VBtn
                   @click="addRole"
+                   v-if="ability.can('create', 'role_permission')"
               >
                 Add New Role
               </VBtn>
