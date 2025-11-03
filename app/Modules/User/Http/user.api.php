@@ -27,28 +27,35 @@ Route::prefix('api')
 		// =========================
 		// 👤 User Management
 		// =========================
+		
 		Route::prefix('user')->name('user.')->group(function () {
 
-			Route::post('get', [UserController::class, 'index'])->name('get');
+			Route::group(['middleware' => ['can:view user']], function () {
+				Route::post('get', [UserController::class, 'index'])->name('get');
+			});
 			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all');
-			Route::post('get/{id}', [UserController::class, 'show'])->name('show');
 
-			//Route::group(['middleware' => ['can:Create KeywordReport']], function () {
-			Route::post('store', [UserController::class, 'store'])->name('store');
-			//});
+			Route::group(['middleware' => ['can:view user']], function () {
+				Route::post('get/{id}', [UserController::class, 'show'])->name('show');
+			});
 
-			//Route::group(['middleware' => ['can:Update KeywordReport']], function () {
-			Route::post('update/{id}', [UserController::class, 'update'])->name('update');
-			//});
+			Route::group(['middleware' => ['can:create user']], function () {
+				Route::post('store', [UserController::class, 'store'])->name('store');
+			});
 
-			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport');
+			Route::group(['middleware' => ['can:update user']], function () {
+				Route::post('update/{id}', [UserController::class, 'update'])->name('update');
+			});
+			Route::group(['middleware' => ['can:import user']], function () {
+				Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport');
+			});
 
 			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload');
 
 
-			//Route::group(['middleware' => ['can:Delete KeywordReport']], function () {
-			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete');
-			//});
+			Route::group(['middleware' => ['can:delete user']], function () {
+				Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete');
+			});
 
 			Route::post('/profile/upload', [UserController::class, 'updateProfilePic'])->name('profile.upload');
 		});
