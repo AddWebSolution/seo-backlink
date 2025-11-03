@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, unref } from "vue";
-import { useClientApi } from "@/composables/clientApi";
+import { useUserApi } from "@/composables/userApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { useAbility } from "@casl/vue";
 
@@ -21,24 +21,22 @@ const headers = [
     key: "actions",
     align  : "center",
     sortable: false,
-    width: "60px",
+    width: "100px",
   },
 ];
 
 const {
-  clients,
-  users,
+  Users,
   pagination,
   loading,
   error,
-  fetchclients,
   fetchUsers,
   downloadTemplate,
-  updateClient,
-  importclients,
-  deleteClient,
+  updateUser,
+  importUsers,
+  deleteUser,
   showAlert,
-} = useClientApi();
+} = useUserApi();
 const ability = useAbility();
 
 // Filters
@@ -606,7 +604,7 @@ const updateOptions = async (options) => {
 
     <!-- Enhanced Data Table -->
     <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
-      v-model:model-value="selectedRows" :headers="headers" show-select :items="users" :loading="loading"
+      v-model:model-value="selectedRows" :headers="headers" show-select :items="Users" :loading="loading"
       :items-length="pagination.total" loading-text="Fetching clients, please wait..." hover
       @update:options="updateOptions">
       <template #item.website="{ item }">
@@ -637,7 +635,6 @@ const updateOptions = async (options) => {
 
 
       <template #item.actions="{ item }">
-        <div class="d-flex ml-10">
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
@@ -672,7 +669,6 @@ const updateOptions = async (options) => {
               </IconBtn>
             </template>
           </VTooltip>
-        </div>
       </template>
 
       <!-- Empty State -->

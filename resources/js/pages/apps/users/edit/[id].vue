@@ -1,13 +1,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useClientApi } from '@/composables/clientApi'
+import { useUserApi } from '@/composables/userApi'
 import { useAbility } from '@casl/vue'
 
 
 const route = useRoute()
 const router = useRouter()
-const { currentClient, fetchClient, updateClient, showAlert } = useClientApi()
+const { currentUser, fetchUser, updateUser, showAlert } = useUserApi()
 
 const submitting = ref(false)
 const formRef = ref(null)
@@ -29,7 +29,7 @@ const clientId = route.params.id
 const form = ref({
   name: '',
   email: '',
-  role: '',
+  role: null,
   status: 1,
   profile_pic: '',
   phone: '',
@@ -53,7 +53,7 @@ const rules = {
 const cancelEdit = () => {
   isEditMode.value = false
   showPasswordFields.value = false
-  profileImagePreview.value = currentClient.value.profile_pic
+  profileImagePreview.value = currentUser.value.profile_pic
   form.value.password = ''
   form.value.password_confirmation = ''
 }
@@ -65,8 +65,8 @@ const handleFileSelect = (event) => {
       showAlert('Please select a valid image file', 'error')
       return
     }
-    
-    if (file.size > 5 * 1024 * 1024) { 
+
+    if (file.size > 5 * 1024 * 1024) {
       showAlert('Image size must be less than 5MB', 'error')
       return
     }
@@ -90,17 +90,18 @@ const confirmPasswordValidator = (value) => {
   return true
 }
 
-const statusText = computed(() => currentClient.value?.status === 1 ? 'Active' : 'Inactive')
-const statusColor = computed(() => currentClient.value?.status === 1 ? 'success' : 'error')
+const statusText = computed(() => currentUser.value?.status === 1 ? 'Active' : 'Inactive')
+const statusColor = computed(() => currentUser.value?.status === 1 ? 'success' : 'error')
 
 
-const loadClientData = async () => {
+const loadUserData = async () => {
   loading.value = true
   try {
-    const response = await fetchClient(clientId)
-    currentClient.value = response.data.value
+    const response = await fetchUser(clientId)
+    currentUser.value = response.data.value
     profileImagePreview.value = response.data.profile_pic
-    Object.assign(form.value, currentClient.value)
+    Object.assign(form.value, currentUser.value)
+    form.value.role = currentUser.value.role ?? null
   } catch (err) {
     console.error(err)
   } finally {
@@ -126,13 +127,15 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     const updateData = { ...form.value }
+    updateData.role = updateData.role
+    delete updateData.role
     if (!showPasswordFields.value || !updateData.password) {
       delete updateData.password
       delete updateData.password_confirmation
     }
-    // delete updateData.role
-    await updateClient(currentClient.value.id, updateData)
-    await loadClientData()
+    await updateUser(currentUser.value.id, updateData)
+    await loadUserData()
+    router.back()
     showPasswordFields.value = false
   } catch (err) {
     console.error(err)
@@ -142,7 +145,7 @@ const handleSubmit = async () => {
 }
 
 onMounted(async () => {
-  await loadClientData()
+  await loadUserData()
 })
 </script>
 
@@ -154,7 +157,7 @@ onMounted(async () => {
       <VCol cols="12" md="8">
         <div class="d-flex align-center">
           <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-            <VIcon icon="tabler-user" ></VIcon>
+            <VIcon icon="tabler-user"></VIcon>
           </VAvatar>
           <div>
             <h1 class="text-h3 font-weight-bold mb-1">Edit Client</h1>
@@ -236,21 +239,20 @@ onMounted(async () => {
 
           <VCol cols="12" md="4">
             <AppTextField v-model="form.phone" label="Phone Number" placeholder="Enter 10-digit number"
-              :rules="[requiredValidator, phoneValidator]" prepend-inner-icon="tabler-phone" variant="outlined"
+              :rules="[requiredValidator]" prepend-inner-icon="tabler-phone" variant="outlined"
               density="comfortable" />
           </VCol>
-
           <VCol cols="12" md="4">
-            <AppTextField v-model="form.role.name" label="Role" prepend-inner-icon="tabler-shield" variant="outlined"
-                          density="comfortable" readonly disabled />
+            <AppTextField :model-value="form.role?.name ?? ''" label="Role" prepend-inner-icon="tabler-shield"
+              variant="outlined" density="comfortable" readonly disabled />
           </VCol>
 
           <VCol cols="12" md="4">
             <AppSelect v-model="form.status" :items="[
-                  { title: 'Active', value: 1 },
-                  { title: 'Inactive', value: 2 }
-                ]" label="Account Status" prepend-inner-icon="tabler-circle-dot" variant="outlined"
-                       density="comfortable" />
+              { title: 'Active', value: 1 },
+              { title: 'Inactive', value: 2 }
+            ]" label="Account Status" prepend-inner-icon="tabler-circle-dot" variant="outlined"
+              density="comfortable" />
           </VCol>
 
           <!-- Change Password Section -->
@@ -299,13 +301,11 @@ onMounted(async () => {
           <VDivider class="mb-6" />
           <VCol cols="12" class="mt-6 d-flex justify-end">
             <div class="d-flex  space-between gap-4">
-              <VBtn :loading="submitting" color="primary" type="submit"
-                prepend-icon="tabler-device-floppy">
+              <VBtn :loading="submitting" color="primary" type="submit" prepend-icon="tabler-device-floppy">
                 Save Changes
               </VBtn>
 
-              <VBtn variant="flat" color="error" prepend-icon="tabler-x" @click="router.back()"
-                :disabled="submitting">
+              <VBtn variant="flat" color="error" prepend-icon="tabler-x" @click="router.back()" :disabled="submitting">
                 Cancel
               </VBtn>
             </div>

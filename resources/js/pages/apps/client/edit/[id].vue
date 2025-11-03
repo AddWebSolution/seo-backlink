@@ -138,6 +138,7 @@ const handleSubmit = async () => {
     }
     await updateClient(currentClient.value.id, updateData)
     await loadClientData()
+    router.back()
     showPasswordFields.value = false
   } catch (err) {
     console.error(err)

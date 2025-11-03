@@ -16,7 +16,7 @@ export function useRolePermissions() {
         loading.value = true;
         error.value = null;
         try {
-            const result = await useApi("/api/user/role/all", { method: "GET" });
+            const result = await useApi("/api/roles", { method: "GET" });
             roles.value = result?.data?.value?.data || [];
             return result;
         } catch (err) {
@@ -35,7 +35,7 @@ export function useRolePermissions() {
         error.value = null;
 
         try {
-            const result = await useApi("/api/user/role/permissions", { method: "GET" });
+            const result = await useApi("/api/roles/permissions/all", { method: "GET" });
 
             const data = result?.data?.value?.data || [];
 
@@ -80,7 +80,7 @@ export function useRolePermissions() {
     // Fetch specific role details for pre-selection
     const fetchRoleDetails = async (id) => {
         try {
-            const response = await useApi(`/api/user/role/view/${id}`, { method: 'GET' })
+            const response = await useApi(`/api/roles/${id}/permissions`, { method: 'GET' })
             return response?.data?.value?.data || response?.data?.data || null
         } catch (err) {
             console.error('Error fetching role details:', err)
@@ -93,7 +93,7 @@ export function useRolePermissions() {
     const updateRole = async (roleId, roleData) => {
         loading.value = true
         try {
-            const result = await useApi(`/api/user/role/update/${roleId}`, {
+            const result = await useApi(`/api/roles/edit/${roleId}`, {
                 method: 'POST',
                 body: roleData,
             })
@@ -112,7 +112,7 @@ export function useRolePermissions() {
         loading.value = true;
         error.value = null;
         try {
-            const result = await useApi("/api/user/role/create", {
+            const result = await useApi("/api/roles/create", {
                 method: "POST",
                 body: payload,
             });

@@ -16,9 +16,7 @@ export function useClientApi() {
     page: 1,
   });
   const ClientList = ref();
-  const UserList = ref();
   const currentClient = ref(null);
-  const currentUser = ref(null);
   const loading = ref(false);
   const error = ref(null);
 
@@ -27,7 +25,7 @@ export function useClientApi() {
     loading.value = true;
     error.value = null;
     try {
-      const result = await useApi(`api/user/get/${id}`, {
+      const result = await useApi(`api/client/get/${id}`, {
         method: "POST",
       });
       currentClient.value = result.data.value.data;
@@ -51,7 +49,7 @@ export function useClientApi() {
       const body = {
         ...filters
       };
-      const result = await useApi(createUrl("api/user/get",{query : body}), {
+      const result = await useApi(createUrl("api/client/get", { query: body }), {
         method: "POST",
       });
       clients.value = result.data.value.data.resource;
@@ -92,7 +90,7 @@ export function useClientApi() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await useApi("api/user/import", {
+      const result = await useApi("api/client/import", {
         method: "POST",
         body: formData,
         skipJsonTransform: true,
@@ -131,7 +129,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const response = await fetch("/api/user/import/template/download", {
+      const response = await fetch("/api/client/import/template/download", {
         method: "GET",
         headers: {
           Accept:
@@ -178,35 +176,12 @@ export function useClientApi() {
   };
 
 
-  // create User
-  const createUser = async (payload) => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const result = await useApi("api/auth/user/register", {
-        method: "POST",
-        body: payload,
-      });
-
-      showAlert("User created successfully!", "success");
-      await fetchUsers();
-      return result;
-    } catch (err) {
-      error.value = err;
-      showAlert("Failed to create User", "error");
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
-
   // update Client
   const updateClient = async (id, payload) => {
     loading.value = true;
 
     try {
-      const result = await useApi(`api/user/update/${id}`, {
+      const result = await useApi(`api/client/update/${id}`, {
         method: "POST",
         body: payload,
       });
@@ -229,7 +204,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi(`api/user/delete/${id}`, {
+      const result = await useApi(`api/client/delete/${id}`, {
         method: "POST",
       });
 
@@ -251,7 +226,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi("api/user/client/name/list", {
+      const result = await useApi("api/client/name/list", {
         method: "POST",
       });
       ClientList.value = result?.data?.value?.clients;
@@ -266,33 +241,10 @@ export function useClientApi() {
     }
   };
 
-
-    // get User list
-  const fetchUsers = async () => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const result = await useApi("api/user/list", {
-        method: "POST",
-      });
-      UserList.value = result?.data?.value?.data?.resource;
-      return result;
-    } catch (err) {
-      error.value = err;
-      UserList.value = [];
-      showAlert("Failed to load User list", "error");
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
-
   return {
     clients: readonly(clients),
-    pagination : pagination,
+    pagination: pagination,
     ClientList: ClientList,
-    users: readonly(UserList),
     currentClient: readonly(currentClient),
     loading: readonly(loading),
     error: readonly(error),
@@ -300,8 +252,6 @@ export function useClientApi() {
     // Methods
     fetchclients,
     fetchClientList,
-    createUser,
-    fetchUsers,
     importclients,
     fetchClient,
     downloadTemplate,

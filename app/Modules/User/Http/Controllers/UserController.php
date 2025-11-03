@@ -62,28 +62,6 @@ class UserController extends BaseController
         ]);
     }
 
-        public function ClientUserList(Request $request)
-    {   
-        $filters = $request->only(['search', 'status']);
-        $perPage = $request->input('per_page', 10);
-
-        $users = $this->service->clientList($filters, $perPage);
-
-        return response()->json([
-            'data' => [
-                'resource' => $users->items(),
-                'pagination' => [
-                    'total' => $users->total(),
-                    'currentPage' => $users->currentPage(),
-                    'perPage' => $users->perPage(),
-                    'lastPage' => $users->lastPage(),
-                ],
-            ],
-            'message' => 'Resource Fetched',
-            'success' => true,
-        ]);
-    }
-
 
     public function clientDomains()
     {
@@ -114,8 +92,6 @@ class UserController extends BaseController
              $clients
         ]);
     }
-
-
 
     public function updateProfilePic(UploadProfilePicRequest $request)
     {

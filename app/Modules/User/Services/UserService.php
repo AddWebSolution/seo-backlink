@@ -27,8 +27,16 @@ class UserService extends BaseService
     public string $sortOrder = 'desc';
 
     protected function loadRelations(): void
-    {   
-        $this->loadExtraRelation();
+    {
+        $route = request()->route()?->getName();
+
+        if ($route === 'client.get') {
+            $this->query->where('role', '2');
+            $this->loadExtraRelation();
+        } else if ($route === 'user.get') {
+            $this->query->whereNotIn('role', ['1', '2']);
+            $this->loadExtraRelation();
+        }
     }
 
     public function __construct()

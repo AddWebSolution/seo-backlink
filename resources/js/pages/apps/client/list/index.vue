@@ -721,7 +721,7 @@ const updateOptions = async (options) => {
         <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
           <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
 <!--          {{ getRoleConfig(item.role)?.text || "Unknown" }}-->
-          {{ item.role.name }}
+          {{ getRoleConfig(item.role.name).text }}
         </VChip>
       </template>
 

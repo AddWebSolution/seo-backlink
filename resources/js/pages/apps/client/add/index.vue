@@ -110,7 +110,6 @@ const handleSubmit = async () => {
 }
 
 onMounted(async () => {
-  await fetchClientList()
 })
 </script>
 
