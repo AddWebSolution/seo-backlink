@@ -251,7 +251,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi("api/user/client/list", {
+      const result = await useApi("api/user/client/name/list", {
         method: "POST",
       });
       ClientList.value = result?.data?.value?.clients;

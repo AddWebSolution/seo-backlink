@@ -1,77 +1,70 @@
 <?php
 
-namespace App\Modules\User\Http\Controllers;
-
 use Illuminate\Support\Facades\Route;
+use App\Modules\User\Http\Controllers\AuthController;
+use App\Modules\User\Http\Controllers\UserController;
+use App\Modules\User\Http\Controllers\RoleController;
 
-
-// =========================
-// 🔹 Public Auth Routes
-// =========================
-Route::prefix('api')->namespace('App\Modules\User\Http\Controllers')->group(function () {
-	Route::prefix('auth')->name('auth.')->group(function () {
-		Route::post('register', [AuthController::class, 'register'])->name('register');
-		Route::post('user/register', [AuthController::class, 'userRegister'])->name('userRegister');
-		Route::post('login', [AuthController::class, 'login'])->name('login');
-	});
+// =============================
+// 🔓 Public Auth Routes
+// =============================
+Route::prefix('api/auth')->name('auth.')->group(function () {
+	Route::post('register', [AuthController::class, 'register'])->name('register');
+	Route::post('register/user', [AuthController::class, 'userRegister'])->name('register.user');
+	Route::post('login', [AuthController::class, 'login'])->name('login');
 });
 
 
-// =========================
-// 🔹 Protected User Routes
-// =========================
-Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
-	Route::prefix('api')->namespace('App\Modules\User\Http\Controllers')->group(function () {
-		Route::prefix('user')->name('user.')->group(function () {
-			//Route::group(['middleware' => ['can:View User']], function () {
-			Route::post('get', [UserController::class, 'index'])->name('get');
-			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all');
-			Route::post('get/{id}', [UserController::class, 'show'])->name('show');
-			//});
+// =============================
+// 🔐 Protected Routes
+// =============================
+Route::prefix('api')
+	->middleware(['api', 'auth:sanctum'])
+	->group(function () {
 
-			Route::get('/webhook/data', function () {
-				$data = [
-					'value' => 6,
-					'message' => 'Hello from Laravel',
-					'timestamp' => now(),
-				];
+		// =========================
+		// 👤 User Management
+		// =========================
+		Route::prefix('users')->name('users.')->group(function () {
 
-				return response()->json($data);
-			});
+			Route::post('/', [UserController::class, 'index'])->name('index'); // list with filters/pagination
+			Route::get('/all', [UserController::class, 'getAll'])->name('all'); // all users
+			Route::get('/{id}', [UserController::class, 'show'])->name('show');
 
-			Route::post('client/list', [UserController::class, 'clientList'])->name('clientList');
+			Route::post('/', [UserController::class, 'store'])->name('store');
+			Route::put('/{id}', [UserController::class, 'update'])->name('update');
+			Route::delete('/{id}', [UserController::class, 'destroy'])->name('delete');
 
-			Route::post('list', [UserController::class, 'userList'])->name('userList');
+			Route::post('/profile/upload', [UserController::class, 'updateProfilePic'])->name('profile.upload');
+		});
 
-			Route::post('client/domains', [UserController::class, 'clientDomains'])->name('clientDomains');
+		
+		// =========================
+		// 🧩 Client 
+		// =========================
 
-			Route::post('client/get/all', [UserController::class, 'ClientListByRole'])->name('ClientListByRole');
+		Route::prefix('client')->name('client.')->group(function () {
 
-			//Route::group(['middleware' => ['can:Create User']], function () {
-			Route::post('store', [UserController::class, 'store'])->name('store');
+			Route::get('/names', [UserController::class, 'clientList'])->name('clients.names');
+			Route::get('/list', [UserController::class, 'clientUserList'])->name('clients.users');
+			Route::get('/clients/all', [UserController::class, 'ClientListByRole'])->name('clients.all');
 
-			Route::post('role/create', [RoleController::class, 'store'])->name('roleCreate');
+			Route::get('/{clientId}/domains', [UserController::class, 'clientDomains'])->name('clients.domains');
 
-			Route::post('role/update/{roleId}', [RoleController::class, 'update'])->name('roleUpdate');
+			Route::post('/profile/upload', [UserController::class, 'updateProfilePic'])->name('profile.upload');
+		});
 
-			Route::get('role/all', [RoleController::class, 'roleList'])->name('roleList');
 
-			Route::get('role/permissions', [RoleController::class , 'permissionsList']);
+		// =========================
+		// 🧩 Roles & Permissions
+		// =========================
+		Route::prefix('roles')->name('roles.')->group(function () {
 
-			Route::get('role/view/{roleId}', [RoleController::class , 'rolePermission']);
+			Route::get('/', [RoleController::class, 'roleList'])->name('index');
+			Route::post('/', [RoleController::class, 'store'])->name('store');
+			Route::put('/{roleId}', [RoleController::class, 'update'])->name('update');
 
-			//});
-
-			Route::post('upload/profile/pic', [UserController::class, 'updateProfilePic'])->name('upload_profile_pic');
-			//});
-
-			//Route::group(['middleware' => ['can:Update User']], function () {
-			Route::post('update/{id}', [UserController::class, 'update'])->name('update');
-			//});
-
-			//Route::group(['middleware' => ['can:Delete User']], function () {
-			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete');
-			//});
+			Route::get('/{roleId}/permissions', [RoleController::class, 'rolePermission'])->name('permissions.view');
+			Route::get('/permissions/all', [RoleController::class, 'permissionsList'])->name('permissions.list');
 		});
 	});
-});

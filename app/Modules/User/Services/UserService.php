@@ -28,8 +28,6 @@ class UserService extends BaseService
 
     protected function loadRelations(): void
     {   
-        $this->query->where('role', 2);
-
         $this->loadExtraRelation();
     }
 
@@ -79,6 +77,46 @@ class UserService extends BaseService
         $query = User::with(['roles:id,name'])
             ->whereDoesntHave('roles', function ($q) {
                 $q->whereIn('id', [1, 2]);
+            })
+            ->orderBy('name');
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $users = $query->paginate($perPage);
+
+        $users->getCollection()->transform(function ($user) {
+            $role = $user->roles->first();
+            $user->role = $role ? [
+                'id' => $role->id,
+                'name' => $role->name,
+            ] : null;
+
+            unset($user->roles);
+
+            return $user;
+        });
+
+        return $users;
+    }
+
+
+       public function clientList(array $filters = [], int $perPage = 10): LengthAwarePaginator
+    {
+        $query = User::with(['roles:id,name'])
+            ->whereDoesntHave('roles', function ($q) {
+                $q->whereIn('id', [2]);
             })
             ->orderBy('name');
 
