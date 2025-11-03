@@ -319,12 +319,12 @@ onMounted(async () => {
           <VDivider class="mb-6" />
           <VCol cols="12" class="mt-6 d-flex justify-end">
             <div class="d-flex  space-between gap-4">
-              <VBtn :loading="submitting" color="primary" type="submit" size="large"
+              <VBtn :loading="submitting" color="primary" type="submit"
                 prepend-icon="tabler-device-floppy">
                 Save Changes
               </VBtn>
 
-              <VBtn variant="flat" color="error" size="large" prepend-icon="tabler-x" @click="router.back()"
+              <VBtn variant="flat" color="error" prepend-icon="tabler-x" @click="router.back()"
                 :disabled="submitting">
                 Cancel
               </VBtn>

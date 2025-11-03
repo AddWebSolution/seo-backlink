@@ -211,7 +211,7 @@ export function useClientApi() {
         body: payload,
       });
 
-      showAlert("Client updated successfully!", "success");
+      showAlert("record updated successfully!", "success");
       await fetchclients();
       return result;
     } catch (err) {
