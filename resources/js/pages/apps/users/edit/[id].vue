@@ -29,10 +29,7 @@ const clientId = route.params.id
 const form = ref({
   name: '',
   email: '',
-  company_name: '',
-  website: '',
-  role: '3',
-  designation: '',
+  role: '',
   status: 1,
   profile_pic: '',
   phone: '',
@@ -133,6 +130,7 @@ const handleSubmit = async () => {
       delete updateData.password
       delete updateData.password_confirmation
     }
+    delete updateData.role
     await updateClient(currentClient.value.id, updateData)
     await loadClientData()
     showPasswordFields.value = false
@@ -171,7 +169,7 @@ onMounted(async () => {
       </VCol>
       <VCol cols="12" md="4" class="text-md-end">
         <div class="d-flex gap-2 justify-md-end">
-          <VBtn variant="flat" @click="router.push({ name: 'apps-client-list' })">
+          <VBtn variant="flat" @click="router.back()">
             <VIcon icon="tabler-arrow-left" class="me-2" />
             Back to List
           </VBtn>
@@ -236,38 +234,23 @@ onMounted(async () => {
               density="comfortable" />
           </VCol>
 
-          <VCol cols="12" md="6">
+          <VCol cols="12" md="4">
             <AppTextField v-model="form.phone" label="Phone Number" placeholder="Enter 10-digit number"
               :rules="[requiredValidator, phoneValidator]" prepend-inner-icon="tabler-phone" variant="outlined"
               density="comfortable" />
           </VCol>
 
-          <VCol cols="12" md="6">
-            <AppTextField v-model="form.designation" label="Designation" placeholder="e.g., Manager, Director"
-              prepend-inner-icon="tabler-briefcase" variant="outlined" density="comfortable" />
+          <VCol cols="12" md="4">
+            <AppTextField v-model="form.role.name" label="Role" prepend-inner-icon="tabler-shield" variant="outlined"
+                          density="comfortable" readonly disabled />
           </VCol>
 
-          <!-- Company Information Section -->
-          <VCol cols="12" class="mt-4">
-            <h3 class="text-h6 font-weight-semibold mb-4">Company Information</h3>
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <AppTextField v-model="form.company_name" label="Company Name" placeholder="Enter company name"
-              prepend-inner-icon="tabler-building" variant="outlined" density="comfortable" />
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <AppTextField model-value="Client" label="Role" prepend-inner-icon="tabler-shield" variant="outlined"
-              density="comfortable" readonly disabled />
-          </VCol>
-
-          <VCol cols="12" md="6">
+          <VCol cols="12" md="4">
             <AppSelect v-model="form.status" :items="[
                   { title: 'Active', value: 1 },
                   { title: 'Inactive', value: 2 }
                 ]" label="Account Status" prepend-inner-icon="tabler-circle-dot" variant="outlined"
-              density="comfortable" />
+                       density="comfortable" />
           </VCol>
 
           <!-- Change Password Section -->
@@ -316,12 +299,12 @@ onMounted(async () => {
           <VDivider class="mb-6" />
           <VCol cols="12" class="mt-6 d-flex justify-end">
             <div class="d-flex  space-between gap-4">
-              <VBtn :loading="submitting" color="primary" type="submit" size="large"
+              <VBtn :loading="submitting" color="primary" type="submit"
                 prepend-icon="tabler-device-floppy">
                 Save Changes
               </VBtn>
 
-              <VBtn variant="flat" color="error" size="large" prepend-icon="tabler-x" @click="router.back()"
+              <VBtn variant="flat" color="error" prepend-icon="tabler-x" @click="router.back()"
                 :disabled="submitting">
                 Cancel
               </VBtn>

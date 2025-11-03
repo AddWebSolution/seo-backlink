@@ -294,50 +294,10 @@ onMounted(async () => {
           <VCol cols="12" md="6">
             <div class="info-item mb-6">
               <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-briefcase" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Designation</span>
-              </div>
-<!--              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.designation || 'N/A' }}</p>-->
-            </div>
-          </VCol>
-
-          <!-- Company Information Section -->
-          <VCol cols="12" class="mt-2">
-            <h3 class="text-h6 font-weight-semibold mb-4">Company Information</h3>
-            <VDivider class="mb-4" />
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-building" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Company Name</span>
-              </div>
-<!--              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.company_name || 'N/A' }}</p>-->
-            </div>
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
                 <VIcon icon="tabler-shield" size="20" class="me-2 text-medium-emphasis" />
                 <span class="text-caption text-medium-emphasis font-weight-medium">Role</span>
               </div>
-              <p class="text-body-1 font-weight-medium mb-0 pl-7">Client</p>
-            </div>
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-circle-dot" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Account Status</span>
-              </div>
-              <div class="pl-7">
-                <VChip :color="statusColor" size="small" variant="tonal">
-                  {{ statusText }}
-                </VChip>
-              </div>
+              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.role.name || 'N/A' }}</p>
             </div>
           </VCol>
 
