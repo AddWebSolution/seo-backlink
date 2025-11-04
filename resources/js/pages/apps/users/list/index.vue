@@ -6,10 +6,10 @@ import { useAbility } from "@casl/vue";
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Name", key: "name", align: "center", width: "100px" },
+  { title: "Name", key: "name", align: "center", width: "80px" },
   { title: "E-Mail", key: "email", align: "center", width: "80px" },
-  { title: "role", key: "role", align: "center", width: "80px" },
-  { title: "Phone", key: "phone", align: "center", width: "100px" },
+  { title: "role", key: "role", align: "center", width: "60px" },
+  { title: "Phone", key: "phone", align: "center", width: "80px" },
   {
     title: "Status",
     key: "status",
