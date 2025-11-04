@@ -26,7 +26,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			//});
 
 			//Route::group(['middleware' => ['can:Update ClientDomain']], function () {
-			Route::post('update/{id}', [ClientDomainController::class, 'update'])->name('update')->middleware('permission:edit clientdomain');
+			Route::post('update/{id}', [ClientDomainController::class, 'update'])->name('update')->middleware('permission:update clientdomain');
 			//});
 
 			//Route::group(['middleware' => ['can:Delete ClientDomain']], function () {

@@ -17,7 +17,7 @@ Route::group(['middleware' => ['api','auth:sanctum']], function () {
 			//});
 
 			//Route::group(['middleware' => ['can:Update BacklinkDatum']], function () {
-				Route::post('update/{id}', [BacklinkDatumController::class, 'update'])->name('update')->middleware('permission:edit backlinkdatum');
+				Route::post('update/{id}', [BacklinkDatumController::class, 'update'])->name('update')->middleware('permission:update backlinkdatum');
 			//});
 
 			//Route::group(['middleware' => ['can:Delete BacklinkDatum']], function () {

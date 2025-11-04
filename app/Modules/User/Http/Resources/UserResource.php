@@ -22,15 +22,15 @@ class UserResource extends JsonResource
 
         unset($array['roles']);
 
-        $domainCount = method_exists($this, 'clientDomains')
-            ? $this->clientDomains()->count()
-            : 0;
+        $domainCount = 0;
+
+        if (method_exists($this->resource, 'clientDomains')) {
+            $domainCount = $this->resource->clientDomains()->count();
+        }
 
         $array['domain_count'] = $domainCount;
-        $array['role'] = $this->roles->first()?->only(['id', 'name']);
+        $array['role'] = $this->resource->roles->first()?->only(['id', 'name']);
 
         return $array;
     }
-
-
 }
