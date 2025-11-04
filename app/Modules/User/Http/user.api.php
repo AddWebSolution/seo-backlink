@@ -27,35 +27,25 @@ Route::prefix('api')
 		// =========================
 		// 👤 User Management
 		// =========================
-		
+
 		Route::prefix('user')->name('user.')->group(function () {
 
-			Route::group(['middleware' => ['can:view user']], function () {
-				Route::post('get', [UserController::class, 'index'])->name('get');
-			});
-			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all');
+			Route::post('get', [UserController::class, 'index'])->name('get')->middleware('permission:view user');
+			
+			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all')->middleware('permission:view user');
 
-			Route::group(['middleware' => ['can:view user']], function () {
-				Route::post('get/{id}', [UserController::class, 'show'])->name('show');
-			});
+			Route::post('get/{id}', [UserController::class, 'show'])->name('show')->middleware('permission:view user');
 
-			Route::group(['middleware' => ['can:create user']], function () {
-				Route::post('store', [UserController::class, 'store'])->name('store');
-			});
+			Route::post('store', [UserController::class, 'store'])->name('store')->middleware('permission:create user');
 
-			Route::group(['middleware' => ['can:update user']], function () {
-				Route::post('update/{id}', [UserController::class, 'update'])->name('update');
-			});
-			Route::group(['middleware' => ['can:import user']], function () {
-				Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport');
-			});
+			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:edit user');
+			
+			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport')->middleware('permission:import user');
 
 			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload');
 
 
-			Route::group(['middleware' => ['can:delete user']], function () {
-				Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete');
-			});
+			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete')->middleware('permission:delete user');
 
 			Route::post('/profile/upload', [UserController::class, 'updateProfilePic'])->name('profile.upload');
 		});
@@ -67,26 +57,25 @@ Route::prefix('api')
 
 		Route::prefix('client')->name('client.')->group(function () {
 
-			Route::post('get', [UserController::class, 'index'])->name('get');
-			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all');
-			Route::post('get/{id}', [UserController::class, 'show'])->name('show');
+			Route::post('get', [UserController::class, 'index'])->name('get')->middleware('permission:view client');
 
-			//Route::group(['middleware' => ['can:Create KeywordReport']], function () {
-			Route::post('store', [UserController::class, 'store'])->name('store');
-			//});
+			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all')->middleware('permission:view client');
 
-			Route::post('name/list', [UserController::class, 'clientList']);
+			Route::post('get/{id}', [UserController::class, 'show'])->name('show')->middleware('permission:view client');
 
-			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport');
+			Route::post('store', [UserController::class, 'store'])->name('store')->middleware('permission:create client');
 
-			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload');
+			Route::post('domains', [UserController::class, 'clientDomains'])->name('clientDomains')->middleware('permission:create client');
 
-			//Route::group(['middleware' => ['can:Update KeywordReport']], function () {
-			Route::post('update/{id}', [UserController::class, 'update'])->name('update');
-			//});
+			Route::post('name/list', [UserController::class, 'clientList'])->middleware('permission:create client');
 
-			//Route::group(['middleware' => ['can:Delete KeywordReport']], function () {
-			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete');
+			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport')->middleware('permission:import client');
+
+			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload')->middleware('permission:import client');
+
+			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:edit client');
+
+			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete')->middleware('permission:delete client');
 		});
 
 
@@ -95,11 +84,11 @@ Route::prefix('api')
 		// =========================
 		Route::prefix('roles')->name('roles.')->group(function () {
 
-			Route::get('/', [RoleController::class, 'roleList'])->name('index');
-			Route::post('/create', [RoleController::class, 'store'])->name('store');
-			Route::post('/edit/{roleId}', [RoleController::class, 'update'])->name('update');
+			Route::get('/', [RoleController::class, 'roleList'])->name('index')->middleware('permission:view role_permission');
+			Route::post('/create', [RoleController::class, 'store'])->name('store')->middleware('permission:create role_permission');
+			Route::post('/edit/{roleId}', [RoleController::class, 'update'])->name('update')->middleware('permission:edit role_permission');
 
-			Route::get('/{roleId}/permissions', [RoleController::class, 'rolePermission'])->name('permissions.view');
-			Route::get('/permissions/all', [RoleController::class, 'permissionsList'])->name('permissions.list');
+			Route::get('/{roleId}/permissions', [RoleController::class, 'rolePermission'])->name('permissions.view')->middleware('permission:create role_permission');
+			Route::get('/permissions/all', [RoleController::class, 'permissionsList'])->name('permissions.list')->middleware('permission:create role_permission');
 		});
 	});
