@@ -12,7 +12,7 @@ export const domainRoutes = [
     }
   },
   {
-    path: "/domains/:id/edit",
+    path: "/apps/domains/:id/edit",
     name: "apps-domain-edit",
     component: () => import("@/pages/apps/domain/edit/[id].vue"),
     props: true,
@@ -24,7 +24,7 @@ export const domainRoutes = [
     }
   },
   {
-    path: "/clientdomain/add",
+    path: "/apps/clientdomain/add",
     name: "apps-clientdomain-add",
     component: () => import("@/pages/apps/clientdomain/add/[id].vue"),
     props: true,
@@ -36,7 +36,7 @@ export const domainRoutes = [
     }
   },
   {
-    path: "/clientdomain/list",
+    path: "/apps/clientdomain/list",
     name: "apps-clientdomain-list",
     component: () => import("@/pages/apps/clientdomain/list/[id].vue"),
     props: true,
@@ -48,7 +48,7 @@ export const domainRoutes = [
     }
   },
   {
-    path: "/:view?/:id?/history",
+    path: "/apps/:view?/:id?/history",
     name: "apps-clientdomain-history",
     component: () => import("@/pages/apps/clientdomain/history/[id].vue"),
     props: true,
@@ -60,7 +60,7 @@ export const domainRoutes = [
     }
   },
   {
-    path: "/client/:clientId?/clientdomain/:domainId?/view",
+    path: "/apps/client/:clientId?/clientdomain/:domainId?/view",
     name: "apps-clientdomain-view",
     component: () => import("@/pages/apps/clientdomain/view/[domainId].vue"),
     props: true,
