@@ -12,6 +12,18 @@ export const clientRoutes = [
     }
   },
   {
+    path: '/client/add',
+    name: 'apps-client-add',
+    component: () => import('@/pages/apps/client/add/index.vue'),
+    props: true,
+    meta: {
+      title: 'Client Add',
+      action: 'create',
+      subject: 'client',
+      roles: [1]
+    }
+  },
+  {
     path: "/client/:id",
     name: "apps-client-view",
     component: () => import("@/pages/apps/client/view/[id].vue"),
