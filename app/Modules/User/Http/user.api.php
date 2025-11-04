@@ -38,7 +38,7 @@ Route::prefix('api')
 
 			Route::post('store', [UserController::class, 'store'])->name('store')->middleware('permission:create user');
 
-			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:edit user');
+			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:update user');
 			
 			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport')->middleware('permission:import user');
 
@@ -73,7 +73,7 @@ Route::prefix('api')
 
 			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload')->middleware('permission:import client');
 
-			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:edit client');
+			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:update client');
 
 			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete')->middleware('permission:delete client');
 		});
@@ -86,7 +86,7 @@ Route::prefix('api')
 
 			Route::get('/', [RoleController::class, 'roleList'])->name('index')->middleware('permission:view role_permission');
 			Route::post('/create', [RoleController::class, 'store'])->name('store')->middleware('permission:create role_permission');
-			Route::post('/edit/{roleId}', [RoleController::class, 'update'])->name('update')->middleware('permission:edit role_permission');
+			Route::post('/edit/{roleId}', [RoleController::class, 'update'])->name('update')->middleware('permission:update role_permission');
 
 			Route::get('/{roleId}/permissions', [RoleController::class, 'rolePermission'])->name('permissions.view')->middleware('permission:create role_permission');
 			Route::get('/permissions/all', [RoleController::class, 'permissionsList'])->name('permissions.list')->middleware('permission:create role_permission');

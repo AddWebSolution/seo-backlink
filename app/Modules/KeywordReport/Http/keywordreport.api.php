@@ -21,7 +21,7 @@ Route::group(['middleware' => ['api','auth:sanctum']], function () {
 			//});
 
 			//Route::group(['middleware' => ['can:Update KeywordReport']], function () {
-				Route::post('update/{id}', [KeywordReportController::class, 'update'])->name('update')->middleware('permission:edit keywordreport');
+				Route::post('update/{id}', [KeywordReportController::class, 'update'])->name('update')->middleware('permission:update keywordreport');
 			//});
 
 			//Route::group(['middleware' => ['can:Delete KeywordReport']], function () {

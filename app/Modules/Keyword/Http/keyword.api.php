@@ -28,7 +28,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::get('get/keyword/data/history/{id}', [KeywordController::class, 'keywordHistory'])->middleware('permission:view keywordreport');
 
 			//Route::group(['middleware' => ['can:Update Keyword']], function () {
-			Route::post('update/{id}', [KeywordController::class, 'update'])->name('update')->middleware('permission:edit keyword');
+			Route::post('update/{id}', [KeywordController::class, 'update'])->name('update')->middleware('permission:update keyword');
 			//});
 
 			//Route::group(['middleware' => ['can:Delete Keyword']], function () {

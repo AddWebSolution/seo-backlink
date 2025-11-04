@@ -5,6 +5,7 @@ namespace App\Modules\Report\Services;
 use Addweb\Base\Services\BaseService;
 use App\Enums\UserRole;
 use App\Modules\BacklinkDatum\Models\BacklinkDatum;
+use App\Modules\ClientDomain\Models\ClientDomain;
 use App\Modules\Report\Models\Report;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -92,10 +93,62 @@ class ReportService extends BaseService
         ];
     }
 
-    public function getReportDomainBacklinks (){
+    public function getReportDomainBacklinks(int $clientDomainId, int $perPage = 10, array $filters = [])
+    {
+        $clientDomain = ClientDomain::findOrFail($clientDomainId);
 
-        
+        $query = BacklinkDatum::where(function ($q) use ($clientDomain) {
+            $q->where('target_domain', $clientDomain->domain)
+                ->orWhere('target_url', $clientDomain->domain_url);
+        });
+
+        // Apply Filters
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('url', 'like', "%{$search}%")
+                    ->orWhere('from_url', 'like', "%{$search}%")
+                    ->orWhere('domain', 'like', "%{$search}%")
+                    ->orWhere('domain_url', 'like', "%{$search}%")
+                    ->orWhere('target_domain', 'like', "%{$search}%")
+                    ->orWhere('target_url', 'like', "%{$search}%")
+                    ->orWhere('anchor', 'like', "%{$search}%")
+                    ->orWhere('page_title', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['domain'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('domain_url', $filters['domain'])
+                    ->orWhere('domain', $filters['domain']);
+            });
+        }
+
+        if (!empty($filters['rival_domain'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('target_url', $filters['rival_domain'])
+                    ->orWhere('target_domain', $filters['rival_domain']);
+            });
+        }
+
+        $query->orderBy($filters['sort_by'] ?? 'id', $filters['sort_order'] ?? 'desc');
+
+        $backlinks = $query->paginate($perPage);
+
+        return [
+            'domain' => $clientDomain,
+            'accepted_backlinks' => $backlinks->where('status', 'accepted')->count(),
+            'rejected_backlinks' => $backlinks->where('status', 'rejected')->count(),
+            'domains' => $clientDomain->getDomains(),
+            'rival_domains' => $clientDomain->getRivalDomains(),
+            'backlinks' => $backlinks,
+        ];
     }
+
 
     public function exportReport($reportIds)
     {
