@@ -693,7 +693,7 @@ const updateOptions = async (options) => {
         </VBtn>
 
         <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')">
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')" v-if="ability.can('create', 'client')">
           Add Client
         </VBtn>
       </div>
