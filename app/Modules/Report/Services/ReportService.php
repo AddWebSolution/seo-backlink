@@ -92,6 +92,11 @@ class ReportService extends BaseService
         ];
     }
 
+    public function getReportDomainBacklinks (){
+
+        
+    }
+
     public function exportReport($reportIds)
     {
         if (empty($reportIds)) {
