@@ -11,8 +11,8 @@ use App\Modules\User\Http\Controllers\RoleController;
 // 🔓 Public Auth Routes
 // =============================
 Route::prefix('api/auth')->name('auth.')->group(function () {
-	Route::post('register', [AuthController::class, 'register'])->name('register');
-	Route::post('register/user', [AuthController::class, 'userRegister'])->name('register.user');
+	Route::post('register', [AuthController::class, 'register'])->name('register')->middleware('permission:create client');
+	Route::post('register/user', [AuthController::class, 'userRegister'])->name('register.user')->middleware('permission:create user');
 	Route::post('login', [AuthController::class, 'login'])->name('login');
 });
 
