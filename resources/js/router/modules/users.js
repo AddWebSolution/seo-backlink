@@ -24,6 +24,18 @@ export const userRoutes = [
     }
   },
   {
+    path: "/users/:id",
+    name: "apps-users-view",
+    component: () => import("@/pages/apps/users/view/[id].vue"),
+    props: true,
+    meta: {
+      title: "User View",
+      action: 'view',
+      subject: 'user',
+      roles: [1],
+    }
+  },
+  {
     path: "/users/:id/edit",
     name: "apps-users-edit",
     component: () => import("@/pages/apps/users/edit/[id].vue"),

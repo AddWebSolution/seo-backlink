@@ -12,6 +12,18 @@ export const keywordRoutes = [
     }
   },
   {
+    path: "/keywords/add",
+    name: "apps-keyword-add",
+    component: () => import("@/pages/apps/keyword/add/index.vue"),
+    props: true,
+    meta: {
+      title: "Keyword Add",
+      action: 'create',
+      subject: 'keyword',
+      roles: [1, 2],
+    }
+  },
+  {
     path: "/keywords/:id/edit",
     name: "apps-keyword-edit",
     component: () => import("@/pages/apps/keyword/edit/[id].vue"),
