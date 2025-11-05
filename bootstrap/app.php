@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
             return response()->json([
                 'status' => false,
-                'error' => 'PERMISSION_DENIED',
+                'error' => $e->getMessage(),
                 'message' => 'You do not have permission to perform this action.',
             ], 403);
         });

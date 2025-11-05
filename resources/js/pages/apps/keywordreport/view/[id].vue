@@ -344,8 +344,8 @@ const serverItems = computed(() => ({
 
           <VCol cols="12" md="4" class="d-flex justify-end">
             <VBtn variant="flat" :to="{ name: 'keywordreport-list' }">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to Reports
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
             </VBtn>
           </VCol>
         </VRow>
@@ -669,8 +669,8 @@ const serverItems = computed(() => ({
           The report you're looking for doesn't exist or may have been deleted.
         </p>
         <VBtn color="primary" size="large" :to="{ name: 'report-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Reports
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCardText>
     </VCard>

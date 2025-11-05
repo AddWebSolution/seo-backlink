@@ -39,8 +39,8 @@
                 name: 'keywordreport-view',
                 params: { id: keywordData.report_id },
               }">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to Report Details
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
             </VBtn>
           </VCol>
         </VRow>
@@ -326,8 +326,8 @@
           deleted. Please check the ID and try again.
         </p>
         <VBtn color="primary" size="large" :to="{ name: 'keyword  -list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Keyword Data
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCardText>
     </VCard>

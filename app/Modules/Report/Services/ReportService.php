@@ -93,60 +93,163 @@ class ReportService extends BaseService
         ];
     }
 
-    public function getReportDomainBacklinks(int $clientDomainId, int $perPage = 10, array $filters = [])
+
+    // public function getLatestReportByDomain(string $domainId, int $perPage = 10, array $filters = [])
+    // {
+    //     try {
+    //         $title = ClientDomain::where('id', $domainId)->value('title');
+    //         $latestReport = Report::query()
+    //             ->whereHas('backlinks', function ($q) use ($title) {
+    //                 $q->where(function ($innerQ) use ($title) {
+    //                     $innerQ->where('domain_url', $title)
+    //                         ->orWhere('domain', $title);
+    //                 });
+    //             })
+    //             ->latest('created_at')
+    //             ->first();
+
+    //         if (!$latestReport) {
+    //             return response()->json([
+    //                 'message' => 'No report found for this domain',
+    //                 'data' => null,
+    //             ], 404);
+    //         }
+
+    //         $query = $latestReport->backlinks()
+    //             ->where(function ($q) use ($title) {
+    //                 $q->where('domain_url', $title)
+    //                     ->orWhere('domain', $title);
+    //             });
+
+    //         if (!empty($filters['search'])) {
+    //             $search = $filters['search'];
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->where('url', 'like', "%{$search}%")
+    //                     ->orWhere('from_url', 'like', "%{$search}%")
+    //                     ->orWhere('target_domain', 'like', "%{$search}%")
+    //                     ->orWhere('target_url', 'like', "%{$search}%")
+    //                     ->orWhere('anchor', 'like', "%{$search}%")
+    //                     ->orWhere('page_title', 'like', "%{$search}%");
+    //             });
+    //         }
+
+    //         if (!empty($filters['status'])) {
+    //             $query->where('status', $filters['status']);
+    //         }
+
+    //         if (!empty($filters['rival_domain'])) {
+    //             $query->where(function ($q) use ($filters) {
+    //                 $q->where('target_url', $filters['rival_domain'])
+    //                     ->orWhere('target_domain', $filters['rival_domain']);
+    //             });
+    //         }
+
+    //         $sortBy = $filters['sort_by'] ?? 'created_at';
+    //         $sortOrder = $filters['sort_order'] ?? 'desc';
+    //         $query->orderBy($sortBy, $sortOrder);
+
+    //         $backlinks = $query->paginate($perPage);
+
+    //         $latestReport->accepted_backlinks = $latestReport->backlinks()
+    //             ->where('status', 'accepted')
+    //             ->where(function ($q) use ($title) {
+    //                 $q->where('domain_url', $title)
+    //                     ->orWhere('domain', $title);
+    //             })
+    //             ->count();
+
+    //         $latestReport->rejected_backlinks = $latestReport->backlinks()
+    //             ->where('status', 'rejected')
+    //             ->where(function ($q) use ($title) {
+    //                 $q->where('domain_url', $title)
+    //                     ->orWhere('domain', $title);
+    //             })
+    //             ->count();
+
+    //         return response()->json([
+    //             'report' => $latestReport,
+    //             'backlinks' => $backlinks,
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message' => 'An error occurred',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+    public function getLatestReportByDomain(string $domainId, int $perPage = 10, array $filters = [])
     {
-        $clientDomain = ClientDomain::findOrFail($clientDomainId);
+        try {
+            $title = ClientDomain::where('id', $domainId)->value('title');
+            $latestReport = Report::query()
+                ->whereHas('backlinks', function ($q) use ($title) {
+                    $q->where(function ($innerQ) use ($title) {
+                        $innerQ->where('domain_url', $title)
+                            ->orWhere('domain', $title);
+                    });
+                })
+                ->latest('created_at')
+                ->first();
 
-        $query = BacklinkDatum::where(function ($q) use ($clientDomain) {
-            $q->where('target_domain', $clientDomain->domain)
-                ->orWhere('target_url', $clientDomain->domain_url);
-        });
+            $query = $latestReport->backlinks();
+            $latestReport->accepted_backlinks = $latestReport->getAcceptedCount();
+            $latestReport->rejected_backlinks = $latestReport->getRejectedCount();
+            $latestReport->domain_count = $latestReport->getDomainsCount();
 
-        // Apply Filters
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('url', 'like', "%{$search}%")
-                    ->orWhere('from_url', 'like', "%{$search}%")
-                    ->orWhere('domain', 'like', "%{$search}%")
-                    ->orWhere('domain_url', 'like', "%{$search}%")
-                    ->orWhere('target_domain', 'like', "%{$search}%")
-                    ->orWhere('target_url', 'like', "%{$search}%")
-                    ->orWhere('anchor', 'like', "%{$search}%")
-                    ->orWhere('page_title', 'like', "%{$search}%");
-            });
+            // Search
+            if (!empty($filters['search'])) {
+                $search = $filters['search'];
+                $query->where(function ($q) use ($search) {
+                    $q->where('url', 'like', "%{$search}%")
+                        ->orWhere('from_url', 'like', "%{$search}%")
+                        ->orWhere('domain', 'like', "%{$search}%")
+                        ->orWhere('domain_url', 'like', "%{$search}%")
+                        ->orWhere('target_domain', 'like', "%{$search}%")
+                        ->orWhere('target_url', 'like', "%{$search}%")
+                        ->orWhere('anchor', 'like', "%{$search}%")
+                        ->orWhere('page_title', 'like', "%{$search}%");
+                });
+            }
+
+            if (!empty($filters['status'])) {
+                $query->where('status', $filters['status']);
+            }
+
+            if (!empty($filters['domain'])) {
+                $query->where(function ($q) use ($filters) {
+                    $q->orwhere('domain_url', $filters['domain'])
+                        ->orWhere('domain', $filters['domain']);
+                });
+            }
+
+            if (!empty($filters['rival_domain'])) {
+                $query->where(function ($q) use ($filters) {
+                    $q->orwhere('target_url', $filters['rival_domain'])
+                        ->orWhere('target_domain', $filters['rival_domain']);
+                });
+            }
+
+            $query->orderBy($filters['sort_by'], $filters['sort_order']);
+
+            $backlinks = $query->paginate($perPage);
+
+            $domains = $latestReport->getDomains();
+
+            $rivalDomains = $latestReport->getRivalDomains();
+
+            return [
+                'report'    => $latestReport,
+                'backlinks' => $backlinks,
+                'domains'   => $domains,
+                'rival_domains' => $rivalDomains,
+            ];
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        if (!empty($filters['domain'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('domain_url', $filters['domain'])
-                    ->orWhere('domain', $filters['domain']);
-            });
-        }
-
-        if (!empty($filters['rival_domain'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('target_url', $filters['rival_domain'])
-                    ->orWhere('target_domain', $filters['rival_domain']);
-            });
-        }
-
-        $query->orderBy($filters['sort_by'] ?? 'id', $filters['sort_order'] ?? 'desc');
-
-        $backlinks = $query->paginate($perPage);
-
-        return [
-            'domain' => $clientDomain,
-            'accepted_backlinks' => $backlinks->where('status', 'accepted')->count(),
-            'rejected_backlinks' => $backlinks->where('status', 'rejected')->count(),
-            'domains' => $clientDomain->getDomains(),
-            'rival_domains' => $clientDomain->getRivalDomains(),
-            'backlinks' => $backlinks,
-        ];
     }
 
 

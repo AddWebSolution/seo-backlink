@@ -4,8 +4,12 @@ namespace App\Modules\User\Services;
 
 use App\Modules\User\Models\User;
 use Addweb\Base\Services\BaseService;
-use App\Enums\UserRole;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
+use App\Modules\User\Events\UserRegisteredEvent;
+
+
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserService extends BaseService
@@ -157,6 +161,45 @@ class UserService extends BaseService
         });
 
         return $users;
+    }
+
+
+    public function clientCreate(array $data): User
+    {
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'],
+            'role'    =>  '2',
+            'password' => Hash::make($data['password']),
+        ]);
+        $role = Role::find(2);
+        $user->assignRole($role);
+
+        event(new UserRegisteredEvent($user));
+
+        return $user;
+    }
+
+    /**
+     * Register a new user
+     */
+    public function userCreate(array $data): User
+    {   
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'],
+            'role'    => $data['role'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        $role = Role::find($data['role']);
+        $user->assignRole($role);
+
+        event(new UserRegisteredEvent($user));
+
+        return $user;
     }
 
 }

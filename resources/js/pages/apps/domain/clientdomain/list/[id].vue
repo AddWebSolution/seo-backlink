@@ -338,7 +338,7 @@ onMounted(async () => {
 
       <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="mt-8 text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'client-list' }">
-          <VIcon icon="tabler-arrow-left" />
+          <VIcon icon="tabler-arrow-autofit-left" size= "large" />
           Back to Clients
         </VBtn>
       </VCol>

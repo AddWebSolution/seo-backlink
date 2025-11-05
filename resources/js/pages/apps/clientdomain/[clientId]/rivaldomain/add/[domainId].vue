@@ -298,8 +298,8 @@ const scrollToSection = (sectionId) => {
                 name: 'clientdomain-rivaldomain-list',
                 params: { clientId: clientId, domainId: clientDomainId }
               })">
-                <VIcon icon="tabler-arrow-left" class="me-2" />
-                Back to List
+                <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back    
               </VBtn>
             </div>
           </VCol>

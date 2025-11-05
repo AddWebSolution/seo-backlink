@@ -36,14 +36,13 @@ Route::prefix('api')
 
 			Route::post('get/{id}', [UserController::class, 'show'])->name('show')->middleware('permission:view user');
 
-			Route::post('store', [UserController::class, 'store'])->name('store')->middleware('permission:create user');
+			Route::post('store', [UserController::class, 'createUser'])->name('createUser')->middleware('permission:create user');
 
 			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:update user');
 			
 			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport')->middleware('permission:import user');
 
 			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload');
-
 
 			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete')->middleware('permission:delete user');
 
@@ -63,7 +62,7 @@ Route::prefix('api')
 
 			Route::post('get/{id}', [UserController::class, 'show'])->name('show')->middleware('permission:view client');
 
-			Route::post('store', [UserController::class, 'store'])->name('store')->middleware('permission:create client');
+			Route::post('store', [UserController::class, 'createClient'])->name('createClient')->middleware('permission:create client');
 
 			Route::post('domains', [UserController::class, 'clientDomains'])->name('clientDomains')->middleware('permission:create client');
 
