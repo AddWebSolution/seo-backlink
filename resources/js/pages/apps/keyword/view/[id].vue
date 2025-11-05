@@ -327,11 +327,11 @@ onMounted(async () => {
             <VBtn
               variant="flat"
               size="large"
-              :to="{ name: 'apps-keyword-list' }"
+              :to="{ name: 'keyword-list' }"
               class="elevation-3"
             >
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to Keywords
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
             </VBtn>
           </VCol>
         </VRow>

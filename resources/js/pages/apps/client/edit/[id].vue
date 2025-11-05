@@ -175,9 +175,9 @@ onMounted(async () => {
       </VCol>
       <VCol cols="12" md="4" class="text-md-end">
         <div class="d-flex gap-2 justify-md-end">
-          <VBtn variant="flat" @click="router.push({ name: 'apps-client-list' })">
-            <VIcon icon="tabler-arrow-left" class="me-2" />
-            Back to List
+          <VBtn variant="flat" @click="router.push({ name: 'client-list' })">
+            <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+            Back
           </VBtn>
         </div>
       </VCol>

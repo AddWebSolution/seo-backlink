@@ -128,13 +128,11 @@ const buildFilters = () => {
   if (Object.keys(filters).length > 0) {
     params.filters = filters;
   }
-  console.log("params", filters);
   return params;
 };
 
 const loadDomains = async (id = clientId) => {
   const filters = buildFilters();
-  console.log("client id", id);
   await fetchDomains(filters, pagination.value.page);
 };
 
@@ -344,9 +342,9 @@ onMounted(async () => {
     </VContainer>
 
     <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
-        <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Clients
+        <VBtn color="primary" variant="flat" :to="{ name: 'client-list' }">
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCol> -->
   </VCard>
@@ -510,7 +508,7 @@ onMounted(async () => {
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
         <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+        <VBtn v-if="ability.can('import','clientdomain')" variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
@@ -518,13 +516,13 @@ onMounted(async () => {
           Download Template
         </VBtn> -->
         <!-- 👉 Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn v-if="ability.can('export','clientdomain')" variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
         <!-- create domain-->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="
+        <VBtn v-if="ability.can('create','clientdomain')" color="primary" prepend-icon="tabler-plus" @click="
             $router.push({
-              name: 'apps-clientdomain-add',
+              name: 'clientdomain-add',
               params: { id: clientId },
             })
           ">
@@ -641,7 +639,7 @@ onMounted(async () => {
         <VTooltip text="View Rival Domains">
           <template #activator="{ props }">
             <IconBtn v-bind="props" size="small" class="d-flex align-center px-2" @click="$router.push({
-              name: 'apps-clientdomain-rivaldomain-list',
+              name: 'clientdomain-rivaldomain-list',
               params: { clientId: item.client_id, domainId: item.id },
             })">
               <VChip color="info" variant="tonal" size="small" class="d-flex align-center px-2 ml-10">
@@ -657,11 +655,11 @@ onMounted(async () => {
 
       <template #item.actions="{ item }">
         <div class="d-flex">
-          <VTooltip text="View Details">
+          <VTooltip v-if="ability.can('view','clientdomain')" text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                    name: 'apps-clientdomain-view',
+                    name: 'clientdomain-view',
                     params: { clientId: item.client_id, domainId: item.id },
                   }">
                   <VIcon icon="tabler-eye" size="20" />
@@ -674,7 +672,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                  name: 'apps-clientdomain-history',
+                  name: 'clientdomain-history',
                   params: { id: item.id  , view : 'domain' },
                 }">
                   <VIcon color="info" icon="tabler-chart-bar-popular" size="20" />
@@ -683,7 +681,7 @@ onMounted(async () => {
             </template>
           </VTooltip>
 
-          <VTooltip text="Delete">
+          <VTooltip v-if="ability.can('delete','clientdomain')" text="Delete">
             <template #activator="{ props }">
               <IconBtn v-bind="props" color="error" icon="tabler-trash" size="small"
                 @click="openDeleteDialog(item.id)" />
@@ -714,14 +712,14 @@ onMounted(async () => {
         <div class="text-center pa-8">
           <VIcon icon="tabler-world-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No domains found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create','clientdomain')">
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
 
           <!-- <VBtn color="primary" prepend-icon="tabler-plus" @click="
             $router.push({
-              name: 'apps-clientdomain-add',
+              name: 'clientdomain-add',
               params: { id: clientId },
             })
             ">

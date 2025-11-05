@@ -19,12 +19,14 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 
 			Route::post('backlinks/{id}', [ReportController::class, 'backlinkshow'])->middleware('permission:view backlinkdatum');
 
+			Route::post('domain/backlinks/{domainId}', [ReportController::class, 'domainbacklinkshow'])->middleware('permission:view backlinkdatum');
+
 			//Route::group(['middleware' => ['can:Create Report']], function () {
 			Route::post('store', [ReportController::class, 'store'])->name('store')->middleware('permission:create report');
 			//});
 
 			//Route::group(['middleware' => ['can:Update Report']], function () {
-			Route::post('update/{id}', [ReportController::class, 'update'])->name('update')->middleware('permission:edit report');
+			Route::post('update/{id}', [ReportController::class, 'update'])->name('update')->middleware('permission:update report');
 			//});
 
 			Route::post('delete/{id}', [ReportController::class, 'destroy'])->name('delete')->middleware('permission:delete report');

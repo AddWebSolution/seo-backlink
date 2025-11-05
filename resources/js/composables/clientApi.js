@@ -2,6 +2,9 @@
 import { ref, readonly } from "vue";
 import { useApi } from "./useApi";
 import { useAlert } from "./useAlert";
+import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
+
+const { confirm } = useConfirmDialog()
 
 export function useClientApi() {
   const { showAlert } = useAlert();
@@ -158,7 +161,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi("api/auth/register", {
+      const result = await useApi("api/client/store", {
         method: "POST",
         body: payload,
       });
@@ -199,27 +202,59 @@ export function useClientApi() {
   };
 
   // delete Client
-  const deleteClient = async (id) => {
-    loading.value = true;
-    error.value = null;
+  // const deleteClient = async (id) => {
+  //   loading.value = true;
+  //   error.value = null;
+  //
+  //   try {
+  //     const result = await useApi(`api/client/delete/${id}`, {
+  //       method: "POST",
+  //     });
+  //
+  //     showAlert("Client deleted successfully!", "success");
+  //     await fetchclients();
+  //     return result;
+  //   } catch (err) {
+  //     error.value = err;
+  //     showAlert("Failed to delete Client", "error");
+  //     throw err;
+  //   } finally {
+  //     loading.value = false;
+  //   }
+  // };
+    const deleteClient = async (id) => {
+        const confirmed = await confirm({
+            title: 'Delete Client',
+            message: 'Are you sure you want to delete this client? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            confirmColor: 'error',
+            type: 'error'
+        })
 
-    try {
-      const result = await useApi(`api/client/delete/${id}`, {
-        method: "POST",
-      });
+        if (!confirmed) {
+            return
+        }
 
-      showAlert("Client deleted successfully!", "success");
-      await fetchclients();
-      return result;
-    } catch (err) {
-      error.value = err;
-      showAlert("Failed to delete Client", "error");
-      throw err;
-    } finally {
-      loading.value = false;
+        loading.value = true
+        error.value = null
+
+        try {
+            const result = await useApi(`api/client/delete/${id}`, {
+                method: "POST",
+            })
+
+            showAlert("Client deleted successfully!", "success")
+            await fetchclients()
+            return result
+        } catch (err) {
+            error.value = err
+            showAlert("Failed to delete Client", "error")
+            throw err
+        } finally {
+            loading.value = false
+        }
     }
-  };
-
   // get Client list
   const fetchClientList = async () => {
     loading.value = true;

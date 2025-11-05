@@ -26,7 +26,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			Route::post('upload/profile/pic/{id}', [ClientController::class, 'updateProfilePic'])->middleware('permission:view client');
 
 			//Route::group(['middleware' => ['can:Update Client']], function () {
-			Route::post('update/{id}', [ClientController::class, 'update'])->name('update')->middleware('permission:edit client');
+			Route::post('update/{id}', [ClientController::class, 'update'])->name('update')->middleware('permission:update client');
 			//});
 
 			//Route::group(['middleware' => ['can:Delete Client']], function () {

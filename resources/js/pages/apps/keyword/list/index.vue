@@ -468,11 +468,11 @@ onMounted(() => {
           Download Template
         </VBtn> -->
 
-        <VBtn v-if="ability.can('import','keyword')"  variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn v-if="ability.can('export','keyword')"  variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
 
-        <VBtn v-if="ability.can('create','keyword')" color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/keyword/add')">
+        <VBtn v-if="ability.can('create','keyword')" color="primary" prepend-icon="tabler-plus" @click="$router.push('/keywords/add')">
           Add Keyword
         </VBtn>
       </div>
@@ -504,7 +504,7 @@ onMounted(() => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-keyword-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'keyword-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -531,13 +531,13 @@ onMounted(() => {
 
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon icon="tabler-search-off" size="48" class="text-medium-emphasis mb-4" />
+          <VIcon icon="tabler-key-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No keywords found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create','keyword')">
             Try adjusting your search criteria or add new keywords to get
             started.
           </p>
-          <VBtn v-if="ability.can('create','keyword')" color="primary" :to="{ name: 'apps-keyword-add' }">
+          <VBtn v-if="ability.can('create','keyword')" color="primary" :to="{ name: 'keyword-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Keyword
           </VBtn>

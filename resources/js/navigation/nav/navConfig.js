@@ -23,7 +23,7 @@ export default [
   {
     title: 'Clients',
     icon: { icon: 'tabler-user' },
-    to: 'apps-client-list',
+    to: 'client-list',
     meta: {
       action: 'view',
       subject: 'client',
@@ -38,7 +38,7 @@ export default [
   {
     title: 'Users',
     icon: { icon: 'tabler-users' },
-    to: 'apps-users-list',
+    to: 'users-list',
     meta: {
       action: 'view',
       subject: 'user',
@@ -53,7 +53,7 @@ export default [
   {
     title: 'Domains',
     icon: { icon: 'tabler-world' },
-    to: 'apps-clientdomain-list',
+    to: 'clientdomain-list',
     meta: {
       action: 'view',
       subject: 'clientdomain',
@@ -68,7 +68,7 @@ export default [
   {
     title: 'Backlink Reports',
     icon: { icon: 'tabler-report' },
-    to: 'apps-report-list',
+    to: 'report-list',
     meta: {
       action: 'view',
       subject: 'report',
@@ -83,7 +83,7 @@ export default [
   {
     title: 'Keywords',
     icon: { icon: 'tabler-key' },
-    to: 'apps-keyword-list',
+    to: 'keyword-list',
     meta: {
       action: 'view',
       subject: 'keyword',
@@ -93,7 +93,7 @@ export default [
   {
     title: 'Keyword Reports',
     icon: { icon: 'tabler-report-analytics' },
-    to: 'apps-keywordreport-list',
+    to: 'keywordreport-list',
     meta: {
       action: 'view',
       subject: 'keywordreport',
@@ -108,7 +108,7 @@ export default [
   {
     title: 'Role & Permissions',
     icon: { icon: 'tabler-lock' },
-    to: 'apps-role-permissions-list',
+    to: 'role-permissions-list',
     meta: {
       action: 'view',
       subject: 'role_permission',

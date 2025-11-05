@@ -25,7 +25,6 @@ export const setupGuards = router => {
       if (!allowed) return { name: 'not-authorized' }
     }
 
-
     if (!canNavigate(to)) {
       return { name: 'not-authorized' }
     }

@@ -25,7 +25,7 @@ Route::group(['middleware' => ['api','auth:sanctum']], function () {
 			//});
 
 			//Route::group(['middleware' => ['can:Update RivalDomain']], function () {
-				Route::post('update/{id}', [RivalDomainController::class, 'update'])->name('update')->middleware('permission:edit rivaldomain');
+				Route::post('update/{id}', [RivalDomainController::class, 'update'])->name('update')->middleware('permission:update rivaldomain');
 			//});
 
 			//Route::group(['middleware' => ['can:Delete RivalDomain']], function () {

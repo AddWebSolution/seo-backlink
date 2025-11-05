@@ -45,7 +45,7 @@ const handleDeleteDomain = async () => {
   try {
     await deleteDomainApi(domainId.value)
     showDeleteDialog.value = false
-    router.push({ name: 'apps-domain-list' })
+    router.push({ name: 'domain-list' })
   } catch (error) {
     // Error handling is done in the composable
     console.error('Delete failed:', error)
@@ -91,9 +91,9 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
         <VRow align="start" justify="space-between">
           <!-- Left Column: Domain Info -->
           <VCol cols="12" md="8">
-            <VBtn color="primary" variant="flat" :to="{ name: 'apps-domain-list' }">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to Domains
+            <VBtn color="primary" variant="flat" :to="{ name: 'domain-list' }">
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
             </VBtn>
 
             <div class="mb-8 pt-6">
@@ -449,9 +449,9 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
           The domain you're looking for doesn't exist or may have been deleted.
           Please check the ID and try again.
         </p>
-        <VBtn color="primary" size="large" :to="{ name: 'apps-domain-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Domains
+        <VBtn color="primary" size="large" :to="{ name: 'domain-list' }">
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCardText>
     </VCard>

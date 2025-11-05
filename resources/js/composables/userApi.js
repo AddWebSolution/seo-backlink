@@ -2,6 +2,9 @@
 import { ref, readonly } from "vue";
 import { useApi } from "./useApi";
 import { useAlert } from "./useAlert";
+import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
+
+const { confirm } = useConfirmDialog()
 
 export function useUserApi() {
     const { showAlert } = useAlert();
@@ -157,7 +160,7 @@ export function useUserApi() {
         error.value = null;
 
         try {
-            const result = await useApi("api/auth/register/user", {
+            const result = await useApi("api/user/store", {
                 method: "POST",
                 body: payload,
             });
@@ -198,6 +201,18 @@ export function useUserApi() {
 
     // delete Client
     const deleteUser = async (id) => {
+        const confirmed = await confirm({
+            title: 'Delete User',
+            message: 'Are you sure you want to delete this user? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            confirmColor: 'error',
+            type: 'error'
+        })
+
+        if (!confirmed) {
+            return
+        }
         loading.value = true;
         error.value = null;
 

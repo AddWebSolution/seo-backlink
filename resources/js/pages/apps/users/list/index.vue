@@ -6,10 +6,10 @@ import { useAbility } from "@casl/vue";
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
-  { title: "Name", key: "name", align: "center", width: "100px" },
+  { title: "Name", key: "name", align: "center", width: "80px" },
   { title: "E-Mail", key: "email", align: "center", width: "80px" },
-  { title: "role", key: "role", align: "center", width: "80px" },
-  { title: "Phone", key: "phone", align: "center", width: "100px" },
+  { title: "role", key: "role", align: "center", width: "60px" },
+  { title: "Phone", key: "phone", align: "center", width: "80px" },
   {
     title: "Status",
     key: "status",
@@ -219,10 +219,10 @@ const handleDeleteClient = async (id) => {
     const index = selectedRows.value.findIndex((row) => row === id);
     if (index !== -1) selectedRows.value.splice(index, 1);
     await loadUsers(); // Refresh the list
-    showAlert("Client deleted successfully!", "success");
+    // showAlert("Client deleted successfully!", "success");
   } catch (error) {
     console.error("Delete failed:", error);
-    showAlert("Failed to delete client", "error");
+    // showAlert("Failed to delete client", "error");
   }
 };
 
@@ -580,21 +580,22 @@ const updateOptions = async (options) => {
           Delete Selected
         </VBtn>
       </div>
-      <div v-if="ability.can('update', 'client')" class="d-flex gap-4 flex-wrap align-center">
+<!--      <div v-if="ability.can('update', 'client')" class="d-flex gap-4 flex-wrap align-center">-->
+      <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
         <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+        <VBtn v-if="ability.can('import','user')" variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
         <!-- Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn v-if="ability.can('export','user')" variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
 
         <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/users/add')">
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/users/add')" v-if="ability.can('create', 'user')">
           Add User
         </VBtn>
       </div>
@@ -635,19 +636,19 @@ const updateOptions = async (options) => {
 
 
       <template #item.actions="{ item }">
-          <VTooltip text="View Details">
+          <VTooltip v-if="ability.can('view', 'user')" text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-users-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'users-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
                 </router-link>
               </IconBtn>
             </template>
           </VTooltip>
 
-          <VTooltip text="Edit User">
+          <VTooltip v-if="ability.can('update', 'user')" text="Edit User">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-users-edit', params: { id: item.id } }">
+              <IconBtn v-bind="props" size="small" :to="{ name: 'users-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />
               </IconBtn>
             </template>
@@ -656,13 +657,13 @@ const updateOptions = async (options) => {
           <!-- <VTooltip v-if="ability.can('view','rivaldomain')" text="View Domains for This Client">
               <template #activator="{ props }">
                 <IconBtn v-bind="props" size="small"
-                  @click="$router.push({ name: 'apps-domain-clientdomain-list', params: { id: item.id } })">
+                  @click="$router.push({ name: 'domain-clientdomain-list', params: { id: item.id } })">
                   <VIcon color="success" icon="tabler-world" size="20" />
                 </IconBtn>
               </template>
             </VTooltip> -->
 
-          <VTooltip v-if="ability.can('delete', 'client')" text="Delete Client">
+          <VTooltip v-if="ability.can('delete', 'user')" text="Delete User">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="handleDeleteClient(item.id)">
                 <VIcon icon="tabler-trash" size="20" color="error" />
@@ -674,13 +675,13 @@ const updateOptions = async (options) => {
       <!-- Empty State -->
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
+          <VIcon icon="tabler-user-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No user found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create', 'user')">
             Try adjusting your search criteria or add a new user to get
             started.
           </p>
-          <VBtn color="primary" @click="$router.push('/apps/users/add')">
+          <VBtn color="primary" @click="$router.push('/users/add')" v-if="ability.can('create', 'user')">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First User
           </VBtn>

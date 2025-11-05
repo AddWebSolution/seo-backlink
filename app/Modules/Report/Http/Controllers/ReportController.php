@@ -61,9 +61,9 @@ class ReportController extends BaseController
             'sort_order'     => $request->get('sort_order', 'desc'),
         ];
 
-        $result = $this->service->getReportDomainBacklinks($id, $perPage, $filters);
+        $result = $this->service->getLatestReportByDomain($id, $perPage, $filters);
 
-        return response()->json([
+         return response()->json([
             'success'   => true,
             'report'    => $result['report'],
             'backlinks' => $result['backlinks'],
