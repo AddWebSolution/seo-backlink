@@ -24,7 +24,7 @@ class ReportService extends BaseService
     protected function loadRelations(): void
     {
         $authUser = auth()->user();
-        if ($authUser->role === UserRole::CLIENT) {
+        if ($authUser->role ==  UserRole::CLIENT->value) {
             $this->query->where('client_id', auth()->id());
         }
         $this->loadExtraRelation();
