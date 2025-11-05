@@ -77,7 +77,7 @@ const route = useRoute()
 const router = useRouter()
 
 const clientId = computed(() =>
-  authStore.isClient ? authStore.user.id : route.params.id
+ route.params.id
 );
 
 const showImportResult = ref(false)
