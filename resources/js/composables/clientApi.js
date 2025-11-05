@@ -158,7 +158,7 @@ export function useClientApi() {
     error.value = null;
 
     try {
-      const result = await useApi("api/auth/register", {
+      const result = await useApi("api/client/store", {
         method: "POST",
         body: payload,
       });

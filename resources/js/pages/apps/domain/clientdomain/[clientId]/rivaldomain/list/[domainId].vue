@@ -327,8 +327,8 @@ onMounted(async () => {
       <VCol cols="12" md="4" class="mt-8 text-md-end">
         <VBtn color="primary" variant="flat"
           @click="router.push({ name: 'domain-clientdomain-list', params: { id: clientId } })">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Clients Domain
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCol>
 

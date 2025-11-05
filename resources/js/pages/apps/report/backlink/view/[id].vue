@@ -34,7 +34,7 @@
               name: 'report-view',
               params: { id: backlink.report_id },
             }">
-              <VIcon icon="tabler-arrow-left" />
+              <VIcon icon="tabler-arrow-autofit-left" size= "large" />
               Back to Report Details
             </VBtn>
           </VCol>
@@ -465,8 +465,8 @@
           deleted. Please check the ID and try again.
         </p>
         <VBtn color="primary" size="large" :to="{ name: 'apps-backlink-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Backlinks
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCardText>
     </VCard>

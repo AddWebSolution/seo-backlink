@@ -10,7 +10,6 @@ export const cookieRef = (key, defaultValue) => {
   return useCookie(namespaceConfig(key), { default: () => defaultValue })
 }
 export const useLayoutConfigStore = defineStore('layoutConfig', () => {
-  const route = useRoute()
 
   // 👉 Navbar Type
   const navbarType = ref(layoutConfig.navbar.type)

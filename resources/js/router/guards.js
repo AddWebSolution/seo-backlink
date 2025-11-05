@@ -16,15 +16,6 @@ export const setupGuards = router => {
 
     const { action, subject, roles } = to.meta || {}
 
-    console.log('action' , action);
-
-
-    console.log('subject', subject);
-
-
-    console.log('meta',to.meta);
-
-
     // if (roles && !roles.includes(roleId)) {
     //   return { name: 'not-authorized' }
     // }

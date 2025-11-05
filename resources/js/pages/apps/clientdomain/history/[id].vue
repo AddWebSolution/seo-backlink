@@ -451,7 +451,8 @@ const statsCards = computed(() => {
                 : 'clientdomain-list',
               params: ability.can('view', 'client') ? { id: clientId } : {},
             }">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
               {{ ability.can('view', 'client') ? 'Back to Client' : 'Back to Domain' }}
             </VBtn>
           </VCol>

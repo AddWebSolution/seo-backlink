@@ -225,8 +225,8 @@ onMounted(async () => {
           <!-- Right Section: Back Button -->
           <VCol cols="12" md="4" class="d-flex justify-end">
             <VBtn variant="flat" @click="router.push({ name: 'users-list' })">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to List
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
             </VBtn>
           </VCol>
         </VRow>

@@ -128,13 +128,11 @@ const buildFilters = () => {
   if (Object.keys(filters).length > 0) {
     params.filters = filters;
   }
-  console.log("params", filters);
   return params;
 };
 
 const loadDomains = async (id = clientId) => {
   const filters = buildFilters();
-  console.log("client id", id);
   await fetchDomains(filters, pagination.value.page);
 };
 
@@ -345,8 +343,8 @@ onMounted(async () => {
 
     <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'client-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Clients
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCol> -->
   </VCard>

@@ -96,7 +96,7 @@ const hasError = computed(() => error.value)
             Save Changes
           </VBtn>
           <VBtn block color="secondary" prepend-icon="tabler-arrow-back" :to="{ name: 'domain-list' }">
-            Back to List
+            
           </VBtn>
         </VCardText>
       </VCard>

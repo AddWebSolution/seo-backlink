@@ -3,6 +3,7 @@
 namespace App\Modules\User\Http\Controllers;
 
 use App\Traits\HasProfilePicUpload;
+use App\Modules\User\Http\Requests\RegisterUserRequest;
 use Illuminate\Http\Request;
 use App\Modules\User\Models\User;
 use Addweb\Base\Controller\BaseController;
@@ -26,6 +27,27 @@ class UserController extends BaseController
             ],
             'resource' => UserResource::class,
         ];
+    }
+
+
+    public function createClient(RegisterUserRequest $request)
+    {
+        $user = $this->service->clientCreate($request->validated());
+
+        return response()->json([
+            'message' => 'Client registered successfully',
+            'user'    => $user
+        ], 201);
+    }
+
+    public function createUser(RegisterUserRequest $request)
+    {
+        $user = $this->service->userCreate($request->validated());
+
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user'    => $user
+        ], 201);
     }
 
     public function clientList()

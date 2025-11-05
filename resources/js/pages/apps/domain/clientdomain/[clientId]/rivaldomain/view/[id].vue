@@ -130,8 +130,8 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
             
             
             <VBtn color="primary" variant="flat" :to="{ name: 'domain-clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to List
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
             </VBtn>
           </VCol>
         </VRow>
@@ -459,8 +459,8 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
           Please check the ID and try again.
         </p>
         <VBtn color="primary" size="large" :to="{ name: 'domain-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Domains
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+          Back
         </VBtn>
       </VCardText>
     </VCard>

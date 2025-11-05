@@ -157,7 +157,7 @@ export function useUserApi() {
         error.value = null;
 
         try {
-            const result = await useApi("api/auth/register/user", {
+            const result = await useApi("api/user/store", {
                 method: "POST",
                 body: payload,
             });

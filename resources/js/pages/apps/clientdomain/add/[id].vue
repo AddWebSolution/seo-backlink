@@ -294,8 +294,9 @@ const scrollToSection = (sectionId) => {
               <VBtn variant="flat"
                 @click="router.push({ name: 'clientdomain-list', params: { id: clientId } })"
                 :disabled="state.submitting">
-                <VIcon icon="tabler-arrow-left" class="me-2" />
-                Back to List
+                <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
+                
               </VBtn>
 
             </div>
