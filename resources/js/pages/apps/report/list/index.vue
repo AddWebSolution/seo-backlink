@@ -414,7 +414,7 @@ const formatRunAt = (dateString) => {
       <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
         <!-- 👉 Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports" v-if="ability.can('export','report')">
           Export
         </VBtn>
       </div>
@@ -533,14 +533,14 @@ const formatRunAt = (dateString) => {
         <div class="text-center pa-8">
           <VIcon icon="tabler-report-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No reports found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            No reports match your current search criteria. Try adjusting your
-            filters or generate a new report.
-          </p>
-          <VBtn color="primary">
-            <VIcon icon="tabler-plus" class="me-2" />
-            Generate New Report
-          </VBtn>
+<!--          <p class="text-body-2 text-medium-emphasis mb-4">-->
+<!--            No reports match your current search criteria. Try adjusting your-->
+<!--            filters or generate a new report.-->
+<!--          </p>-->
+<!--          <VBtn color="primary">-->
+<!--            <VIcon icon="tabler-plus" class="me-2" />-->
+<!--            Generate New Report-->
+<!--          </VBtn>-->
         </div>
       </template>
       <template #bottom>
