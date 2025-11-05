@@ -531,9 +531,9 @@ onMounted(() => {
 
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon icon="tabler-search-off" size="48" class="text-medium-emphasis mb-4" />
+          <VIcon icon="tabler-key-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No keywords found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create','keyword')">
             Try adjusting your search criteria or add new keywords to get
             started.
           </p>

@@ -2,6 +2,9 @@
 import { IconReport, IconChartLine } from "@tabler/icons-vue";
 import { useKeywordReportApi } from "@/composables/useKeywordReportApi";
 import { ref, computed, watch, onMounted } from "vue";
+import {useAbility} from '@casl/vue'
+
+const ability = useAbility()
 
 const headers = [
   { title: "ID", key: "id", width: "80px" },
@@ -450,6 +453,7 @@ const applyFilters = async () => {
           color="secondary"
           prepend-icon="tabler-upload"
           @click="handleExportReports"
+          v-if="ability.can('export','keywordreport')"
         >
           Export
         </VBtn>
@@ -616,14 +620,14 @@ const applyFilters = async () => {
             class="text-medium-emphasis mb-4"
           />
           <h3 class="text-h6 mb-2">No reports found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            No reports match your current search criteria. Try adjusting your
-            filters or generate a new report.
-          </p>
-          <VBtn color="primary">
-            <VIcon icon="tabler-plus" class="me-2" />
-            Generate New Report
-          </VBtn>
+<!--          <p class="text-body-2 text-medium-emphasis mb-4">-->
+<!--            No reports match your current search criteria. Try adjusting your-->
+<!--            filters or generate a new report.-->
+<!--          </p>-->
+<!--          <VBtn color="primary">-->
+<!--            <VIcon icon="tabler-plus" class="me-2" />-->
+<!--            Generate New Report-->
+<!--          </VBtn>-->
         </div>
       </template>
       <template #bottom>

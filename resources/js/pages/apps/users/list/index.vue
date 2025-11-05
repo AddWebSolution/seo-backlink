@@ -675,7 +675,7 @@ const updateOptions = async (options) => {
       <!-- Empty State -->
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
+          <VIcon icon="tabler-user-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No user found</h3>
           <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create', 'user')">
             Try adjusting your search criteria or add a new user to get

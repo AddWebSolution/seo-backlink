@@ -3,6 +3,9 @@ import { onMounted, ref, computed ,unref } from "vue";
 import { useDomainApi } from "@/composables/domainApi.js";
 import { IconWorldWww } from "@tabler/icons-vue";
 const { ClientList,fetchClientList } = useClientApi();
+import {useAbility} from '@casl/vue'
+
+const ability = useAbility()
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -456,7 +459,7 @@ onMounted(async () => {
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
         <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+        <VBtn v-if="ability.can('import','domain')" variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
@@ -464,11 +467,11 @@ onMounted(async () => {
           Download Template
         </VBtn> -->
         <!-- 👉 Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn v-if="ability.can('export','domain')" variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
         <!-- create domain-->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/domain/add')">
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/domain/add')" v-if="ability.can('create','domain')">
           Add Domain
         </VBtn>
       </div>
@@ -579,7 +582,7 @@ onMounted(async () => {
 
       <template #item.actions="{ item }">
         <div class="d-flex">
-          <VTooltip text="View Details">
+          <VTooltip v-if="ability.can('view','domain')" text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{ name: 'domain-view', params: { id: item.id } }">
@@ -595,14 +598,14 @@ onMounted(async () => {
                 <VIcon icon="tabler-dots-vertical" size="18" />
                 <VMenu activator="parent" offset="8">
                   <VList>
-                    <VListItem value="edit" prepend-icon="tabler-edit" class="text-primary">
+                    <VListItem v-if="ability.can('update','domain')" value="edit" prepend-icon="tabler-edit" class="text-primary">
                       Edit
                     </VListItem>
                     <VListItem value="duplicate" prepend-icon="tabler-copy" class="text-info">
                       Duplicate
                     </VListItem>
                     <VDivider />
-                    <VListItem value="delete" prepend-icon="tabler-trash" class="text-error"
+                    <VListItem v-if="ability.can('delete','domain')" value="delete" prepend-icon="tabler-trash" class="text-error"
                       @click="deleteDomain(item.id)">
                       Delete
                     </VListItem>
