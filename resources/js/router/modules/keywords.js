@@ -1,31 +1,31 @@
 export const keywordRoutes = [
-    {
-        path: '/apps/keywords/list',
-        name: 'apps-keyword-list',
-        component: () => import('@/pages/apps/keyword/list/index.vue'),
-        props: true,
-        meta: {
-            title: 'Keyword List',
-            action: 'view',
-            subject: 'keyword',
-            roles: [1]
-        }
-    },
-    {
-        path: "/apps/keywords/add",
-        name: "apps-keyword-add",
-        component: () => import("@/pages/apps/keyword/add/index.vue"),
-        props: true,
-        meta: {
-            title: "Keyword Add",
-            action: 'create',
-            subject: 'keyword',
-            roles: [1, 2],
-        }
-    },
   {
-    path: "/apps/keywords/:id",
-    name: "apps-keyword-view",
+    path: "/keywords/add",
+    name: "keyword-add",
+    component: () => import("@/pages/apps/keyword/add/add.vue"),
+    props: true,
+    meta: {
+      title: "Keyword Add",
+      action: 'create',
+      subject: 'keyword',
+      roles: [1, 2],
+    }
+  },
+  {
+    path: '/keywords/list',
+    name: 'keyword-list',
+    component: () => import('@/pages/apps/keyword/list/index.vue'),
+    props: true,
+    meta: {
+      title: 'Keyword List',
+      action: 'view',
+      subject: 'keyword',
+      roles: [1]
+    }
+  },
+  {
+    path: "/keywords/:id",
+    name: "keyword-view",
     component: () => import("@/pages/apps/keyword/view/[id].vue"),
     props: true,
     meta: {
@@ -36,8 +36,8 @@ export const keywordRoutes = [
     }
   },
   {
-    path: "/apps/keywords/:id/edit",
-    name: "apps-keyword-edit",
+    path: "/keywords/:id/edit",
+    name: "keyword-edit",
     component: () => import("@/pages/apps/keyword/edit/[id].vue"),
     props: true,
     meta: {

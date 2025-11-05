@@ -693,7 +693,7 @@ const updateOptions = async (options) => {
         </VBtn>
 
         <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')" v-if="ability.can('create', 'client')">
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/client/add')" v-if="ability.can('create', 'client')">
           Add Client
         </VBtn>
       </div>
@@ -737,7 +737,7 @@ const updateOptions = async (options) => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="
                 $router.push({
-                  name: 'apps-domain-clientdomain-list',
+                  name: 'domain-clientdomain-list',
                   params: { id: item.id },
                 })
                 ">
@@ -756,7 +756,7 @@ const updateOptions = async (options) => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-client-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'client-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
                 </router-link>
               </IconBtn>
@@ -765,7 +765,7 @@ const updateOptions = async (options) => {
 
           <VTooltip text="Edit Client">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-client-edit', params: { id: item.id } }">
+              <IconBtn v-bind="props" size="small" :to="{ name: 'client-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />
               </IconBtn>
             </template>
@@ -774,7 +774,7 @@ const updateOptions = async (options) => {
           <!-- <VTooltip v-if="ability.can('view','rivaldomain')" text="View Domains for This Client">
               <template #activator="{ props }">
                 <IconBtn v-bind="props" size="small"
-                  @click="$router.push({ name: 'apps-domain-clientdomain-list', params: { id: item.id } })">
+                  @click="$router.push({ name: 'domain-clientdomain-list', params: { id: item.id } })">
                   <VIcon color="success" icon="tabler-world" size="20" />
                 </IconBtn>
               </template>
@@ -799,7 +799,7 @@ const updateOptions = async (options) => {
             Try adjusting your search criteria or add a new client to get
             started.
           </p>
-          <VBtn color="primary" @click="$router.push('/apps/client/add')">
+          <VBtn color="primary" @click="$router.push('/client/add')">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Client
           </VBtn>

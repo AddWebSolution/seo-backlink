@@ -472,7 +472,7 @@ onMounted(() => {
           Export
         </VBtn>
 
-        <VBtn v-if="ability.can('create','keyword')" color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/keyword/add')">
+        <VBtn v-if="ability.can('create','keyword')" color="primary" prepend-icon="tabler-plus" @click="$router.push('/keywords/add')">
           Add Keyword
         </VBtn>
       </div>
@@ -504,7 +504,7 @@ onMounted(() => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-keyword-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'keyword-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -537,7 +537,7 @@ onMounted(() => {
             Try adjusting your search criteria or add new keywords to get
             started.
           </p>
-          <VBtn v-if="ability.can('create','keyword')" color="primary" :to="{ name: 'apps-keyword-add' }">
+          <VBtn v-if="ability.can('create','keyword')" color="primary" :to="{ name: 'keyword-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Keyword
           </VBtn>

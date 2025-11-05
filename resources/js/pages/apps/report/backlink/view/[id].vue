@@ -31,7 +31,7 @@
           <!-- Right Column: Quick Actions -->
           <VCol cols="12" md="4" class="d-flex justify-end">
             <VBtn color="primary" variant="flat" :to="{
-              name: 'apps-report-view',
+              name: 'report-view',
               params: { id: backlink.report_id },
             }">
               <VIcon icon="tabler-arrow-left" />

@@ -47,7 +47,7 @@ const handleDeleteDomain = async () => {
   try {
     await deleteDomainApi(domainId.value)
     showDeleteDialog.value = false
-    router.push({ name: 'apps-domain-list' })
+    router.push({ name: 'domain-list' })
   } catch (error) {
     // Error handling is done in the composable
     console.error('Delete failed:', error)
@@ -123,7 +123,7 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
               Delete
             </VBtn>
 
-            <VBtn color="primary" variant="flat" :to="{ name: 'apps-domain-clientdomain-list',params: { id: clientId } }">
+            <VBtn color="primary" variant="flat" :to="{ name: 'domain-clientdomain-list',params: { id: clientId } }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Client Domains
             </VBtn>
@@ -452,7 +452,7 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
           The domain you're looking for doesn't exist or may have been deleted.
           Please check the ID and try again.
         </p>
-        <VBtn color="primary" size="large" :to="{ name: 'apps-domain-list' }">
+        <VBtn color="primary" size="large" :to="{ name: 'domain-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Domains
         </VBtn>

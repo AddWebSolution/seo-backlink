@@ -447,8 +447,8 @@ const statsCards = computed(() => {
           <VCol cols="12" md="4" class="d-flex justify-end">
             <VBtn variant="flat" color="primary" :to="{
               name: ability.can('view', 'client')
-                ? (view === 'client' ? 'apps-domain-clientdomain-list' : 'apps-clientdomain-list')
-                : 'apps-clientdomain-list',
+                ? (view === 'client' ? 'domain-clientdomain-list' : 'clientdomain-list')
+                : 'clientdomain-list',
               params: ability.can('view', 'client') ? { id: clientId } : {},
             }">
               <VIcon icon="tabler-arrow-left" class="me-2" />

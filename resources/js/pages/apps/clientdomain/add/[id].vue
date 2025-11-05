@@ -292,7 +292,7 @@ const scrollToSection = (sectionId) => {
                 Reset
               </VBtn>
               <VBtn variant="flat"
-                @click="router.push({ name: 'apps-clientdomain-list', params: { id: clientId } })"
+                @click="router.push({ name: 'clientdomain-list', params: { id: clientId } })"
                 :disabled="state.submitting">
                 <VIcon icon="tabler-arrow-left" class="me-2" />
                 Back to List

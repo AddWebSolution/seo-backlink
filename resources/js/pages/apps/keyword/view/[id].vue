@@ -327,7 +327,7 @@ onMounted(async () => {
             <VBtn
               variant="flat"
               size="large"
-              :to="{ name: 'apps-keyword-list' }"
+              :to="{ name: 'keyword-list' }"
               class="elevation-3"
             >
               <VIcon icon="tabler-arrow-left" class="me-2" />

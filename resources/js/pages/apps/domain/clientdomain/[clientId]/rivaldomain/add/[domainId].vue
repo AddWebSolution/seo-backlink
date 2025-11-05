@@ -295,7 +295,7 @@ const scrollToSection = (sectionId) => {
                 Reset
               </VBtn>
               <VBtn variant="flat" @click="$router.push({
-                name: 'apps-domain-clientdomain-rivaldomain-list',
+                name: 'domain-clientdomain-rivaldomain-list',
                 params: { clientId: clientId, domainId: clientDomainId }
               })">
                 <VIcon icon="tabler-arrow-left" class="me-2" />
