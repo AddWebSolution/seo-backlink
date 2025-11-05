@@ -468,7 +468,7 @@ onMounted(() => {
           Download Template
         </VBtn> -->
 
-        <VBtn v-if="ability.can('import','keyword')"  variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn v-if="ability.can('export','keyword')"  variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
 

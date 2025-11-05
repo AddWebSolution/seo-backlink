@@ -679,16 +679,17 @@ const updateOptions = async (options) => {
           Delete Selected
         </VBtn>
       </div>
-      <div v-if="ability.can('update', 'client')" class="d-flex gap-4 flex-wrap align-center">
+<!--      <div v-if="ability.can('update', 'client')" class="d-flex gap-4 flex-wrap align-center">-->
+      <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
         <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+        <VBtn v-if="ability.can('import','client')" variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
         <!-- Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn  v-if="ability.can('export','client')" variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
 
@@ -753,7 +754,7 @@ const updateOptions = async (options) => {
 
       <template #item.actions="{ item }">
         <div class="d-flex ml-10">
-          <VTooltip text="View Details">
+          <VTooltip v-if="ability.can('view', 'client')" text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{ name: 'client-view', params: { id: item.id } }">
@@ -763,7 +764,7 @@ const updateOptions = async (options) => {
             </template>
           </VTooltip>
 
-          <VTooltip text="Edit Client">
+          <VTooltip v-if="ability.can('update', 'client')" text="Edit Client">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" :to="{ name: 'client-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />
@@ -795,11 +796,11 @@ const updateOptions = async (options) => {
         <div class="text-center pa-8">
           <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No clients found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create', 'client')">
             Try adjusting your search criteria or add a new client to get
             started.
           </p>
-          <VBtn color="primary" @click="$router.push('/client/add')">
+          <VBtn color="primary" @click="$router.push('/client/add')" v-if="ability.can('create', 'client')">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Client
           </VBtn>
