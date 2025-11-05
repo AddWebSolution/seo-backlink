@@ -181,7 +181,7 @@ onMounted(async () => {
       </VCol>
       <VCol cols="12" md="4" class="text-md-end">
         <div class="d-flex gap-2 justify-md-end">
-          <VBtn variant="flat" @click="router.back()">
+          <VBtn variant="flat" @click="router.push({ name: 'apps-users-list' })">
             <VIcon icon="tabler-arrow-left" class="me-2" />
             Back to List
           </VBtn>

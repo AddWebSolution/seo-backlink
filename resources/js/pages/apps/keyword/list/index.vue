@@ -472,7 +472,7 @@ onMounted(() => {
           Export
         </VBtn>
 
-        <VBtn v-if="ability.can('create','keyword')" color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/keyword/add')">
+        <VBtn v-if="ability.can('create','keyword')" color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/keywords/add')">
           Add Keyword
         </VBtn>
       </div>

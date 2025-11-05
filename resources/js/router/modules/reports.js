@@ -4,8 +4,20 @@ export const reportRoutes = [
     name: "apps-report-view",
     component: () => import("@/pages/apps/report/view/[id].vue"),
     props: true,
-     meta: {
+    meta: {
       title: "Report View",
+      action: 'view',
+      subject: 'report',
+      roles: [1, 2],
+    }
+  },
+  {
+    path: "/report/list",
+    name: "apps-report-list",
+    component: () => import("@/pages/apps/report/list/index.vue"),
+    props: true,
+    meta: {
+      title: "Report List",
       action: 'view',
       subject: 'report',
       roles: [1, 2],
@@ -26,7 +38,19 @@ export const reportRoutes = [
 
 
   // Keyword Report //
-  
+
+  {
+    path: "/keywordreport/list",
+    name: "apps-keywordreport-list",
+    component: () => import("@/pages/apps/keywordreport/list/index.vue"),
+    props: true,
+    meta: {
+      title: "Keyword Report List",
+      action: 'view',
+      subject: 'keywordreport',
+      roles: [1, 2],
+    }
+  },
   {
     path: "/keywordreport/:id",
     name: "apps-keywordreport-view",

@@ -8,7 +8,7 @@ export const domainRoutes = [
       title: "Domain View",
       action: "view",
       subject: "clientdomain",
-      roles: [1 ,2] 
+      roles: [1, 2]
     }
   },
   {
@@ -20,55 +20,55 @@ export const domainRoutes = [
       title: "Domain Edit",
       action: "update",
       subject: "clientdomain",
-      roles: [1] 
+      roles: [1]
     }
   },
   {
-    path: "/apps/clientdomain/add",
-    name: "apps-clientdomain-add",
-    component: () => import("@/pages/apps/clientdomain/add/[id].vue"),
+    path: "/apps/client/:id?/clientdomain/add",
+    name: "apps-domain-clientdomain-add",
+    component: () => import("@/pages/apps/domain/clientdomain/add/[id].vue"),
     props: true,
     meta: {
       title: "Add Client Domain",
-      action: "create",
-      subject: "clientdomain",
-      roles: [1,2] 
+      action: 'create',
+      subject: 'client',
+      roles: [1],
     }
   },
   {
-    path: "/apps/clientdomain/list",
-    name: "apps-clientdomain-list",
-    component: () => import("@/pages/apps/clientdomain/list/[id].vue"),
+    path: "/apps/client/:id?/clientdomain/list",
+    name: "apps-domain-clientdomain-list",
+    component: () => import("@/pages/apps/domain/clientdomain/list/[id].vue"),
     props: true,
     meta: {
       title: "Client Domain List",
-      action: "view",
-      subject: "clientdomain",
-      roles: [1 ,2] 
+      action: 'view',
+      subject: 'client',
+      roles: [1],
     }
   },
   {
-    path: "/apps/:view?/:id?/history",
-    name: "apps-clientdomain-history",
+    path: "/apps/:view?/clientdomain/:id?/history",
+    name: "apps-domain-clientdomain-history",
     component: () => import("@/pages/apps/clientdomain/history/[id].vue"),
     props: true,
     meta: {
-      title: "Domain History",
-      action: "view",
-      subject: "clientdomain",
-      roles: [1 ,2] 
+      title: "Client Domain History",
+      action: 'create',
+      subject: 'client',
+      roles: [1],
     }
   },
   {
     path: "/apps/client/:clientId?/clientdomain/:domainId?/view",
-    name: "apps-clientdomain-view",
-    component: () => import("@/pages/apps/clientdomain/view/[domainId].vue"),
+    name: "apps-domain-clientdomain-view",
+    component: () => import("@/pages/apps/domain/clientdomain/view/[domainId].vue"),
     props: true,
     meta: {
       title: "Client Domain View",
-      action: "view",
-      subject: "clientdomain",
-      roles: [1 ,2] 
+      action: 'create',
+      subject: 'client',
+      roles: [1],
     }
   },
 ];
