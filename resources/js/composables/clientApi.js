@@ -229,7 +229,7 @@ export function useClientApi() {
             confirmText: 'Delete',
             cancelText: 'Cancel',
             confirmColor: 'error',
-            type: 'warning'
+            type: 'error'
         })
 
         if (!confirmed) {

@@ -207,7 +207,7 @@ export function useUserApi() {
             confirmText: 'Delete',
             cancelText: 'Cancel',
             confirmColor: 'error',
-            type: 'warning'
+            type: 'error'
         })
 
         if (!confirmed) {

@@ -79,7 +79,7 @@ defineExpose({ open, close })
             class="mt-1"
         >
           {{
-            dialogOptions.type === 'error' ? 'tabler-alert-circle' :
+            dialogOptions.type === 'error' ? 'tabler-trash' :
                 dialogOptions.type === 'warning' ? 'tabler-alert-triangle' :
                     'tabler-info-circle'
           }}
