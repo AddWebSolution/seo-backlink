@@ -594,7 +594,7 @@ const updateOptions = async (options) => {
         </VBtn>
 
         <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/users/add')">
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/users/add')">
           Add User
         </VBtn>
       </div>
