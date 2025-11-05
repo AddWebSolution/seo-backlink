@@ -76,11 +76,7 @@ const showAdvancedFilters = ref(false);
 const route = useRoute()
 const router = useRouter()
 
-// const clientId = computed(() => {
-//   return route.params.id || authStore.user?.id
-// })
-
-const clientId = computed(() => authStore.isClient ? authStore.user.id : route.params.id)
+const clientId = computed(() => route.params.id)
 
 const showImportResult = ref(false)
 const importResult = ref({
@@ -338,8 +334,8 @@ onMounted(async () => {
 
       <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="mt-8 text-md-end">
         <VBtn color="primary" variant="flat" :to="{ name: 'client-list' }">
-          <VIcon icon="tabler-arrow-autofit-left" size= "large" />
-          Back to Clients
+          <VIcon icon="tabler-arrow-autofit-left" size= "xl-large" class="me-1" />
+          Back
         </VBtn>
       </VCol>
 

@@ -72,6 +72,8 @@ const clientData = ref({
 const submitting = ref(false);
 const formRef = ref(null);
 
+const clientDomainId =  computed(() => route.params.id)
+
 // Form validation rules
 const rules = {
   required: (value) => !!value || "This field is required",
@@ -733,13 +735,10 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.manage_domains="{ item }">
-          <VTooltip v-if="ability.can('view', 'rivaldomain')" text="View Domains for This Client">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="
-                $router.push({
-                  name: 'domain-clientdomain-list',
-                  params: { id: item.id },
-                })
+        <VTooltip v-if="ability.can('view', 'rivaldomain')" text="View Domains for This Client">
+          <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small"
+                 :to="{ name: 'domain-clientdomain-list', params: { id: item.id } }
                 ">
                 <VChip color="info" variant="tonal" size="small" class="ma-1">
                  <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
