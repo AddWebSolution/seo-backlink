@@ -66,7 +66,7 @@ Route::prefix('api')
 
 			Route::post('domains', [UserController::class, 'clientDomains'])->name('clientDomains')->middleware('permission:create client');
 
-			Route::post('name/list', [UserController::class, 'clientList'])->middleware('permission:create client');
+			Route::post('name/list', [UserController::class, 'clientList']);
 
 			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport')->middleware('permission:import client');
 
