@@ -2,7 +2,7 @@ export const roleRoutes = [
 
   {
     path: "/role-permissions/list",
-    name: "apps-role-permissions-list",
+    name: "role-permissions-list",
     component: () => import("@/pages/apps/role-permissions/list/index.vue"),
     props: true,
     meta: {

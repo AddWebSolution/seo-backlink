@@ -344,7 +344,7 @@ onMounted(async () => {
     </VContainer>
 
     <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
-        <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
+        <VBtn color="primary" variant="flat" :to="{ name: 'client-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Clients
         </VBtn>
@@ -524,7 +524,7 @@ onMounted(async () => {
         <!-- create domain-->
         <VBtn color="primary" prepend-icon="tabler-plus" @click="
             $router.push({
-              name: 'apps-clientdomain-add',
+              name: 'clientdomain-add',
               params: { id: clientId },
             })
           ">
@@ -641,7 +641,7 @@ onMounted(async () => {
         <VTooltip text="View Rival Domains">
           <template #activator="{ props }">
             <IconBtn v-bind="props" size="small" class="d-flex align-center px-2" @click="$router.push({
-              name: 'apps-clientdomain-rivaldomain-list',
+              name: 'clientdomain-rivaldomain-list',
               params: { clientId: item.client_id, domainId: item.id },
             })">
               <VChip color="info" variant="tonal" size="small" class="d-flex align-center px-2 ml-10">
@@ -661,7 +661,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                    name: 'apps-clientdomain-view',
+                    name: 'clientdomain-view',
                     params: { clientId: item.client_id, domainId: item.id },
                   }">
                   <VIcon icon="tabler-eye" size="20" />
@@ -674,7 +674,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                  name: 'apps-clientdomain-history',
+                  name: 'clientdomain-history',
                   params: { id: item.id  , view : 'domain' },
                 }">
                   <VIcon color="info" icon="tabler-chart-bar-popular" size="20" />
@@ -721,7 +721,7 @@ onMounted(async () => {
 
           <!-- <VBtn color="primary" prepend-icon="tabler-plus" @click="
             $router.push({
-              name: 'apps-clientdomain-add',
+              name: 'clientdomain-add',
               params: { id: clientId },
             })
             ">

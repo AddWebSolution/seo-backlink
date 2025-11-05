@@ -175,7 +175,7 @@ const loadClientData = async () => {
   } catch (err) {
     console.error(err)
     showAlert('Failed to load client data.', 'error')
-    router.push({ name: 'apps-client-list' })
+    router.push({ name: 'client-list' })
   } finally {
     loading.value = false
   }
@@ -228,7 +228,7 @@ onMounted(async () => {
 
           <!-- Right Section: Back Button -->
           <VCol cols="12" md="4" class="d-flex justify-end">
-            <VBtn variant="flat" @click="router.push({ name: 'apps-client-list' })">
+            <VBtn variant="flat" @click="router.push({ name: 'client-list' })">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to List
             </VBtn>

@@ -100,7 +100,7 @@ const handleSubmit = async () => {
   try {
     await createClient(form.value)
     showAlert('Client created successfully!', 'success')
-    router.push({ name: 'apps-client-list' })
+    router.push({ name: 'client-list' })
   } catch (err) {
     console.error(err)
     showAlert(err.response?.data?.message || 'Failed to create client.', 'error')

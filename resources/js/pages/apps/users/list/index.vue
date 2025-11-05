@@ -638,7 +638,7 @@ const updateOptions = async (options) => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-users-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'users-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
                 </router-link>
               </IconBtn>
@@ -647,7 +647,7 @@ const updateOptions = async (options) => {
 
           <VTooltip text="Edit User">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-users-edit', params: { id: item.id } }">
+              <IconBtn v-bind="props" size="small" :to="{ name: 'users-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />
               </IconBtn>
             </template>
@@ -656,7 +656,7 @@ const updateOptions = async (options) => {
           <!-- <VTooltip v-if="ability.can('view','rivaldomain')" text="View Domains for This Client">
               <template #activator="{ props }">
                 <IconBtn v-bind="props" size="small"
-                  @click="$router.push({ name: 'apps-domain-clientdomain-list', params: { id: item.id } })">
+                  @click="$router.push({ name: 'domain-clientdomain-list', params: { id: item.id } })">
                   <VIcon color="success" icon="tabler-world" size="20" />
                 </IconBtn>
               </template>
@@ -680,7 +680,7 @@ const updateOptions = async (options) => {
             Try adjusting your search criteria or add a new user to get
             started.
           </p>
-          <VBtn color="primary" @click="$router.push('/apps/users/add')">
+          <VBtn color="primary" @click="$router.push('/users/add')">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First User
           </VBtn>

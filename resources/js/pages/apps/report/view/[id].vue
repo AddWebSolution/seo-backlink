@@ -385,7 +385,7 @@ const serverItems = computed(() => ({
           </VCol>
 
           <VCol cols="12" md="4" class="d-flex justify-end">
-            <VBtn variant="flat" :to="{ name: 'apps-report-list' }">
+            <VBtn variant="flat" :to="{ name: 'report-list' }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Reports
             </VBtn>
@@ -725,7 +725,7 @@ const serverItems = computed(() => ({
             <VTooltip text="View Details">
               <template #activator="{ props }">
                 <IconBtn v-bind="props" size="small">
-                  <router-link :to="{ name: 'apps-report-backlink-view', params: { id: item.id } }">
+                  <router-link :to="{ name: 'report-backlink-view', params: { id: item.id } }">
                     <VIcon icon="tabler-eye" size="24" />
                   </router-link>
                 </IconBtn>
@@ -773,7 +773,7 @@ const serverItems = computed(() => ({
         <p class="text-body-1 text-medium-emphasis mb-6 max-width-400 mx-auto">
           The report you're looking for doesn't exist or may have been deleted.
         </p>
-        <VBtn color="primary" size="large" :to="{ name: 'apps-report-list' }">
+        <VBtn color="primary" size="large" :to="{ name: 'report-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Reports
         </VBtn>

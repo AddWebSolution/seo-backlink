@@ -585,7 +585,7 @@ const applyFilters = async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link
-                  :to="{ name: 'apps-keywordreport-view', params: { id: item.id } }"
+                  :to="{ name: 'keywordreport-view', params: { id: item.id } }"
                 >
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>

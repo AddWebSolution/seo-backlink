@@ -36,7 +36,7 @@
           <!-- Right Column: Inline Back Button -->
           <VCol cols="12" md="4" class="d-flex justify-end">
             <VBtn color="primary" variant="flat" :to="{
-                name: 'apps-keywordreport-view',
+                name: 'keywordreport-view',
                 params: { id: keywordData.report_id },
               }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
@@ -325,7 +325,7 @@
           The keyword data you're looking for doesn't exist or may have been
           deleted. Please check the ID and try again.
         </p>
-        <VBtn color="primary" size="large" :to="{ name: 'apps-keyword  -list' }">
+        <VBtn color="primary" size="large" :to="{ name: 'keyword  -list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Keyword Data
         </VBtn>

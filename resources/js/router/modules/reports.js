@@ -1,7 +1,7 @@
 export const reportRoutes = [
   {
     path: "/report/:id",
-    name: "apps-report-view",
+    name: "report-view",
     component: () => import("@/pages/apps/report/view/[id].vue"),
     props: true,
     meta: {
@@ -13,7 +13,7 @@ export const reportRoutes = [
   },
   {
     path: "/report/list",
-    name: "apps-report-list",
+    name: "report-list",
     component: () => import("@/pages/apps/report/list/index.vue"),
     props: true,
     meta: {
@@ -25,7 +25,7 @@ export const reportRoutes = [
   },
   {
     path: "/report/backlink/:id",
-    name: "apps-report-backlink-view",
+    name: "report-backlink-view",
     component: () => import("@/pages/apps/report/backlink/view/[id].vue"),
     props: true,
     meta: {
@@ -41,7 +41,7 @@ export const reportRoutes = [
 
   {
     path: "/keywordreport/list",
-    name: "apps-keywordreport-list",
+    name: "keywordreport-list",
     component: () => import("@/pages/apps/keywordreport/list/index.vue"),
     props: true,
     meta: {
@@ -53,7 +53,7 @@ export const reportRoutes = [
   },
   {
     path: "/keywordreport/:id",
-    name: "apps-keywordreport-view",
+    name: "keywordreport-view",
     component: () => import("@/pages/apps/keywordreport/view/[id].vue"),
     props: true,
     meta: {
@@ -65,7 +65,7 @@ export const reportRoutes = [
   },
   {
     path: "/keywordreport/keyword/:id",
-    name: "apps-keywordreport-keyword-view",
+    name: "keywordreport-keyword-view",
     component: () => import("@/pages/apps/keywordreport/keyword/view/[id].vue"),
     props: true,
     meta: {

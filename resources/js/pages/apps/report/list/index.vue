@@ -511,7 +511,7 @@ const formatRunAt = (dateString) => {
           <VTooltip text="View Report">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-report-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'report-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>

@@ -1,19 +1,7 @@
 export const clientRoutes = [
   {
-    path: '/client/add',
-    name: 'apps-client-add',
-    component: () => import('@/pages/apps/client/add/add.vue'),
-    props: true,
-    meta: {
-      title: 'Client Add',
-      action: 'create',
-      subject: 'client',
-      roles: [1]
-    }
-  },
-  {
     path: '/client/list',
-    name: 'apps-client-list',
+    name: 'client-list',
     component: () => import('@/pages/apps/client/list/index.vue'),
     props: true,
     meta: {
@@ -24,8 +12,20 @@ export const clientRoutes = [
     }
   },
   {
+    path: '/client/add',
+    name: 'client-add',
+    component: () => import('@/pages/apps/client/add/add.vue'),
+    props: true,
+    meta: {
+      title: 'Client Add',
+      action: 'create',
+      subject: 'client',
+      roles: [1]
+    }
+  },
+  {
     path: "/client/:id",
-    name: "apps-client-view",
+    name: "client-view",
     component: () => import("@/pages/apps/client/view/[id].vue"),
     props: true,
     meta: {
@@ -37,7 +37,7 @@ export const clientRoutes = [
   },
   {
     path: "/client/:id/edit",
-    name: "apps-client-edit",
+    name: "client-edit",
     component: () => import("@/pages/apps/client/edit/[id].vue"),
     props: true,
     meta: {

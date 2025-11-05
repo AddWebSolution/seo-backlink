@@ -199,7 +199,7 @@ const submitForm = async () => {
     localStorage.removeItem('domain_draft')
     
     // setTimeout(() => {
-    //   router.push({ name: 'apps-domain-list' })
+    //   router.push({ name: 'domain-list' })
     // }, 1500)
 
   } catch (err) {
@@ -292,7 +292,7 @@ const scrollToSection = (sectionId) => {
                 <VIcon icon="tabler-refresh" class="me-2" />
                 Reset
               </VBtn>
-              <VBtn variant="flat" @click="router.push({ name: 'apps-domain-list' })" :disabled="state.submitting">
+              <VBtn variant="flat" @click="router.push({ name: 'domain-list' })" :disabled="state.submitting">
                 <VIcon icon="tabler-arrow-left" class="me-2" />
                 Back to List
               </VBtn>

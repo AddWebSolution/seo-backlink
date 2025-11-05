@@ -343,7 +343,7 @@ const serverItems = computed(() => ({
           </VCol>
 
           <VCol cols="12" md="4" class="d-flex justify-end">
-            <VBtn variant="flat" :to="{ name: 'apps-keywordreport-list' }">
+            <VBtn variant="flat" :to="{ name: 'keywordreport-list' }">
               <VIcon icon="tabler-arrow-left" class="me-2" />
               Back to Reports
             </VBtn>
@@ -617,7 +617,7 @@ const serverItems = computed(() => ({
           <template #item.actions="{ item }">
             <div class="d-flex justify-center">
               <VBtn :to="{
-                  name: 'apps-keywordreport-keyword-view',
+                  name: 'keywordreport-keyword-view',
                   params: { id: item.id },
                 }" icon variant="text" size="small" color="primary">
                 <VIcon icon="tabler-eye" size="26" />
@@ -668,7 +668,7 @@ const serverItems = computed(() => ({
         <p class="text-body-1 text-medium-emphasis mb-6 max-width-400 mx-auto">
           The report you're looking for doesn't exist or may have been deleted.
         </p>
-        <VBtn color="primary" size="large" :to="{ name: 'apps-report-list' }">
+        <VBtn color="primary" size="large" :to="{ name: 'report-list' }">
           <VIcon icon="tabler-arrow-left" class="me-2" />
           Back to Reports
         </VBtn>
