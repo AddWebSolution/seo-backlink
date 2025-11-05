@@ -227,10 +227,10 @@ const handleDeleteClient = async (id) => {
     const index = selectedRows.value.findIndex((row) => row === id);
     if (index !== -1) selectedRows.value.splice(index, 1);
     await loadClients(); // Refresh the list
-    showAlert("Client deleted successfully!", "success");
+    // showAlert("Client deleted successfully!", "success");
   } catch (error) {
     console.error("Delete failed:", error);
-    showAlert("Failed to delete client", "error");
+    // showAlert("Failed to delete client", "error");
   }
 };
 
