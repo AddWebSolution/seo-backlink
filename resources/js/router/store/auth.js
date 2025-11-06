@@ -9,7 +9,7 @@ const useAuthStore = defineStore('auth', {
   }),
   actions: {
     setUser(data) {
-      this.user = JSON.parse(JSON.stringify(data.user)) 
+      this.user = data.user ?? data   // support both patterns
       this.token = data.token
       this.permissions = data.user.roles?.flatMap(r => r.permissions.map(p => p.name)) || []
       updateAbilities()
