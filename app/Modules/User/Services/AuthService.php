@@ -68,9 +68,9 @@ class AuthService
         /** @var User $user */
         $user = Auth::user();
 
-        if (!$user->hasRole('super_admin')) {
-            $user->assignRole('client');
-        }
+//        if (!$user->hasRole('super_admin')) {
+//            $user->assignRole('client');
+//        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

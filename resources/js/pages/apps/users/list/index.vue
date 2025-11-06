@@ -808,10 +808,10 @@ const updateOptions = async (options) => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="outlined" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" color="error" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="importing" @click="handleImportClients">
+        <VBtn color="primary" :loading="importing" variant="flat" @click="handleImportClients">
           <VIcon icon="tabler-download" class="me-2" />
           Import Clients
         </VBtn>

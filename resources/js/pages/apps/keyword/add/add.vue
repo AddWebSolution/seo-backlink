@@ -128,7 +128,7 @@ const handleSubmit = async () => {
           <VBtn :loading="submitting" color="primary" type="submit" class="mr-3">
             Add Keyword
           </VBtn>
-          <VBtn variant="text" @click="$router.back()">Cancel</VBtn>
+          <VBtn color="error" variant="flat" @click="$router.back()">Cancel</VBtn>
         </VCol>
       </VRow>
     </VForm>

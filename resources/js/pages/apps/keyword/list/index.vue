@@ -769,10 +769,10 @@ onMounted(() => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" color="error" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="importing" :disabled="!selectedFile || !!fileError"
+        <VBtn color="primary" :loading="importing" variant="flat" :disabled="!selectedFile || !!fileError"
           @click="handleImportKeywords">
           <VIcon icon="tabler-download" class="me-2" />
           Import Keywords
