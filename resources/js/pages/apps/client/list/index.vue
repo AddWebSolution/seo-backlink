@@ -736,7 +736,7 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.manage_domains="{ item }">
-        <VTooltip v-if="ability.can('view', 'rivaldomain')" text="View Domains for This Client">
+        <VTooltip text="View Domains for This Client">
           <template #activator="{ props }">
               <IconBtn v-bind="props" size="small"
                  :to="{ name: 'domain-clientdomain-list', params: { id: item.id } }
