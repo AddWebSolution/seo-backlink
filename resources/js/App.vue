@@ -9,6 +9,7 @@ import {
 import { hexToRgb } from '@core/utils/colorConverter'
 import { useTheme } from 'vuetify'
 import GlobalDialog from "@/components/dialogs/GlobalDialog.vue";
+import CustomAlert from './layouts/components/CustomAlert.vue'
 
 const { global } = useTheme()
 
@@ -31,6 +32,7 @@ onMounted(() => {
     <!-- ℹ️ This is required to set the background color of active nav link based on currently active global theme's primary -->
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
       <RouterView />
+      <CustomAlert />
       <ScrollToTop />
       <GlobalDialog ref="confirmDialogRef" />
     </VApp>
