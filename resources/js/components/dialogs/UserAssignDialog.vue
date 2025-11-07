@@ -4,16 +4,22 @@ import DialogCloseBtn from "@core/components/DialogCloseBtn.vue";
 
 const props = defineProps({
   modelValue: Boolean,
-  users: { type: Array, default: () => [] }, // [{id, name, email, avatar}]
+  users: { type: Array, default: () => [] },
+  assigned: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["update:modelValue", "assign"]);
 
 const localDialog = ref(props.modelValue);
 watch(() => props.modelValue, val => (localDialog.value = val));
+watch(localDialog, val => emit("update:modelValue", val));
 
 const selectedUsers = ref([]);
 const searchQuery = ref("");
+
+watch(() => props.assigned, (val) => {
+  selectedUsers.value = val.length ? [...val] : [];
+}, { immediate: true });
 
 // Filter users based on search
 const filteredUsers = computed(() => {
@@ -42,16 +48,6 @@ const closeDialog = () => {
 const assignUsers = () => {
   emit("assign", selectedUsers.value);
   closeDialog();
-};
-
-// Get initials for avatar fallback
-const getInitials = (name) => {
-  return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
 };
 </script>
 
@@ -83,9 +79,6 @@ const getInitials = (name) => {
           />
           <span class="text-subtitle-2 font-weight-medium">Select All Users</span>
           <VSpacer />
-<!--          <VChip size="small" color="primary" variant="tonal">-->
-<!--            {{ selectedUsers.length }} selected-->
-<!--          </VChip>-->
         </div>
 
         <!-- User List -->
@@ -117,13 +110,6 @@ const getInitials = (name) => {
             <div class="flex-grow-1">
               <div class="text-body-1 font-weight-medium">{{ user.name }} (<span class=" text-disabled">{{ user.email }}</span>)</div>
             </div>
-
-<!--            <VIcon-->
-<!--                v-if="selectedUsers.includes(user.id)"-->
-<!--                icon="tabler-check"-->
-<!--                color="primary"-->
-<!--                size="20"-->
-<!--            />-->
           </div>
 
           <div v-if="filteredUsers.length === 0" class="text-center pa-6 text-disabled">

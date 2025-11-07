@@ -10,16 +10,14 @@ import { useAbility } from "@casl/vue";
 import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
 import { useUserApi} from "@/composables/userApi.js";
 
-const { assignableUsers, fetchAssignableUsers } = useUserApi();
+const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
 const showAssignDialog = ref(false);
+const currentDomainId = ref(null);
 
-const openDialog = () => {
+const openDialog = (domainId) => {
+  currentDomainId.value = domainId;
   showAssignDialog.value = true;
-  fetchAssignableUsers();
-};
-
-const onUsersAssigned = (users) => {
-  console.log("Users assigned:", users);
+  fetchAssignableUsers(domainId);
 };
 
 const headers = [
@@ -73,8 +71,14 @@ const {
   downloadTemplate,
   importDomains,
   deleteDomain,
+  assignUsersToDomain,
   showAlert,
 } = useDomainApi();
+
+const onUsersAssigned = async (selectedUserIds) => {
+  await assignUsersToDomain(currentDomainId.value, selectedUserIds);
+  showAssignDialog.value = false;
+};
 
 
 // Filters
@@ -667,7 +671,7 @@ onMounted(async () => {
 
           <VTooltip text="User Assignment">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="openDialog">
+              <IconBtn v-bind="props" size="small" @click="openDialog(item.id)">
                 <VIcon color="secondary" icon="tabler-users-plus" size="20" />
               </IconBtn>
             </template>
@@ -847,7 +851,8 @@ onMounted(async () => {
   <UserAssignDialog
       v-model="showAssignDialog"
       :users="assignableUsers"
-      @assign="onUserAssigned"
+      :assigned="assignedUserIds"
+      @assign="onUsersAssigned"
   />
 
 </template>

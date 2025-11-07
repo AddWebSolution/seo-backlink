@@ -20,6 +20,7 @@ class ClientDomain extends BaseModel
     /** @use HasFactory<\Database\Factories\ClientDomainFactory> */
     use HasFactory;
     use SoftDeletes;
+    use Relation;
 
     protected $table = 'client_domains';
 

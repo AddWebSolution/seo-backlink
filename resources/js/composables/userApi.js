@@ -23,6 +23,7 @@ export function useUserApi() {
     const loading = ref(false);
     const error = ref(null);
     const assignableUsers = ref([]);
+    const assignedUserIds = ref([]);
 
     // get users by id
     const fetchUser = async (id) => {
@@ -256,17 +257,17 @@ export function useUserApi() {
     };
 
     // assignable users
-    const fetchAssignableUsers = async () => {
+    const fetchAssignableUsers = async (domainId) => {
         loading.value = true;
         error.value = null;
 
         try {
-            const result = await useApi("api/user/assignable", {
-                method: "POST",
+            const result = await useApi(`api/user/assignable-users/${domainId}`, {
+                method: "GET",
             });
 
-            assignableUsers.value = result.data.value.data;
-            return assignableUsers.value;
+            assignableUsers.value = result.data.value.users;
+            assignedUserIds.value = result.data.value.assigned;
 
         } catch (err) {
             error.value = err;
@@ -299,5 +300,6 @@ export function useUserApi() {
         showAlert,
         fetchAssignableUsers,
         assignableUsers,
+        assignedUserIds,
     };
 }
