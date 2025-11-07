@@ -122,4 +122,18 @@ class UserController extends BaseController
         $this->uploadProfilePic($user, $request->file('profile_pic'), 'user');
         return response()->json(['success' => true]);
     }
+
+    public function listAssignableUsers()
+    {
+        $users = User::where('role', '!=', '2')
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $users
+        ]);
+    }
+
 }

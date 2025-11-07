@@ -22,6 +22,7 @@ export function useUserApi() {
     const currentUser = ref(null);
     const loading = ref(false);
     const error = ref(null);
+    const assignableUsers = ref([]);
 
     // get users by id
     const fetchUser = async (id) => {
@@ -254,6 +255,29 @@ export function useUserApi() {
         }
     };
 
+    // assignable users
+    const fetchAssignableUsers = async () => {
+        loading.value = true;
+        error.value = null;
+
+        try {
+            const result = await useApi("api/user/assignable", {
+                method: "POST",
+            });
+
+            assignableUsers.value = result.data.value.data;
+            return assignableUsers.value;
+
+        } catch (err) {
+            error.value = err;
+            showAlert("Failed to load assignable users", "error");
+            assignableUsers.value = [];
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
     return {
         Users: readonly(Users),
         pagination: pagination,
@@ -273,5 +297,7 @@ export function useUserApi() {
         deleteUser,
 
         showAlert,
+        fetchAssignableUsers,
+        assignableUsers,
     };
 }

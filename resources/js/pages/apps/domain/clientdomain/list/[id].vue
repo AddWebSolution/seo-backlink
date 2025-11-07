@@ -7,6 +7,20 @@ import { VBtn } from "vuetify/components";
 import { useRoute, useRouter } from 'vue-router'
 import useAuthStore from "@/router/store/auth";
 import { useAbility } from "@casl/vue";
+import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
+import { useUserApi} from "@/composables/userApi.js";
+
+const { assignableUsers, fetchAssignableUsers } = useUserApi();
+const showAssignDialog = ref(false);
+
+const openDialog = () => {
+  showAssignDialog.value = true;
+  fetchAssignableUsers();
+};
+
+const onUsersAssigned = (users) => {
+  console.log("Users assigned:", users);
+};
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "20px" },
@@ -651,6 +665,14 @@ onMounted(async () => {
             </template>
           </VTooltip>
 
+          <VTooltip text="User Assignment">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="openDialog">
+                <VIcon color="secondary" icon="tabler-users-plus" size="20" />
+              </IconBtn>
+            </template>
+          </VTooltip>
+
           <VTooltip text="View history">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
@@ -821,6 +843,13 @@ onMounted(async () => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <UserAssignDialog
+      v-model="showAssignDialog"
+      :users="assignableUsers"
+      @assign="onUserAssigned"
+  />
+
 </template>
 
 <style lang="scss" scoped>
