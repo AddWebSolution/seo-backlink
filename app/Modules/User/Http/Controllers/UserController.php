@@ -133,7 +133,10 @@ class UserController extends BaseController
             ->orderBy('name')
             ->get();
 
-        $assigned = $domain->users()->pluck('users.id')->toArray();
+        $assigned = $domain->users()
+            ->select('users.id', 'users.name', 'users.email')
+            ->orderBy('users.name')
+            ->get();
 
         return response()->json([
             'status' => true,

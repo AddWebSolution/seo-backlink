@@ -5,7 +5,7 @@ import DialogCloseBtn from "@core/components/DialogCloseBtn.vue";
 const props = defineProps({
   modelValue: Boolean,
   users: { type: Array, default: () => [] },
-  assigned: { type: Array, default: () => [] },
+  assigned: { type: Array, default: () => [] }, // Now array of objects
 });
 
 const emit = defineEmits(["update:modelValue", "assign"]);
@@ -18,20 +18,18 @@ const selectedUsers = ref([]);
 const searchQuery = ref("");
 
 watch(() => props.assigned, (val) => {
-  selectedUsers.value = val.length ? [...val] : [];
+  selectedUsers.value = val.length ? val.map(u => u.id) : [];
 }, { immediate: true });
 
-// Filter users based on search
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return props.users;
-  const query = searchQuery.value.toLowerCase();
-  return props.users.filter(user =>
-      user.name.toLowerCase().includes(query) ||
-      (user.email && user.email.toLowerCase().includes(query))
+  const q = searchQuery.value.toLowerCase();
+  return props.users.filter(u =>
+    u.name.toLowerCase().includes(q) ||
+    (u.email && u.email.toLowerCase().includes(q))
   );
 });
 
-// Toggle all users
 const selectAll = computed({
   get: () => selectedUsers.value.length === props.users.length && props.users.length > 0,
   set: (val) => {
@@ -51,6 +49,7 @@ const assignUsers = () => {
 };
 </script>
 
+
 <template>
   <VDialog v-model="localDialog" max-width="550">
     <DialogCloseBtn @click="closeDialog" />
@@ -59,56 +58,35 @@ const assignUsers = () => {
 
       <VCardText>
         <!-- Search Bar -->
-        <VTextField
-            v-model="searchQuery"
-            placeholder="Search users..."
-            prepend-inner-icon="tabler-search"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-            clearable
-        />
+        <VTextField v-model="searchQuery" placeholder="Search users..." prepend-inner-icon="tabler-search"
+          variant="outlined" density="compact" class="mb-3" clearable />
 
         <!-- Select All -->
         <div class="d-flex align-center mb-2 pa-2 rounded border">
-          <VCheckbox
-              v-model="selectAll"
-              density="compact"
-              hide-details
-              class="flex-grow-0"
-          />
+          <VCheckbox v-model="selectAll" density="compact" hide-details class="flex-grow-0" />
           <span class="text-subtitle-2 font-weight-medium">Select All Users</span>
           <VSpacer />
         </div>
 
         <!-- User List -->
         <div class="user-list">
-          <div
-              v-for="user in filteredUsers"
-              :key="user.id"
-              class="user-item d-flex align-center pa-3 rounded cursor-pointer"
-              :class="{ 'selected': selectedUsers.includes(user.id) }"
-              @click="() => {
+          <div v-for="user in filteredUsers" :key="user.id"
+            class="user-item d-flex align-center pa-3 rounded cursor-pointer"
+            :class="{ 'selected': selectedUsers.includes(user.id) }" @click="() => {
               const idx = selectedUsers.indexOf(user.id);
               if (idx > -1) selectedUsers.splice(idx, 1);
               else selectedUsers.push(user.id);
-            }"
-          >
-            <VCheckbox
-                :model-value="selectedUsers.includes(user.id)"
-                density="compact"
-                hide-details
-                class="flex-grow-0"
-                @click.stop
-                @update:model-value="(val) => {
+            }">
+            <VCheckbox :model-value="selectedUsers.includes(user.id)" density="compact" hide-details class="flex-grow-0"
+              @click.stop @update:model-value="(val) => {
                 const idx = selectedUsers.indexOf(user.id);
                 if (val && idx === -1) selectedUsers.push(user.id);
                 else if (!val && idx > -1) selectedUsers.splice(idx, 1);
-              }"
-            />
+              }" />
 
             <div class="flex-grow-1">
-              <div class="text-body-1 font-weight-medium">{{ user.name }} (<span class=" text-disabled">{{ user.email }}</span>)</div>
+              <div class="text-body-1 font-weight-medium">{{ user.name }} (<span class=" text-disabled">{{ user.email
+                  }}</span>)</div>
             </div>
           </div>
 
@@ -124,10 +102,7 @@ const assignUsers = () => {
         <VBtn color="secondary" variant="outlined" @click="closeDialog">
           Cancel
         </VBtn>
-        <VBtn
-            color="primary"
-            @click="assignUsers"
-        >
+        <VBtn color="primary" @click="assignUsers">
           Assign ({{ selectedUsers.length }})
         </VBtn>
       </VCardActions>
@@ -156,7 +131,7 @@ const assignUsers = () => {
   border-color: rgba(var(--v-theme-primary), 0.3);
 }
 
-.user-item + .user-item {
+.user-item+.user-item {
   margin-top: 8px;
 }
 </style>

@@ -59,42 +59,6 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.dataforseo.com/v3/backlinks/backlinks/live",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Basic Y29mZmVlQGFkZHdlYnNvbHV0aW9uLmNvbTozNmVlYzZhNmU2YTg1YWM1"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "=[\n  {\n    \"target\": \"{{ $json.rival_domain}}\",\n    \"limit\": 10,\n    \"internal_list_limit\": 10,\n    \"backlinks_status_type\": \"live\",\n    \"include_subdomains\": true,\n    \"exclude_internal_backlinks\": true,\n    \"include_indirect_links\": true,\n    \"mode\": \"as_is\",\n    \"rank_scale\": \"one_hundred\"\n  }\n]\n",
-        "options": {
-          "redirect": {
-            "redirect": {}
-          },
-          "timeout": 90000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -1216,
-        -96
-      ],
-      "id": "8bea24e9-51af-4a5a-b28d-09b6d6d88710",
-      "name": "DataForSEO API Call"
-    },
-    {
-      "parameters": {
         "jsCode": "const inputItems = $input.all(); // all items passed to this node\nconst results = [];\n\nfor (const item of inputItems) {\n  const inputData = item.json;\n\n  let processedData = {\n    domain: null,\n    targetUrl: '',\n    totalBacklinks: 0,\n    topBacklinks: [],\n    summary: {\n      avgRank: 0,\n      dofollowCount: 0,\n      nofollowCount: 0,\n      brokenLinks: 0,\n      avgSpamScore: 0\n    },\n    processed_at: new Date().toISOString(),\n    error: null\n  };\n\n  try {\n    if (inputData && inputData.tasks && inputData.tasks[0] && inputData.tasks[0].result && inputData.tasks[0].result[0]) {\n      const result = inputData.tasks[0].result[0];\n      const items = result.items || [];\n\n      processedData.domain = result.target;\n      processedData.targetUrl = result.target;\n      processedData.totalBacklinks = result.total_count || 0;\n\n      let totalRank = 0;\n      let totalSpamScore = 0;\n\n      items.forEach(item => {\n        const backlink = {\n          fromDomain: item.domain_from,\n          fromUrl: item.url_from,\n          anchor: item.anchor || 'No anchor text',\n          rank: item.rank || 0,\n          domainRank: item.domain_from_rank || 0,\n          spamScore: item.backlink_spam_score || 0,\n          dofollow: item.dofollow || false,\n          isBroken: item.is_broken || false,\n          firstSeen: item.first_seen,\n          lastSeen: item.last_seen,\n          linkType: item.item_type,\n          pageTitle: item.page_from_title || 'Unknown'\n        };\n\n        processedData.topBacklinks.push(backlink);\n        totalRank += backlink.rank;\n        totalSpamScore += backlink.spamScore;\n\n        backlink.dofollow ? processedData.summary.dofollowCount++ : processedData.summary.nofollowCount++;\n        if (backlink.isBroken) processedData.summary.brokenLinks++;\n      });\n\n      if (items.length > 0) {\n        processedData.summary.avgRank = Math.round(totalRank / items.length);\n        processedData.summary.avgSpamScore = Math.round(totalSpamScore / items.length);\n      }\n\n    } else {\n      processedData.error = 'Invalid API response format';\n    }\n  } catch (error) {\n    processedData.error = `Processing error: ${error.message}`;\n  }\n\n  results.push({ json: processedData });\n}\n\nreturn results;\n"
       },
       "id": "9f975b16-c95d-4887-8124-47f725f5cb31",
@@ -102,7 +66,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1104,
+        1056,
         -656
       ]
     },
@@ -115,7 +79,7 @@
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
-        1152,
+        1056,
         -800
       ]
     },
@@ -134,13 +98,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// Input\nconst data = $input.all(); \nconst clientDomains = $('Current Client Domain List').all().map(i => i.json);\n\nconst reportId = $input.last().json.data.id;\nconst clientId = $input.last().json.data.client_id;\n\nconst normalize = str => str?.replace(/\\/+$/, \"\").trim().toLowerCase();\n\nconst findDomain = (id, url, rivalUrl) => {\n  return clientDomains.find(d => \n    Number(d.client_domain_id) === Number(id) &&\n    normalize(d.client_domain) === normalize(url) &&\n    normalize(d.rival_domain) === normalize(rivalUrl)\n  );\n};\n\nconst backlinkPayloads = [];\n\nfor (const item of data) {\n  const backlinkParsed = item.json;\n  if (!backlinkParsed) continue;\n\n  const accepted = backlinkParsed.data?.accepted || [];\n  const rejected = backlinkParsed.data?.rejected || [];\n\n  const domainId = backlinkParsed.domain_id;\n  const domainUrl = backlinkParsed.domain;\n  const rivalUrl = backlinkParsed.data?.domain;\n\n  const clientMatch = findDomain(domainId, domainUrl, rivalUrl);\n\n  if (!clientMatch) {\n    console.log(\"No match found for:\", domainId, domainUrl, rivalUrl);\n    continue; // or handle gracefully\n  }\n\n  const pushLinks = (arr, status) => {\n    if (!Array.isArray(arr)) return;\n\n    for (const link of arr) {\n      backlinkPayloads.push({\n        report_id: reportId,\n        client_id: clientId.id,\n\n        target_domain: clientMatch.rival_domain_title,\n        target_url: rivalUrl,\n\n        domain: clientMatch.client_domain_title,\n        domain_url: clientMatch.client_domain,\n\n        from_domain: link.domain || link.fromDomain,\n        from_url: link.fromUrl,\n        url: link.url,\n        anchor: link.anchor ?? null,\n        page_title: link.pageTitle ?? null,\n        link_type: \"contextual\",\n\n        rank: link.rank ?? null,\n        domain_rank: link.domainRank ?? null,\n        spam_score: link.spamScore ?? null,\n        do_follow: link.dofollow ? 1 : 0,\n        tier: parseInt(link.tier?.replace(\"Tier \", \"\"), 10) || 0,\n        score: link.score ?? 0,\n        is_broken: link.isBroken ? 1 : 0,\n\n        status,\n        reason: link.reason ?? null,\n\n        first_seen: link.firstSeen ? new Date(link.firstSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n        last_seen: link.lastSeen ? new Date(link.lastSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n      });\n    }\n  };\n\n  pushLinks(accepted, \"accepted\");\n  pushLinks(rejected, \"rejected\");\n}\n\nreturn backlinkPayloads.map(b => ({\n  json: { api: \"backlinkdatum/store\", payload: b }\n}));\n"
+        "jsCode": "// Input\nconst data = $input.all(); \nconst clientDomains = $('Current Client Domain List').all().map(i => i.json);\n\nconst normalize = str => str?.replace(/\\/+$/, \"\").trim().toLowerCase();\n\nconst findDomain = (id, url, rivalUrl) => {\n  return clientDomains.find(d => \n    Number(d.client_domain_id) === Number(id) &&\n    normalize(d.client_domain) === normalize(url) &&\n    normalize(d.rival_domain) === normalize(rivalUrl)\n  );\n};\n\nconst backlinkPayloads = [];\n\nfor (const item of data) {\n  const backlinkParsed = item.json;\n  if (!backlinkParsed) continue;\n\n  const accepted = backlinkParsed.data?.accepted || [];\n  const rejected = backlinkParsed.data?.rejected || [];\n\n  const domainId = backlinkParsed.domain_id;\n  const domainUrl = backlinkParsed.domain;\n  const rivalUrl = backlinkParsed.data?.domain;\n\n  const clientMatch = findDomain(domainId, domainUrl, rivalUrl);\n\n  if (!clientMatch) {\n    console.log(\"No match found for:\", domainId, domainUrl, rivalUrl);\n    continue; // or handle gracefully\n  }\n\n  const pushLinks = (arr, status) => {\n    if (!Array.isArray(arr)) return;\n    \n    for (const link of arr) {\n      backlinkPayloads.push({\n        // report_id: reportId,\n        client_id: $input.first().json.clientId,\n        domain_id : domainId,\n\n        target_domain: clientMatch.rival_domain_title,\n        target_url: rivalUrl,\n\n        domain: clientMatch.client_domain_title,\n        domain_url: clientMatch.client_domain,\n\n        from_domain: link.domain || link.fromDomain,\n        from_url: link.fromUrl,\n        url: link.url,\n        anchor: link.anchor ?? null,\n        page_title: link.pageTitle ?? null,\n        link_type: \"contextual\",\n\n        rank: link.rank ?? null,\n        domain_rank: link.domainRank ?? null,\n        spam_score: link.spamScore ?? null,\n        do_follow: link.dofollow ? 1 : 0,\n        tier: parseInt(link.tier?.replace(\"Tier \", \"\"), 10) || 0,\n        score: link.score ?? 0,\n        is_broken: link.isBroken ? 1 : 0,\n\n        status,\n        reason: link.reason ?? null,\n\n        first_seen: link.firstSeen ? new Date(link.firstSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n        last_seen: link.lastSeen ? new Date(link.lastSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n      });\n    }\n  };\n\n  pushLinks(accepted, \"accepted\");\n  pushLinks(rejected, \"rejected\");\n}\n\nreturn backlinkPayloads.map(b => ({\n  json: {\n    api: \"backlinkdatum/store\",\n    payload: b\n  }\n}));\n\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -32,
-        -80
+        -112
       ],
       "id": "9e93c3d6-c4da-4efc-b29d-9ba80b237d2d",
       "name": "Backlink data ",
@@ -155,7 +119,7 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1744,
+        -1712,
         -784
       ],
       "typeVersion": 1,
@@ -181,8 +145,8 @@
     {
       "parameters": {
         "content": "## Start LLM Process With Filter Prompt",
-        "height": 640,
-        "width": 1088
+        "height": 384,
+        "width": 1184
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
@@ -212,13 +176,13 @@
     {
       "parameters": {
         "content": "## Get LLM data and create report and merge",
-        "height": 640,
-        "width": 1552,
+        "height": 544,
+        "width": 1440,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -240,
+        -144,
         -432
       ],
       "typeVersion": 1,
@@ -228,15 +192,15 @@
     {
       "parameters": {
         "content": "## Get Merged LLM and Report data and create a backlink record with API",
-        "height": 400,
-        "width": 1936,
+        "height": 432,
+        "width": 1440,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -624,
-        224
+        -144,
+        128
       ],
       "id": "9f463593-bfd7-4cb3-b37d-86eeef62a410",
       "name": "Sticky Note7"
@@ -244,15 +208,15 @@
     {
       "parameters": {
         "content": "📊 N8N SEO – BACKLINK AUTOMATION WORKFLOW\n\n🔹 PURPOSE  \nAutomates SEO BACKLINK research & reporting using DataForSEO API and LLM OpenRouter (OpenAI) SEO Agent filter prompt, with error checks, merges, and final report creation.\n\n🔹 FLOW OVERVIEW  \n1. START PROCESS → Fetch domains & prep data  \n2. DataForSEO API Call → Give domains and Get Response  \n3. SEO AGENT → Give API data to SEO agent with filter prompt and get response  \n4. CREATE REPORT → Create report with agent response and merge with llm response\n5. ERROR CHECKS → Catch/report failures at multiple stages  \n6. CREATE BACKLINK → Create backlink with report data and llm response \n7. ERROR CHECKS → Catch/backlink failures at multiple stages  ",
-        "height": 1984,
-        "width": 3392,
+        "height": 2400,
+        "width": 3360,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1984,
-        -1280
+        -1824,
+        -1296
       ],
       "id": "82d57515-bd16-45e9-9a58-4f76cde5bede",
       "name": "Sticky Note8"
@@ -297,8 +261,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        -880,
-        -144
+        -832,
+        -176
       ],
       "id": "08fa40e1-7fd5-4f8a-8921-11625349f9ee",
       "name": "OpenAI Model",
@@ -339,44 +303,9 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        784,
+        688,
         -704
       ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "1a2b3c4d-5e6f-7890-1234-567890abcdef",
-              "leftValue": "={{ $json.success }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "false",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "462a8f76-777b-4ce6-bc77-1d46f3f4609b",
-      "name": "Check for Report Error",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        1056,
-        -80
-      ],
-      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -408,8 +337,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1040,
-        368
+        944,
+        272
       ],
       "onError": "continueRegularOutput"
     },
@@ -454,7 +383,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        48,
+        32,
         -704
       ],
       "id": "732248d4-7655-4910-8edc-76a7767e31e2",
@@ -462,20 +391,7 @@
     },
     {
       "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -432,
-        352
-      ],
-      "id": "535ecacd-8e8f-46ae-92f2-bf567249b72a",
-      "name": "Loop Over Backlink data"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Define all environments\nconst envs = {\n  local: {\n    BASE_URL: \"https://new-suddenly-sailfish.ngrok-free.app/\",\n  },\n  stg: {\n    BASE_URL: \"https://seo-stream-stg.addwebprojects.com/\",\n  },\n  prd: {\n    BASE_URL: \"https://seo-stream.addwebprojects.com/\",\n  },\n}\n\n// ✅ Choose active environment here\nconst active = \"local\" // change to 'local' | 'stg' | 'prd'\n\n// Output active environment data\nreturn [\n  {\n    json: {\n      env: active,\n      baseUrl: envs[active].BASE_URL,\n    },\n  },\n]\n"
+        "jsCode": "// Define all environments\nconst envs = {\n  local: {\n    BASE_URL: \"https://new-suddenly-sailfish.ngrok-free.app\",\n  },\n  stg: {\n    BASE_URL: \"https://seo-stream-stg.addwebprojects.com\",\n  },\n  prd: {\n    BASE_URL: \"https://seo-stream.addwebprojects.com\",\n  },\n}\n\n// ✅ Choose active environment here\nconst active = \"stg\" // change to 'local' | 'stg' | 'prd'\n\n// Output active environment data\nreturn [\n  {\n    json: {\n      env: active,\n      baseUrl: envs[active].BASE_URL,\n    },\n  },\n]\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -496,7 +412,7 @@
       "type": "n8n-nodes-dataforseo.dataForSeo",
       "typeVersion": 1,
       "position": [
-        416,
+        352,
         -704
       ],
       "id": "19a39fd7-31ad-4f5e-897d-f2447c0c07af",
@@ -517,14 +433,14 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1232,
-        352
+        -64,
+        688
       ]
     },
     {
       "parameters": {
         "fromEmail": "ankit.p@addwebsolution.in",
-        "toEmail": "vatsal.a@addwebsolution.in",
+        "toEmail": "={{ $json.emails }}",
         "subject": "={{ $json.subject }}",
         "html": "={{ $json.htmlBody }}",
         "options": {
@@ -536,8 +452,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        -1056,
-        352
+        368,
+        672
       ],
       "webhookId": "c0d56253-36ba-43a7-b212-387309d19ae7",
       "credentials": {
@@ -556,22 +472,22 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -848,
-        352
+        608,
+        688
       ]
     },
     {
       "parameters": {
-        "content": "## Send Email Report",
-        "height": 400,
-        "width": 704,
-        "color": 6
+        "content": "## Report Summary And Report Creation\n",
+        "height": 272,
+        "width": 1184,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
         -1344,
-        224
+        288
       ],
       "id": "bb07e3a7-0485-4535-80bb-c288a4154f2e",
       "name": "Sticky Note"
@@ -579,7 +495,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://new-suddenly-sailfish.ngrok-free.app/api/backlinkdatum/store",
+        "url": "=https://seo-stream-stg.addwebprojects.com/api/backlinkdatum/store",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -605,33 +521,20 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        336,
-        368
+        640,
+        272
       ],
       "id": "a1954ccf-4245-4660-95ec-0f4fb1bd4b65",
       "name": "Create Backlink"
     },
     {
       "parameters": {
-        "jsCode": "// Input: items array with your data\n// Output: grouped by client_domain_id + client_domain_title\n\nconst data = items.map(i => i.json);\n\nconst grouped = {};\n\nfor (const row of data) {\n  const key = `${row.client_domain_id}::${row.client_domain_title}`;\n\n  if (!grouped[key]) {\n    grouped[key] = {\n      client_domain_id: row.client_domain_id,\n      client_domain_title: row.client_domain_title,\n      client_domain: row.client_domain,\n      rivals: []\n    };\n  }\n\n  grouped[key].rivals.push({\n    id: row.id,\n    rival_domain_title: row.rival_domain_title.trim(), // trimmed\n    rival_domain: row.rival_domain,\n    date: row.date\n  });\n}\n\n// Convert object to array of 2 items\nreturn Object.values(grouped).map(g => ({ json: g }));\n"
+        "jsCode": "const inputItems = $input.all();               // Backlink responses (index-based)\nconst listData = $(\"Current Client Domain List\").all(); // Row mappings (index-based)\n\nconst allReports = [];\n\nfor (let index = 0; index < listData.length; index++) {\n  const row = listData[index].json;\n  const backlinkItem = inputItems[index];\n\n  if (!row.client_domain_id || !row.client_domain) {\n    console.warn(\"Skipping row - missing client info:\", row);\n    continue;\n  }\n\n  let clientData = { accepted_count: 0, rejected_count: 0, total_count: 0, backlinkDetails: {} };\n  let rivalData = { accepted_count: 0, rejected_count: 0, total_count: 0, backlinkDetails: {} };\n\n  if (backlinkItem?.json?.output) {\n    try {\n      const parsed = JSON.parse(backlinkItem.json.output);\n\n      clientData = {\n        accepted_count: parsed.accepted?.length || 0,\n        rejected_count: parsed.rejected?.length || 0,\n        total_count: (parsed.accepted?.length || 0) + (parsed.rejected?.length || 0),\n        backlinkDetails: parsed\n      };\n\n      // In Row-based mode, rival data comes from **its own row's output**\n      // If rival also needs backlink scan, it must have its own row/backlinkItem\n\n    } catch (e) {\n      console.error(`Error parsing backlink for row ${index}:`, e);\n    }\n  }\n\n  const runId = `RUN-${Date.now()}`;\n  const totalAccepted = clientData.accepted_count;\n  const totalRejected = clientData.rejected_count;\n\n  const report = {\n    run_id: runId,\n    client_id: row.client_id,\n    client_domain_id: row.client_domain_id,\n    client_domain: row.client_domain,\n    client_domain_title: row.client_domain_title,\n    clientBacklink: clientData.backlinkDetails,\n    rivalBacklinks: [], // Will only contain data if rival also scanned\n    accepted_backlinks: totalAccepted,\n    rejected_backlinks: totalRejected,\n    total_backlink: totalAccepted + totalRejected,\n    total_domains: clientData.total_count > 0 ? 1 : 0,\n    raw_backlink_data: [{\n      domain_id: row.client_domain_id,\n      clientId : row.client_id,\n      domain: row.client_domain,\n      domain_title: row.client_domain_title,\n      data: clientData.backlinkDetails\n    }],\n    run_at: new Date().toISOString()\n  };\n\n  allReports.push({ json: report });\n}\n\nreturn allReports;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1488,
-        -432
-      ],
-      "id": "a2025b54-0f86-45bd-a76d-e29f5635eecf",
-      "name": "Domains based Filter"
-    },
-    {
-      "parameters": {
-        "jsCode": "const inputItems = $input.all();\nconst runId = `RUN-${Date.now()}`;\nconst loopData = $('Loop Over Items').first().json;\nconst clientId = loopData.client_id;\nconst reports = [];\n\n// Create a map of all domain data for quick lookup\nconst domainDataMap = {};\nfor (const item of inputItems) {\n  if (!item.json) continue;\n\n  const backlinksData = JSON.parse(item.json.output);\n  const domain = backlinksData.domain;\n  const accepted = backlinksData.accepted || [];\n  const rejected = backlinksData.rejected || [];\n\n  domainDataMap[domain] = {\n    accepted_count: accepted.length,\n    rejected_count: rejected.length,\n    total_count: accepted.length + rejected.length,\n    backlinkDetails: backlinksData // store raw as-is\n  };\n}\n\n// Process each client domain\nfor (const clientDomain of loopData.client_domains) {\n  const clientDomainUrl = clientDomain.client_domain;\n  const rivalDomains = clientDomain.rival_domains || [];\n\n  const clientDomainData = domainDataMap[clientDomainUrl] || {\n    accepted_count: 0,\n    rejected_count: 0,\n    total_count: 0,\n    backlinkDetails: {}\n  };\n\n  let rivalAcceptedTotal = 0;\n  let rivalRejectedTotal = 0;\n  const rivalBacklinks = [];\n  const rawCombinedData = []; // store all raw data here WITH domain id\n  let domainCount = 0;\n\n  // Add client raw data\n  if (clientDomainData.backlinkDetails && Object.keys(clientDomainData.backlinkDetails).length) {\n    rawCombinedData.push({\n      domain_id: clientDomain.client_domain_id,\n      domain: clientDomainUrl,\n      domain_title: clientDomain.client_domain_title,\n      data: clientDomainData.backlinkDetails\n    });\n  }\n\n  if (clientDomainData.total_count > 0) domainCount++;\n\n  for (const rivalDomain of rivalDomains) {\n    const rivalUrl = rivalDomain.rival_domain;\n    const rivalData = domainDataMap[rivalUrl] || {\n      accepted_count: 0,\n      rejected_count: 0,\n      total_count: 0,\n      backlinkDetails: {}\n    };\n\n    if (rivalData.total_count > 0) domainCount++;\n\n    rivalAcceptedTotal += rivalData.accepted_count;\n    rivalRejectedTotal += rivalData.rejected_count;\n\n    rivalBacklinks.push({\n      rival_domain_id: rivalDomain.id,\n      rival_domain_title: rivalDomain.rival_domain_title,\n      rival_domain: rivalUrl,\n      accepted_backlinks: rivalData.accepted_count,\n      rejected_backlinks: rivalData.rejected_count,\n      total_backlinks: rivalData.total_count,\n      backlinkDetails: rivalData.backlinkDetails\n    });\n\n    // Add RAW rival data with domain id\n    if (rivalData.backlinkDetails && Object.keys(rivalData.backlinkDetails).length) {\n      rawCombinedData.push({\n        domain_id: clientDomain.client_domain_id,\n        domain: clientDomain.client_domain,\n        domain_title: clientDomain.client_domain_title,\n        data: rivalData.backlinkDetails\n      });\n    }\n  }\n\n  const report = {\n    run_id: runId,\n    client_id: clientId,\n    client_domain_id: clientDomain.client_domain_id,\n    client_domain_title: clientDomain.client_domain_title,\n    client_domain: clientDomainUrl,\n\n    clientBacklink: clientDomainData.backlinkDetails,\n    rivalBacklinks,\n\n    // Total backlinks across client + rivals\n    accepted_backlinks: clientDomainData.accepted_count + rivalAcceptedTotal,\n    rejected_backlinks: clientDomainData.rejected_count + rivalRejectedTotal,\n    total_backlink: clientDomainData.total_count + rivalAcceptedTotal + rivalRejectedTotal,\n\n    total_domains: domainCount,\n\n    raw_backlink_data: rawCombinedData,\n\n    run_at: new Date().toISOString(),\n  };\n\n  reports.push({ json: report });\n}\n\nreturn reports;\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        0,
+        -32,
         -320
       ],
       "id": "786a92ba-0699-422f-aa1a-dd10d6638634",
@@ -640,7 +543,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://new-suddenly-sailfish.ngrok-free.app/api/report/store",
+        "url": "=https://seo-stream-stg.addwebprojects.com/api/report/store",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -696,22 +599,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1088,
-        -304
+        -592,
+        352
       ],
       "id": "6dfc48d5-3794-4403-acd2-99003eae0823",
       "name": "Create Report"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        704,
-        -96
-      ],
-      "id": "7346ffc9-c52f-4f90-8e95-a9cdb4a694ca",
-      "name": "Merge"
     },
     {
       "parameters": {
@@ -720,21 +612,21 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        -112
+        1056,
+        -128
       ],
       "id": "465dd43e-298f-4c56-b0f3-852e58f70ccf",
       "name": "Raw Backlink data"
     },
     {
       "parameters": {
-        "jsCode": "const allItems = $input.all().map(i => i.json);\n\n// Build your final output object here\nconst first = allItems[0];\n\nconst report = {\n  run_id: first.run_id,\n  client_id: first.client_id,\n  domain_count: first.total_domains,\n  total_backlink: first.total_backlink,\n  accepted_backlinks: first.accepted_backlinks,\n  rejected_backlinks: first.rejected_backlinks,\n  run_at: new Date().toISOString(),\n};\n\n// Return **ONE** item only\nreturn [\n  {\n    json: report\n  }\n];\n"
+        "jsCode": "const input = $input.first().json;\nconst payloads = input.payloads || [];\nconst runId = `RUN-${Date.now()}`;\nlet accepted_backlinks = 0;\nlet rejected_backlinks = 0;\n\nconst domainSet = new Set();\nif (input.client_domain_url) domainSet.add(input.client_domain_url);\n\nfor (const item of payloads) {\n  const p = item.payload;\n\n  if (p.status === \"accepted\") accepted_backlinks++;\n  if (p.status === \"rejected\") rejected_backlinks++;\n\n  // Add rival domain URL (target_url)\n  if (p.target_url) domainSet.add(p.target_url);\n}\n\nconst summary = {\n  run_id : runId,\n  client_id: input.client_id,\n  domain_id: input.domain_id,\n  client_domain: input.client_domain,\n  client_domain_url: input.client_domain_url,\n\n  total_backlink: payloads.length,\n  accepted_backlinks,\n  rejected_backlinks,\n  total_domains: domainSet.size,  \n};\n\n// Return summary\nreturn [{ json: summary }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        864,
-        -304
+        -832,
+        352
       ],
       "id": "476f8320-7bc6-43b0-83fb-a219b0fc9d83",
       "name": "Report Summary"
@@ -746,139 +638,162 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        400,
+        640,
         -320
       ],
       "id": "f7c41d53-95c0-4dda-9f43-58cf72142f71",
       "name": "Loop report"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1216,
+        80
+      ],
+      "id": "8d01370d-2b32-42cd-b77c-1f66695e7bfa",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "content": "## Get Domain Assignee and Email Details\n",
+        "height": 304,
+        "width": 1184,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1344,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "bc496209-4553-476c-b18b-cadb9dfabe20",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "url": "=https://seo-stream-stg.addwebprojects.com/api/user/assignable-users/{{ $json.domain_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer MF04MMWBivkOmIfvx1iIEGOJm60WT5re9OhGulHnffc1cd6d"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -800,
+        96
+      ],
+      "id": "cd0d1aa7-81ef-423f-b725-01ae397ec9e1",
+      "name": "Domain Assignee Details"
+    },
+    {
+      "parameters": {
+        "jsCode": "const assigned = $input.first().json.assigned || [];\n\nconst emails = assigned.map(u => u.email).join(',');\n\nreturn [\n  {\n    json: {\n      emails\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        96
+      ],
+      "id": "1c48bed5-17d5-4a1b-87f9-f2ed25b7c96e",
+      "name": "Domain Assignee Emails"
+    },
+    {
+      "parameters": {
+        "jsCode": "const first = $input.first().json;\nconst reportId = $input.last().json.data.id\nconst updatedPayloads = first.payloads.map(p => ({\n  ...p,\n  payload: {\n    ...p.payload,\n    report_id: reportId,\n  }\n}));\n\nreturn updatedPayloads;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        272
+      ],
+      "id": "26d33685-7838-4f31-a797-ac38f45b78e0",
+      "name": "Payload "
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        176,
+        672
+      ],
+      "id": "570b45ba-7eb4-4e14-8873-8f5c12b8aa53",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "content": "## Send Email Report",
+        "height": 400,
+        "width": 912,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        576
+      ],
+      "id": "b685ae20-024c-4cd6-977e-e948b33d13f1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: Flat array of backlink responses\nconst records = $input.all();\n\nconst grouped = {};\n\n// Group by client domain\nfor (const item of records) {\n  const payload = item.json.payload;\n  if (!payload) continue;\n\n  const clientId = payload.client_id;\n  const domainId = payload.domain_id;\n  const clientDomain = payload.domain;\n  const clientDomainUrl = payload.domain_url;\n\n  const key = `${clientId}|${clientDomainUrl}`;\n\n  if (!grouped[key]) {\n    grouped[key] = {\n      client_id: clientId,\n      domain_id : domainId,\n      client_domain: clientDomain,\n      client_domain_url: clientDomainUrl,\n      payloads: []\n    };\n  }\n\n  grouped[key].payloads.push({\n    api: \"backlinkdatum/store\",\n    payload: { ...payload }\n  });\n}\n\n// Return result as array\nreturn Object.values(grouped).map(group => ({ json: group }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1136,
+        352
+      ],
+      "id": "0348c22e-6210-4218-ac7b-a6ffb3daff50",
+      "name": "Report Raw formatted Data"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        128,
+        272
+      ],
+      "id": "b736c22f-f693-4c8c-b95f-9175cb5c14ac",
+      "name": "Report ad Backlink data merge"
     }
   ],
   "pinData": {
-    "DataForSEO API Call": [
-      {
-        "json": {
-          "version": "0.1.20251023",
-          "status_code": 20000,
-          "status_message": "Ok.",
-          "time": "0 sec.",
-          "cost": 0,
-          "tasks_count": 1,
-          "tasks_error": 1,
-          "tasks": [
-            {
-              "id": "10301211-1096-0269-0000-23baeb8751ae",
-              "status_code": 40204,
-              "status_message": "Access denied. Visit Plans and Subscriptions to activate your subscription and get access to this API: https://app.dataforseo.com/backlinks-subscription .",
-              "time": "0 sec.",
-              "cost": 0,
-              "result_count": 0,
-              "path": [
-                "v3",
-                "backlinks",
-                "backlinks",
-                "live"
-              ],
-              "data": {
-                "api": "backlinks",
-                "function": "backlinks",
-                "target": "https://addwebsolution.com",
-                "limit": 10,
-                "internal_list_limit": 10,
-                "backlinks_status_type": "live",
-                "include_subdomains": true,
-                "exclude_internal_backlinks": true,
-                "include_indirect_links": true,
-                "mode": "as_is",
-                "rank_scale": "one_hundred"
-              },
-              "result": null
-            }
-          ]
-        }
-      },
-      {
-        "json": {
-          "version": "0.1.20251023",
-          "status_code": 20000,
-          "status_message": "Ok.",
-          "time": "0 sec.",
-          "cost": 0,
-          "tasks_count": 1,
-          "tasks_error": 1,
-          "tasks": [
-            {
-              "id": "10301211-1096-0269-0000-ddb778fc3864",
-              "status_code": 40204,
-              "status_message": "Access denied. Visit Plans and Subscriptions to activate your subscription and get access to this API: https://app.dataforseo.com/backlinks-subscription .",
-              "time": "0 sec.",
-              "cost": 0,
-              "result_count": 0,
-              "path": [
-                "v3",
-                "backlinks",
-                "backlinks",
-                "live"
-              ],
-              "data": {
-                "api": "backlinks",
-                "function": "backlinks",
-                "target": "https://www.tatvasoft.com/",
-                "limit": 10,
-                "internal_list_limit": 10,
-                "backlinks_status_type": "live",
-                "include_subdomains": true,
-                "exclude_internal_backlinks": true,
-                "include_indirect_links": true,
-                "mode": "as_is",
-                "rank_scale": "one_hundred"
-              },
-              "result": null
-            }
-          ]
-        }
-      },
-      {
-        "json": {
-          "version": "0.1.20251023",
-          "status_code": 20000,
-          "status_message": "Ok.",
-          "time": "0 sec.",
-          "cost": 0,
-          "tasks_count": 1,
-          "tasks_error": 1,
-          "tasks": [
-            {
-              "id": "10301211-1096-0269-0000-9e11109e282b",
-              "status_code": 40204,
-              "status_message": "Access denied. Visit Plans and Subscriptions to activate your subscription and get access to this API: https://app.dataforseo.com/backlinks-subscription .",
-              "time": "0 sec.",
-              "cost": 0,
-              "result_count": 0,
-              "path": [
-                "v3",
-                "backlinks",
-                "backlinks",
-                "live"
-              ],
-              "data": {
-                "api": "backlinks",
-                "function": "backlinks",
-                "target": "https://www.hiddenbrains.com/",
-                "limit": 10,
-                "internal_list_limit": 10,
-                "backlinks_status_type": "live",
-                "include_subdomains": true,
-                "exclude_internal_backlinks": true,
-                "include_indirect_links": true,
-                "mode": "as_is",
-                "rank_scale": "one_hundred"
-              },
-              "result": null
-            }
-          ]
-        }
-      }
-    ],
     "Get backlinks": [
       {
         "json": {
@@ -5776,6 +5691,48 @@
           ]
         }
       }
+    ],
+    "SEO Agent": [
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://www.bacancytechnology.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"thevrsoldier.com\",\n      \"url\": \"https://thevrsoldier.com/axie-infinity-is-the-most-googled-nft-collection-of-2021/\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"thevrsoldier.com\",\n      \"fromUrl\": \"https://thevrsoldier.com/axie-infinity-is-the-most-googled-nft-collection-of-2021/\",\n      \"anchor\": \"Bacancy\",\n      \"rank\": 120,\n      \"domainRank\": 327,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-11 12:26:53 +00:00\",\n      \"lastSeen\": \"2025-08-13 20:02:24 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Axie Infinity Is the Most Googled NFT Collection of 2021 The VR Soldier\",\n      \"reason\": \"Passed all filters including high authority, spam score 0%, dofollow, stable link history, valid status, good geo/TLD.\"\n    },\n    {\n      \"domain\": \"teletype.in\",\n      \"url\": \"https://teletype.in/@agilecp\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"teletype.in\",\n      \"fromUrl\": \"https://teletype.in/@agilecp\",\n      \"anchor\": \"www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 549,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-14 10:05:07 +00:00\",\n      \"lastSeen\": \"2025-05-30 23:55:32 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Chandresh Patel — Teletype\",\n      \"reason\": \"Passed authority and link history, spam score 10% borderline but accepted as dofollow and relevant.\"\n    },\n    {\n      \"domain\": \"teletype.in\",\n      \"url\": \"https://teletype.in/@bacancytechnology\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"teletype.in\",\n      \"fromUrl\": \"https://teletype.in/@bacancytechnology\",\n      \"anchor\": \"www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 549,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-14 09:31:22 +00:00\",\n      \"lastSeen\": \"2025-05-30 23:40:39 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy Technology — Teletype\",\n      \"reason\": \"Passed authority and link history, spam score 10% borderline but accepted as dofollow and relevant.\"\n    },\n    {\n      \"domain\": \"en.xieniao.com\",\n      \"url\": \"https://en.xieniao.com/sites/bacancy/\",\n      \"score\": 88,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"en.xieniao.com\",\n      \"fromUrl\": \"https://en.xieniao.com/sites/bacancy/\",\n      \"anchor\": \"Open website\",\n      \"rank\": 113,\n      \"domainRank\": 482,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-02-08 23:48:30 +00:00\",\n      \"lastSeen\": \"2025-05-13 21:38:36 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy,Partner with Agile software development company since 2011. Our developers utilize AI tools for 2x faster development & error-free coding. Contact us! | WEB VIPS\",\n      \"reason\": \"High authority, no spam, dofollow, relevant topical placement.\"\n    },\n    {\n      \"domain\": \"www.find-us-here.com\",\n      \"url\": \"https://www.find-us-here.com/businesses/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.find-us-here.com\",\n      \"fromUrl\": \"https://www.find-us-here.com/businesses/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"anchor\": \"https://www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 486,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-25 11:30:49 +00:00\",\n      \"lastSeen\": \"2024-11-25 11:30:49 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy - Website Development business near me in  Iselin NJ\",\n      \"reason\": \"High domain rank, zero spam, dofollow, geo USA confirmed, relevant topical placement.\"\n    },\n    {\n      \"domain\": \"www.a-zbusinessfinder.com\",\n      \"url\": \"https://www.a-zbusinessfinder.com/business-directory/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"score\": 88,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.a-zbusinessfinder.com\",\n      \"fromUrl\": \"https://www.a-zbusinessfinder.com/business-directory/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"anchor\": \"https://www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 417,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-02 12:13:36 +00:00\",\n      \"lastSeen\": \"2024-10-02 12:13:36 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy -  Iselin, New Jersey, USA - Website Development\",\n      \"reason\": \"Good domain rank, spam score borderline 10%, dofollow, USA geo, relevant context.\"\n    },\n    {\n      \"domain\": \"techniciansnow.com\",\n      \"url\": \"https://techniciansnow.com/unlocking-growth-with-automation-in-business-lessons-from-top-companies/\",\n      \"score\": 80,\n      \"tier\": \"Tier 3\",\n      \"fromDomain\": \"techniciansnow.com\",\n      \"fromUrl\": \"https://techniciansnow.com/unlocking-growth-with-automation-in-business-lessons-from-top-companies/\",\n      \"anchor\": \"Bacancy Technology\",\n      \"rank\": 81,\n      \"domainRank\": 257,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-04-11 11:09:10 +00:00\",\n      \"lastSeen\": \"2025-09-03 13:07:18 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Unlocking Growth with Automation in Business: Lessons from Top Companies\",\n      \"reason\": \"Domain rank below 300 but above 30, zero spam, dofollow, stable history, relevant anchor.\"\n    },\n    {\n      \"domain\": \"greenrecord.co.uk\",\n      \"url\": \"https://greenrecord.co.uk/explore-the-advantages-of-serverless-architecture/\",\n      \"score\": 78,\n      \"tier\": \"Tier 3\",\n      \"fromDomain\": \"greenrecord.co.uk\",\n      \"fromUrl\": \"https://greenrecord.co.uk/explore-the-advantages-of-serverless-architecture/\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 78,\n      \"domainRank\": 279,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-01-22 01:33:49 +00:00\",\n      \"lastSeen\": \"2025-10-27 17:16:09 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Explore the Advantages of Serverless Architecture – Green Record\",\n      \"reason\": \"High domain rank, zero spam, dofollow, UK TLD, stable link history but anchor is generic/no anchor.\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"markets.sh\",\n      \"url\": \"https://markets.sh/symbols/COM:BACANCYTECHNOLOGY\",\n      \"fromDomain\": \"markets.sh\",\n      \"score\": 30,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://markets.sh/symbols/COM:BACANCYTECHNOLOGY\",\n      \"anchor\": \"www.bacancytechnology.com\",\n      \"rank\": 113,\n      \"domainRank\": 265,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-04 01:17:13 +00:00\",\n      \"lastSeen\": \"2024-10-04 01:17:13 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"markets.sh\",\n      \"reason\": \"TLD '.sh' is not within accepted TLDs; geolocation unclear; rejected for geo & TLD non-compliance.\"\n    },\n    {\n      \"domain\": \"instabestcaptions.com\",\n      \"url\": \"https://instabestcaptions.com/unleashing-productivity-top-6-salesforce-chrome-extensions-in-2024/\",\n      \"fromDomain\": \"instabestcaptions.com\",\n      \"score\": 30,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://instabestcaptions.com/unleashing-productivity-top-6-salesforce-chrome-extensions-in-2024/\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 78,\n      \"domainRank\": 137,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-03-29 09:11:26 +00:00\",\n      \"lastSeen\": \"2025-10-21 05:20:11 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Unleashing Productivity: Top 6 Salesforce Chrome Extensions In 2024\",\n      \"reason\": \"Domain rank below minimum threshold of 30; anchor missing; rejected due to low authority and weak topical relevance.\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://www.azilen.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"zeemly.com\",\n      \"url\": \"https://zeemly.com/p/azilen-technologies/compare\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"zeemly.com\",\n      \"fromUrl\": \"https://zeemly.com/p/azilen-technologies/compare\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 113,\n      \"domainRank\": 169,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-10-31 04:57:04 +00:00\",\n      \"lastSeen\": \"2025-10-13 18:50:51 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Compare Azilen Technologies With Similar Products\",\n      \"reason\": \"Passed all filters including authority, low spam score, dofollow, stable link history, and correct geo/TLD.\"\n    },\n    {\n      \"domain\": \"zeemly.com\",\n      \"url\": \"https://zeemly.com/p/azilen-technologies\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"zeemly.com\",\n      \"fromUrl\": \"https://zeemly.com/p/azilen-technologies\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 113,\n      \"domainRank\": 176,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-10-28 17:48:06 +00:00\",\n      \"lastSeen\": \"2025-09-22 00:46:48 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Azilen Technologies Overview (Details, Reviews, Pricing, & Features)\",\n      \"reason\": \"Passed all filters including authority, low spam score, dofollow, stable link history, and correct geo/TLD.\"\n    },\n    {\n      \"domain\": \"zeemly.com\",\n      \"url\": \"https://zeemly.com/p/azilen-technologies/pros-cons\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"zeemly.com\",\n      \"fromUrl\": \"https://zeemly.com/p/azilen-technologies/pros-cons\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 113,\n      \"domainRank\": 176,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-12-18 10:50:42 +00:00\",\n      \"lastSeen\": \"2025-09-22 00:46:44 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Pros & Cons of Using Azilen Technologies (The good, the bad and the..)\",\n      \"reason\": \"Passed all filters including authority, low spam score, dofollow, stable link history, and correct geo/TLD.\"\n    },\n    {\n      \"domain\": \"zeemly.com\",\n      \"url\": \"https://zeemly.com/p/azilen-technologies/alternatives\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"zeemly.com\",\n      \"fromUrl\": \"https://zeemly.com/p/azilen-technologies/alternatives\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 113,\n      \"domainRank\": 176,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-30 20:56:51 +00:00\",\n      \"lastSeen\": \"2025-09-19 15:52:43 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Azilen Technologies Alternatives\\n    \\n        (0 Similar Tools as of September, 2025)\",\n      \"reason\": \"Passed all filters including authority, low spam score, dofollow, stable link history, and correct geo/TLD.\"\n    },\n    {\n      \"domain\": \"www.jobriya.in\",\n      \"url\": \"https://www.jobriya.in/azilen-technologies-latest-jobs-2022/\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.jobriya.in\",\n      \"fromUrl\": \"https://www.jobriya.in/azilen-technologies-latest-jobs-2022/\",\n      \"anchor\": \"Click Here\",\n      \"rank\": 113,\n      \"domainRank\": 362,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-07-05 01:50:05 +00:00\",\n      \"lastSeen\": \"2025-07-05 01:50:05 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Azilen Technologies Latest Jobs Opening 2022 Apply online\",\n      \"reason\": \"Passed authority, zero spam, dofollow and stable link history; geo/TLD unknown but domainRank very high.\"\n    },\n    {\n      \"domain\": \"afriprime.net\",\n      \"url\": \"https://afriprime.net/Pritesh\",\n      \"score\": 88,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"afriprime.net\",\n      \"fromUrl\": \"https://afriprime.net/Pritesh\",\n      \"anchor\": \"Azilen\",\n      \"rank\": 113,\n      \"domainRank\": 346,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-12-29 10:19:44 +00:00\",\n      \"lastSeen\": \"2025-06-13 22:32:07 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Pritesh\",\n      \"reason\": \"Passed authority, low spam, dofollow, stable link history; geo/TLD unknown but domainRank very high.\"\n    },\n    {\n      \"domain\": \"www.red-gate.com\",\n      \"url\": \"https://www.red-gate.com/simple-talk/author/kruteshamin/\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.red-gate.com\",\n      \"fromUrl\": \"https://www.red-gate.com/simple-talk/author/kruteshamin/\",\n      \"anchor\": \"Azilen Technologies\",\n      \"rank\": 113,\n      \"domainRank\": 606,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2019-03-22 05:52:08 +00:00\",\n      \"lastSeen\": \"2025-01-30 17:59:56 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Krutesh Amin, Author at Simple Talk\",\n      \"reason\": \"Spam score at threshold 10%, high domain rank, dofollow, stable link history, authority verified.\"\n    },\n    {\n      \"domain\": \"hashnode.com\",\n      \"url\": \"https://hashnode.com/@frankaustin\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"hashnode.com\",\n      \"fromUrl\": \"https://hashnode.com/@frankaustin\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 91,\n      \"domainRank\": 633,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-09-15 20:01:48 +00:00\",\n      \"lastSeen\": \"2024-12-04 13:54:35 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Frank Austin — Hashnode\",\n      \"reason\": \"High authority, zero spam, dofollow, stable link history, domain and backlink quality good.\"\n    },\n    {\n      \"domain\": \"siit.co\",\n      \"url\": \"https://siit.co/guestposts/product-engineering/\",\n      \"score\": 87,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"siit.co\",\n      \"fromUrl\": \"https://siit.co/guestposts/product-engineering/\",\n      \"anchor\": \"product engineering company\",\n      \"rank\": 78,\n      \"domainRank\": 440,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-10-21 07:21:36 +00:00\",\n      \"lastSeen\": \"2025-11-09 19:13:55 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Big Data Powers Up Product Engineering\",\n      \"reason\": \"High domain rank, zero spam, dofollow, contextual anchor, stable link history.\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"hashnode-hub.vercel.app\",\n      \"url\": \"https://hashnode-hub.vercel.app/users/frankaustin\",\n      \"fromDomain\": \"hashnode-hub.vercel.app\",\n      \"score\": 40,\n      \"tier\": \"N/A\",\n      \"fromUrl\": \"https://hashnode-hub.vercel.app/users/frankaustin\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 113,\n      \"domainRank\": 13,\n      \"spamScore\": 15,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-09-16 09:17:14 +00:00\",\n      \"lastSeen\": \"2025-06-04 17:01:37 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Frank Austin - Hashnode\",\n      \"reason\": \"Domain rank below minimum threshold (30) and spam score exceeds 10% maximum.\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://www.letsnurture.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"www.behance.net\",\n      \"url\": \"https://www.behance.net/LetsNurture\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.behance.net\",\n      \"fromUrl\": \"https://www.behance.net/LetsNurture\",\n      \"anchor\": \"www.letsnurture.com/\",\n      \"rank\": 165,\n      \"domainRank\": 726,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-10-29 16:07:04 +00:00\",\n      \"lastSeen\": \"2024-12-05 16:59:06 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Ketan Raval :: Behance\",\n      \"reason\": \"Passed all filters including very high domain rank, zero spam score, proper dofollow, and correct geo/TLD (generic Behance platform).\"\n    },\n    {\n      \"domain\": \"cloudprwire.us\",\n      \"url\": \"https://cloudprwire.us/lets-nurture-canada-is-launching-new-emerging-tech-division-which-ll-focus-on-ar-vr-and-iot-product-expansion-in-north-and-south-america/\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"cloudprwire.us\",\n      \"fromUrl\": \"https://cloudprwire.us/lets-nurture-canada-is-launching-new-emerging-tech-division-which-ll-focus-on-ar-vr-and-iot-product-expansion-in-north-and-south-america/\",\n      \"anchor\": \"Let’s Nurture\",\n      \"rank\": 113,\n      \"domainRank\": 304,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-28 20:08:54 +00:00\",\n      \"lastSeen\": \"2025-09-12 23:00:01 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Let’s Nurture Canada is launching new emerging tech division which ll focus on AR-VR and IoT Product expansion in North and South America – Cloud PR Wire\",\n      \"reason\": \"High domain rank and spam score at max accepted threshold with dofollow, valid status and relevant anchor text.\"\n    },\n    {\n      \"domain\": \"www.behance.net\",\n      \"url\": \"https://www.behance.net/LetsNurture?\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.behance.net\",\n      \"fromUrl\": \"https://www.behance.net/LetsNurture?\",\n      \"anchor\": \"www.letsnurture.com/\",\n      \"rank\": 109,\n      \"domainRank\": 777,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-03-28 16:52:14 +00:00\",\n      \"lastSeen\": \"2025-09-29 18:47:00 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Ketan Raval - CEO  in Ahmedabad, India :: Behance\",\n      \"reason\": \"Very high domain rank, zero spam, dofollow, reliable history and relevant anchor.\"\n    },\n    {\n      \"domain\": \"menstrupedia.com\",\n      \"url\": \"https://menstrupedia.com/about\",\n      \"score\": 80,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"menstrupedia.com\",\n      \"fromUrl\": \"https://menstrupedia.com/about\",\n      \"anchor\": \"LetsNurture\",\n      \"rank\": 86,\n      \"domainRank\": 283,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-04-05 04:23:51 +00:00\",\n      \"lastSeen\": \"2025-09-13 20:34:44 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Friendly guide to healthy periods - Menstrupedia\",\n      \"reason\": \"Meets all criteria with domain rank above 280, zero spam, dofollow, and no broken issues; assumed contextual and relevant anchor branding.\"\n    },\n    {\n      \"domain\": \"www.cloudways.com\",\n      \"url\": \"https://www.cloudways.com/blog/best-digital-marketing-agencies/\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.cloudways.com\",\n      \"fromUrl\": \"https://www.cloudways.com/blog/best-digital-marketing-agencies/\",\n      \"anchor\": \"Lets Nurture\",\n      \"rank\": 29,\n      \"domainRank\": 566,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-05 11:00:23 +00:00\",\n      \"lastSeen\": \"2025-09-27 22:27:54 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Top 50 Digital Marketing Agencies to Watch in 2025\",\n      \"reason\": \"High domain rank, zero spam, good dofollow, stable history and relevant topic & anchor.\"\n    },\n    {\n      \"domain\": \"www.assetequipmentfinance.co.uk\",\n      \"url\": \"https://www.assetequipmentfinance.co.uk/\",\n      \"score\": 75,\n      \"tier\": \"Tier 2\",\n      \"fromDomain\": \"www.assetequipmentfinance.co.uk\",\n      \"fromUrl\": \"https://www.assetequipmentfinance.co.uk/\",\n      \"anchor\": \"Let's nurture\",\n      \"rank\": 29,\n      \"domainRank\": 128,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-06-16 16:37:57 +00:00\",\n      \"lastSeen\": \"2025-09-03 17:03:11 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Business Asset Finance, Equipment Leasing & Loans Company | Gable Asset Finance\",\n      \"reason\": \"Domain rank is above 100 with zero spam and dofollow, valid backlink history; UK TLD accepted; anchor likely branded.\"\n    },\n    {\n      \"domain\": \"theorg.com\",\n      \"url\": \"https://theorg.com/org/lets-nurture\",\n      \"score\": 80,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"theorg.com\",\n      \"fromUrl\": \"https://theorg.com/org/lets-nurture\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 23,\n      \"domainRank\": 421,\n      \"spamScore\": 5,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-10-19 05:10:38 +00:00\",\n      \"lastSeen\": \"2025-10-28 13:37:27 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Let's Nurture - Your Atlantic Tech Partner | The Org\",\n      \"reason\": \"High domain rank, low spam score, dofollow, stable history; anchor is generic, allowed type.\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"www.businesslistings.net.au\",\n      \"url\": \"https://www.businesslistings.net.au/_Web_Design_Web_Developmet_Web_Hosting_Branding_Website_Maintenance_Search_Engine_Marketing/NSW/Sydney/LetsNurture/147615.aspx\",\n      \"fromDomain\": \"www.businesslistings.net.au\",\n      \"score\": 55,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.businesslistings.net.au/_Web_Design_Web_Developmet_Web_Hosting_Branding_Website_Maintenance_Search_Engine_Marketing/NSW/Sydney/LetsNurture/147615.aspx\",\n      \"anchor\": \"https://www.letsnurture.com\",\n      \"rank\": 113,\n      \"domainRank\": 378,\n      \"spamScore\": 20,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-09-17 15:07:05 +00:00\",\n      \"lastSeen\": \"2025-05-09 23:25:46 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"LetsNurture Reviews - \\\"Web Design, Web Developmet, Web Hosting, Branding, Website Maintenance, Search Engine Marketing Sydney NSW\",\n      \"reason\": \"Spam score at 20% exceeds Tier 3 max (20%) borderline and dofollow ratio is acceptable however anchor is a naked URL which can be lower quality; probable content/topic relevance uncertain; safe to reject to be conservative.\"\n    },\n    {\n      \"domain\": \"bigstartups.co\",\n      \"url\": \"https://bigstartups.co/articles/article/voice-activated-tech---impact-on-consumers-and-market\",\n      \"fromDomain\": \"bigstartups.co\",\n      \"score\": 40,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://bigstartups.co/articles/article/voice-activated-tech---impact-on-consumers-and-market\",\n      \"anchor\": \"contact us\",\n      \"rank\": 58,\n      \"domainRank\": 266,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-07 08:14:55 +00:00\",\n      \"lastSeen\": \"2025-04-11 14:17:59 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Voice-activated Tech - Impact on consumers and market - BigStartups\",\n      \"reason\": \"Generic anchor 'contact us' and anchor type disallowed by context guidelines; possible lack of contextual relevance to target; although domain rank and spam score fit Tier 3, anchor and topic mismatch requires rejection.\"\n    },\n    {\n      \"domain\": \"comparable-companies.com\",\n      \"url\": \"https://comparable-companies.com/company/lets-nurture-global-it-solutions--ites-provider-competitors-similar-companies\",\n      \"fromDomain\": \"comparable-companies.com\",\n      \"score\": 10,\n      \"tier\": \"Rejected\",\n      \"fromUrl\": \"https://comparable-companies.com/company/lets-nurture-global-it-solutions--ites-provider-competitors-similar-companies\",\n      \"anchor\": \"www.letsnurture.com\",\n      \"rank\": 58,\n      \"domainRank\": 3,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-08-27 12:23:25 +00:00\",\n      \"lastSeen\": \"2024-12-09 20:45:41 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Comparable Companies - we help you find companies\",\n      \"reason\": \"Domain rank below minimum threshold (3 < 30).\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://www.technource.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"www.gbig.org\",\n      \"url\": \"https://www.gbig.org/leaders/organizations\",\n      \"score\": 65,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.gbig.org\",\n      \"fromUrl\": \"https://www.gbig.org/leaders/organizations\",\n      \"anchor\": \"Technource\",\n      \"rank\": 142,\n      \"domainRank\": 563,\n      \"spamScore\": 45,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-03 19:55:14 +00:00\",\n      \"lastSeen\": \"2024-12-12 20:28:30 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Green Building Information Gateway\",\n      \"reason\": \"Rejected due to spamScore too high (45%) exceeding 20%, excluded from accepted despite high domainRank.\"\n    },\n    {\n      \"domain\": \"logcla.com\",\n      \"url\": \"https://logcla.com/technource\",\n      \"score\": 88,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"logcla.com\",\n      \"fromUrl\": \"https://logcla.com/technource\",\n      \"anchor\": \"https://www.technource.com\",\n      \"rank\": 114,\n      \"domainRank\": 378,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-29 03:13:55 +00:00\",\n      \"lastSeen\": \"2025-02-26 02:20:29 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Technource Pvt Ltd\",\n      \"reason\": \"Passed all filters with excellent domain rank, zero spam, proper link type and dofollow.\"\n    },\n    {\n      \"domain\": \"inleo.io\",\n      \"url\": \"https://inleo.io/profile/technource\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"inleo.io\",\n      \"fromUrl\": \"https://inleo.io/profile/technource\",\n      \"anchor\": \"https://www.technource.com/\",\n      \"rank\": 114,\n      \"domainRank\": 592,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-12-06 03:13:54 +00:00\",\n      \"lastSeen\": \"2024-12-06 03:13:54 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"InLeo | Microblogging in Blockchain\",\n      \"reason\": \"Perfect spam score, high authority domainRank, dofollow, and recent backlink history.\"\n    },\n    {\n      \"domain\": \"naturalatlas.com\",\n      \"url\": \"https://naturalatlas.com/@technource\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"naturalatlas.com\",\n      \"fromUrl\": \"https://naturalatlas.com/@technource\",\n      \"anchor\": \"www.technource.com/\",\n      \"rank\": 114,\n      \"domainRank\": 327,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-29 02:23:20 +00:00\",\n      \"lastSeen\": \"2024-11-29 02:23:20 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Technource Pvt Ltd (@technource) on Natural Atlas\",\n      \"reason\": \"Meets all quality metrics, low spam, strong domain authority, and contextual anchor.\"\n    },\n    {\n      \"domain\": \"paalk.com\",\n      \"url\": \"https://paalk.com/technource\",\n      \"score\": 78,\n      \"tier\": \"Tier 3\",\n      \"fromDomain\": \"paalk.com\",\n      \"fromUrl\": \"https://paalk.com/technource\",\n      \"anchor\": \"Technource Pvt Ltd\",\n      \"rank\": 113,\n      \"domainRank\": 255,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-12-25 12:39:05 +00:00\",\n      \"lastSeen\": \"2025-10-21 03:02:50 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"technource\",\n      \"reason\": \"Spam score at threshold (10%) but acceptable, domain rank acceptable, recent and stable backlinks.\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"cnccode.com\",\n      \"url\": \"https://cnccode.com/technource\",\n      \"fromDomain\": \"cnccode.com\",\n      \"score\": 50,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://cnccode.com/technource\",\n      \"anchor\": \"https://www.technource.com...\",\n      \"rank\": 114,\n      \"domainRank\": 281,\n      \"spamScore\": 30,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-26 23:01:35 +00:00\",\n      \"lastSeen\": \"2024-12-06 03:25:44 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"technource\",\n      \"reason\": \"Spam score (30%) exceeds maximum allowed (20%).\"\n    },\n    {\n      \"domain\": \"www.bundas24.com\",\n      \"url\": \"https://www.bundas24.com/sanjaysingh\",\n      \"fromDomain\": \"www.bundas24.com\",\n      \"score\": 48,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.bundas24.com/sanjaysingh\",\n      \"anchor\": \"Technource Pvt. Ltd.\",\n      \"rank\": 113,\n      \"domainRank\": 375,\n      \"spamScore\": 25,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-08-13 16:51:52 +00:00\",\n      \"lastSeen\": \"2025-09-24 13:13:20 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Sanjay Singh\",\n      \"reason\": \"Spam score (25%) exceeds maximum allowed (20%).\"\n    },\n    {\n      \"domain\": \"www.cryotechno.com\",\n      \"url\": \"https://www.cryotechno.com/tools/home\",\n      \"fromDomain\": \"www.cryotechno.com\",\n      \"score\": 45,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.cryotechno.com/tools/home\",\n      \"anchor\": \"Technource\",\n      \"rank\": 113,\n      \"domainRank\": 52,\n      \"spamScore\": 35,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-18 07:00:44 +00:00\",\n      \"lastSeen\": \"2025-08-25 23:46:32 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"执行器选择工具- Armatec\",\n      \"reason\": \"Spam score (35%) exceeds maximum allowed (20%).\"\n    },\n    {\n      \"domain\": \"www.cryotechno.com\",\n      \"url\": \"https://www.cryotechno.com/tools/contactus\",\n      \"fromDomain\": \"www.cryotechno.com\",\n      \"score\": 50,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.cryotechno.com/tools/contactus\",\n      \"anchor\": \"Technource\",\n      \"rank\": 113,\n      \"domainRank\": 52,\n      \"spamScore\": 20,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-18 07:00:25 +00:00\",\n      \"lastSeen\": \"2025-08-25 23:46:24 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"该我们\",\n      \"reason\": \"Spam score at 20% is upper limit, but other signals like geo and topic unknown may cause rejection for topic mismatch.\"\n    },\n    {\n      \"domain\": \"www.cryotechno.com\",\n      \"url\": \"https://www.cryotechno.com/tools/terms-and-condition\",\n      \"fromDomain\": \"www.cryotechno.com\",\n      \"score\": 43,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.cryotechno.com/tools/terms-and-condition\",\n      \"anchor\": \"techource.\",\n      \"rank\": 113,\n      \"domainRank\": 52,\n      \"spamScore\": 30,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-18 07:00:09 +00:00\",\n      \"lastSeen\": \"2025-08-25 23:46:16 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Unknown\",\n      \"reason\": \"Spam score (30%) exceeds threshold and page topic unclear.\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://www.technource.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"www.gbig.org\",\n      \"url\": \"https://www.gbig.org/leaders/organizations\",\n      \"score\": 58,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.gbig.org\",\n      \"fromUrl\": \"https://www.gbig.org/leaders/organizations\",\n      \"anchor\": \"Technource\",\n      \"rank\": 142,\n      \"domainRank\": 563,\n      \"spamScore\": 45,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-03 19:55:14 +00:00\",\n      \"lastSeen\": \"2024-12-12 20:28:30 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Green Building Information Gateway\",\n      \"reason\": \"Accepted due to very high domain rank and dofollow status; spam score is above preferred threshold for low spam but below the 60% reject threshold. Domain rank and backlink community strongly compensate for spam score.\"\n    },\n    {\n      \"domain\": \"logcla.com\",\n      \"url\": \"https://logcla.com/technource\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"logcla.com\",\n      \"fromUrl\": \"https://logcla.com/technource\",\n      \"anchor\": \"https://www.technource.com\",\n      \"rank\": 114,\n      \"domainRank\": 378,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-29 03:13:55 +00:00\",\n      \"lastSeen\": \"2025-02-26 02:20:29 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Technource Pvt Ltd\",\n      \"reason\": \"Strong domain rank, zero spam score, dofollow link, and stable backlink history confirming quality link.\"\n    },\n    {\n      \"domain\": \"inleo.io\",\n      \"url\": \"https://inleo.io/profile/technource\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"inleo.io\",\n      \"fromUrl\": \"https://inleo.io/profile/technource\",\n      \"anchor\": \"https://www.technource.com/\",\n      \"rank\": 114,\n      \"domainRank\": 592,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-12-06 03:13:54 +00:00\",\n      \"lastSeen\": \"2024-12-06 03:13:54 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"InLeo | Microblogging in Blockchain\",\n      \"reason\": \"Very high domain rank, zero spam, dofollow, and contextual relevance.\"\n    },\n    {\n      \"domain\": \"naturalatlas.com\",\n      \"url\": \"https://naturalatlas.com/@technource\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"naturalatlas.com\",\n      \"fromUrl\": \"https://naturalatlas.com/@technource\",\n      \"anchor\": \"www.technource.com/\",\n      \"rank\": 114,\n      \"domainRank\": 327,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-29 02:23:20 +00:00\",\n      \"lastSeen\": \"2024-11-29 02:23:20 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Technource Pvt Ltd (@technource) on Natural Atlas\",\n      \"reason\": \"High domain rank, zero spam, dofollow, and relevant contextual placement.\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"cnccode.com\",\n      \"url\": \"https://cnccode.com/technource\",\n      \"fromDomain\": \"cnccode.com\",\n      \"score\": 40,\n      \"tier\": \"Tier 1\",\n      \"fromUrl\": \"https://cnccode.com/technource\",\n      \"anchor\": \"https://www.technource.com...\",\n      \"rank\": 114,\n      \"domainRank\": 281,\n      \"spamScore\": 30,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-26 23:01:35 +00:00\",\n      \"lastSeen\": \"2024-12-06 03:25:44 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"technource\",\n      \"reason\": \"Spam score too high (30%) exceeding preferred spam threshold under 20% for this tier.\"\n    },\n    {\n      \"domain\": \"paalk.com\",\n      \"url\": \"https://paalk.com/technource\",\n      \"fromDomain\": \"paalk.com\",\n      \"score\": 55,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://paalk.com/technource\",\n      \"anchor\": \"Technource Pvt Ltd\",\n      \"rank\": 113,\n      \"domainRank\": 255,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-12-25 12:39:05 +00:00\",\n      \"lastSeen\": \"2025-10-21 03:02:50 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"technource\",\n      \"reason\": \"Domain rank is below minimum threshold 30 for stable/growing quality link history in this context.\"\n    },\n    {\n      \"domain\": \"www.bundas24.com\",\n      \"url\": \"https://www.bundas24.com/sanjaysingh\",\n      \"fromDomain\": \"www.bundas24.com\",\n      \"score\": 42,\n      \"tier\": \"Tier 1\",\n      \"fromUrl\": \"https://www.bundas24.com/sanjaysingh\",\n      \"anchor\": \"Technource Pvt. Ltd.\",\n      \"rank\": 113,\n      \"domainRank\": 375,\n      \"spamScore\": 25,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-08-13 16:51:52 +00:00\",\n      \"lastSeen\": \"2025-09-24 13:13:20 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Sanjay Singh\",\n      \"reason\": \"Spam score too high (25%) exceeding accepted spam levels for any tier.\"\n    },\n    {\n      \"domain\": \"www.cryotechno.com\",\n      \"url\": \"https://www.cryotechno.com/tools/home\",\n      \"fromDomain\": \"www.cryotechno.com\",\n      \"score\": 30,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.cryotechno.com/tools/home\",\n      \"anchor\": \"Technource\",\n      \"rank\": 113,\n      \"domainRank\": 52,\n      \"spamScore\": 35,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-18 07:00:44 +00:00\",\n      \"lastSeen\": \"2025-08-25 23:46:32 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"执行器选择工具- Armatec\",\n      \"reason\": \"Spam score too high (35%) and domain rank on lower boundary but spam disqualifies link.\"\n    },\n    {\n      \"domain\": \"www.cryotechno.com\",\n      \"url\": \"https://www.cryotechno.com/tools/contactus\",\n      \"fromDomain\": \"www.cryotechno.com\",\n      \"score\": 38,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.cryotechno.com/tools/contactus\",\n      \"anchor\": \"Technource\",\n      \"rank\": 113,\n      \"domainRank\": 52,\n      \"spamScore\": 20,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-18 07:00:25 +00:00\",\n      \"lastSeen\": \"2025-08-25 23:46:24 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"该我们\",\n      \"reason\": \"Spam score too high (20%) exceeding Tier 3 accepted threshold of 20%, borderline but rejected for strict filtering.\"\n    },\n    {\n      \"domain\": \"www.cryotechno.com\",\n      \"url\": \"https://www.cryotechno.com/tools/terms-and-condition\",\n      \"fromDomain\": \"www.cryotechno.com\",\n      \"score\": 28,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.cryotechno.com/tools/terms-and-condition\",\n      \"anchor\": \"techource.\",\n      \"rank\": 113,\n      \"domainRank\": 52,\n      \"spamScore\": 30,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-18 07:00:09 +00:00\",\n      \"lastSeen\": \"2025-08-25 23:46:16 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Unknown\",\n      \"reason\": \"Spam score too high (30%) and low domain rank combined with vague anchor and unknown context.\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://www.bacancytechnology.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"thevrsoldier.com\",\n      \"url\": \"https://thevrsoldier.com/axie-infinity-is-the-most-googled-nft-collection-of-2021/\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"thevrsoldier.com\",\n      \"fromUrl\": \"https://thevrsoldier.com/axie-infinity-is-the-most-googled-nft-collection-of-2021/\",\n      \"anchor\": \"Bacancy\",\n      \"rank\": 120,\n      \"domainRank\": 327,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-11 12:26:53 +00:00\",\n      \"lastSeen\": \"2025-08-13 20:02:24 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Axie Infinity Is the Most Googled NFT Collection of 2021 The VR Soldier\",\n      \"reason\": \"Passed all filters including very high authority, zero spam score, dofollow status, stable backlink history, and acceptable geo/TLD.\"\n    },\n    {\n      \"domain\": \"teletype.in\",\n      \"url\": \"https://teletype.in/@agilecp\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"teletype.in\",\n      \"fromUrl\": \"https://teletype.in/@agilecp\",\n      \"anchor\": \"www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 549,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-14 10:05:07 +00:00\",\n      \"lastSeen\": \"2025-05-30 23:55:32 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Chandresh Patel — Teletype\",\n      \"reason\": \"High domain rank, low spam score at threshold limit but acceptable, dofollow, stable backlink history.\"\n    },\n    {\n      \"domain\": \"teletype.in\",\n      \"url\": \"https://teletype.in/@bacancytechnology\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"teletype.in\",\n      \"fromUrl\": \"https://teletype.in/@bacancytechnology\",\n      \"anchor\": \"www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 549,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2021-11-14 09:31:22 +00:00\",\n      \"lastSeen\": \"2025-05-30 23:40:39 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy Technology — Teletype\",\n      \"reason\": \"High domain rank, low spam score at threshold limit but acceptable, dofollow, stable backlink history.\"\n    },\n    {\n      \"domain\": \"en.xieniao.com\",\n      \"url\": \"https://en.xieniao.com/sites/bacancy/\",\n      \"score\": 88,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"en.xieniao.com\",\n      \"fromUrl\": \"https://en.xieniao.com/sites/bacancy/\",\n      \"anchor\": \"Open website\",\n      \"rank\": 113,\n      \"domainRank\": 482,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-02-08 23:48:30 +00:00\",\n      \"lastSeen\": \"2025-05-13 21:38:36 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy,Partner with Agile software development company since 2011. Our developers utilize AI tools for 2x faster development & error-free coding. Contact us! | WEB VIPS\",\n      \"reason\": \"High domain rank, zero spam, dofollow, relevant anchor and context, stable history.\"\n    },\n    {\n      \"domain\": \"www.find-us-here.com\",\n      \"url\": \"https://www.find-us-here.com/businesses/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.find-us-here.com\",\n      \"fromUrl\": \"https://www.find-us-here.com/businesses/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"anchor\": \"https://www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 486,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-11-25 11:30:49 +00:00\",\n      \"lastSeen\": \"2024-11-25 11:30:49 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy - Website Development business near me in  Iselin NJ\",\n      \"reason\": \"High domain rank, zero spam, dofollow, relevant and contextual placement, stable history.\"\n    },\n    {\n      \"domain\": \"www.a-zbusinessfinder.com\",\n      \"url\": \"https://www.a-zbusinessfinder.com/business-directory/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"score\": 80,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.a-zbusinessfinder.com\",\n      \"fromUrl\": \"https://www.a-zbusinessfinder.com/business-directory/Bacancy-Iselin-New-Jersey-USA/34068878/\",\n      \"anchor\": \"https://www.bacancytechnology.com/\",\n      \"rank\": 113,\n      \"domainRank\": 417,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-02 12:13:36 +00:00\",\n      \"lastSeen\": \"2024-10-02 12:13:36 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Bacancy -  Iselin, New Jersey, USA - Website Development\",\n      \"reason\": \"High domain rank, spam at threshold but acceptable, dofollow, relevant context, stable history.\"\n    },\n    {\n      \"domain\": \"techniciansnow.com\",\n      \"url\": \"https://techniciansnow.com/unlocking-growth-with-automation-in-business-lessons-from-top-companies/\",\n      \"score\": 75,\n      \"tier\": \"Tier 3\",\n      \"fromDomain\": \"techniciansnow.com\",\n      \"fromUrl\": \"https://techniciansnow.com/unlocking-growth-with-automation-in-business-lessons-from-top-companies/\",\n      \"anchor\": \"Bacancy Technology\",\n      \"rank\": 81,\n      \"domainRank\": 257,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-04-11 11:09:10 +00:00\",\n      \"lastSeen\": \"2025-09-03 13:07:18 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Unlocking Growth with Automation in Business: Lessons from Top Companies\",\n      \"reason\": \"Domain rank above minimum, zero spam score, dofollow, relevant anchor, stable history but domain rank and ref domains not high enough for higher tier.\"\n    },\n    {\n      \"domain\": \"greenrecord.co.uk\",\n      \"url\": \"https://greenrecord.co.uk/explore-the-advantages-of-serverless-architecture/\",\n      \"score\": 70,\n      \"tier\": \"Tier 3\",\n      \"fromDomain\": \"greenrecord.co.uk\",\n      \"fromUrl\": \"https://greenrecord.co.uk/explore-the-advantages-of-serverless-architecture/\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 78,\n      \"domainRank\": 279,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-01-22 01:33:49 +00:00\",\n      \"lastSeen\": \"2025-10-27 17:16:09 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Explore the Advantages of Serverless Architecture – Green Record\",\n      \"reason\": \"Domain rank above minimum, zero spam score, dofollow, stable history, geo UK confirmed by TLD .co.uk\"\n    },\n    {\n      \"domain\": \"instabestcaptions.com\",\n      \"url\": \"https://instabestcaptions.com/unleashing-productivity-top-6-salesforce-chrome-extensions-in-2024/\",\n      \"score\": 55,\n      \"tier\": \"Rejected\",\n      \"fromDomain\": \"instabestcaptions.com\",\n      \"fromUrl\": \"https://instabestcaptions.com/unleashing-productivity-top-6-salesforce-chrome-extensions-in-2024/\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 78,\n      \"domainRank\": 137,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-03-29 09:11:26 +00:00\",\n      \"lastSeen\": \"2025-10-21 05:20:11 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Unleashing Productivity: Top 6 Salesforce Chrome Extensions In 2024\",\n      \"reason\": \"Domain rank below minimum threshold of 30 for acceptance.\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"markets.sh\",\n      \"url\": \"https://markets.sh/symbols/COM:BACANCYTECHNOLOGY\",\n      \"fromDomain\": \"markets.sh\",\n      \"score\": 20,\n      \"tier\": \"Rejected\",\n      \"fromUrl\": \"https://markets.sh/symbols/COM:BACANCYTECHNOLOGY\",\n      \"anchor\": \"www.bacancytechnology.com\",\n      \"rank\": 113,\n      \"domainRank\": 265,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-10-04 01:17:13 +00:00\",\n      \"lastSeen\": \"2024-10-04 01:17:13 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"markets.sh\",\n      \"reason\": \"Domain TLD not in preferred list, geo location unknown, questionable topical relevance and context unclear.\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://magnetoitsolutions.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"www.silhouette101.com\",\n      \"url\": \"https://www.silhouette101.com/\",\n      \"score\": 98,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.silhouette101.com\",\n      \"fromUrl\": \"https://www.silhouette101.com/\",\n      \"anchor\": \"Magneto IT Solutions\",\n      \"rank\": 279,\n      \"domainRank\": 359,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-08-19 22:31:03 +00:00\",\n      \"lastSeen\": \"2025-10-04 13:26:37 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Silhouette 101 – Silhouette's Blog\",\n      \"reason\": \"Domain rank very high, low spam score, dofollow, stable and recent backlink history, assumed relevant topic, proper contextual anchor.\"\n    },\n    {\n      \"domain\": \"louped.com\",\n      \"url\": \"https://louped.com/\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"louped.com\",\n      \"fromUrl\": \"https://louped.com/\",\n      \"anchor\": \"Magneto IT Solutions\",\n      \"rank\": 183,\n      \"domainRank\": 241,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-10-18 20:26:53 +00:00\",\n      \"lastSeen\": \"2025-10-03 00:39:20 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Louped | Shop Used Jewelry & Preowned Diamonds Online\",\n      \"reason\": \"High domain rank and zero spam, dofollow link, stable backlink history, contextual anchor text matching brand, no link quality issues.\"\n    },\n    {\n      \"domain\": \"ykalmoayyed.com\",\n      \"url\": \"https://ykalmoayyed.com/\",\n      \"score\": 88,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"ykalmoayyed.com\",\n      \"fromUrl\": \"https://ykalmoayyed.com/\",\n      \"anchor\": \"Made by Magneto IT Solutions\",\n      \"rank\": 164,\n      \"domainRank\": 200,\n      \"spamScore\": 5,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-10-29 16:54:46 +00:00\",\n      \"lastSeen\": \"2025-09-19 15:01:08 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Y. K. Almoayyed & Sons\",\n      \"reason\": \"Strong domain rank, low spam, dofollow, good backlink history, brand-related anchor text, no broken issues.\"\n    },\n    {\n      \"domain\": \"www.magnetoacademy.com\",\n      \"url\": \"http://www.magnetoacademy.com/\",\n      \"score\": 85,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.magnetoacademy.com\",\n      \"fromUrl\": \"http://www.magnetoacademy.com/\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 116,\n      \"domainRank\": 97,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2019-11-20 04:15:53 +00:00\",\n      \"lastSeen\": \"2025-06-21 22:45:48 +00:00\",\n      \"linkType\": \"redirect\",\n      \"pageTitle\": \"Unknown\",\n      \"reason\": \"High domain rank, no spam, stable historic backlink history, dofollow, slight uncertainty on anchor but accepted due to stability and quality.\"\n    },\n    {\n      \"domain\": \"giftedtoall.com\",\n      \"url\": \"https://giftedtoall.com/\",\n      \"score\": 87,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"giftedtoall.com\",\n      \"fromUrl\": \"https://giftedtoall.com/\",\n      \"anchor\": \"Magneto IT Solutions\",\n      \"rank\": 114,\n      \"domainRank\": 230,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-12-25 12:09:10 +00:00\",\n      \"lastSeen\": \"2025-09-12 23:53:57 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"home | Gifted To All\",\n      \"reason\": \"Very high domain rank and acceptable spam (10%), dofollow, stable links, contextual brand anchor.\"\n    },\n    {\n      \"domain\": \"giftedtoall.com\",\n      \"url\": \"https://giftedtoall.com/category/wooden-dry-fruit-box\",\n      \"score\": 84,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"giftedtoall.com\",\n      \"fromUrl\": \"https://giftedtoall.com/category/wooden-dry-fruit-box\",\n      \"anchor\": \"Magneto IT Solutions\",\n      \"rank\": 113,\n      \"domainRank\": 231,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-10-24 08:36:57 +00:00\",\n      \"lastSeen\": \"2025-10-24 08:36:57 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Category Listing | Gifted To All\",\n      \"reason\": \"Domain rank good, spam score acceptable, dofollow link, stable history, anchor brand matching.\"\n    },\n    {\n      \"domain\": \"giftedtoall.com\",\n      \"url\": \"https://giftedtoall.com/category/wooden-wall-clock\",\n      \"score\": 84,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"giftedtoall.com\",\n      \"fromUrl\": \"https://giftedtoall.com/category/wooden-wall-clock\",\n      \"anchor\": \"Magneto IT Solutions\",\n      \"rank\": 113,\n      \"domainRank\": 231,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-10-24 06:54:48 +00:00\",\n      \"lastSeen\": \"2025-10-24 06:54:48 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Category Listing | Gifted To All\",\n      \"reason\": \"Domain rank and spam acceptable, dofollow ratio good, recent stable link, branded anchor.\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"www.giftedtoall.com\",\n      \"url\": \"http://www.giftedtoall.com/\",\n      \"fromDomain\": \"www.giftedtoall.com\",\n      \"score\": 35,\n      \"tier\": \"Tier 1\",\n      \"fromUrl\": \"http://www.giftedtoall.com/\",\n      \"anchor\": \"Magneto IT Solutions\",\n      \"rank\": 273,\n      \"domainRank\": 230,\n      \"spamScore\": 40,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-04-04 01:03:20 +00:00\",\n      \"lastSeen\": \"2025-09-16 09:44:05 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"home | Gifted To All\",\n      \"reason\": \"Spam score too high (40%).\"\n    },\n    {\n      \"domain\": \"giftedtoall.com\",\n      \"url\": \"https://giftedtoall.com/product/chocolate-single-bedsheet-cho59101-5590\",\n      \"fromDomain\": \"giftedtoall.com\",\n      \"score\": 50,\n      \"tier\": \"Tier 1\",\n      \"fromUrl\": \"https://giftedtoall.com/product/chocolate-single-bedsheet-cho59101-5590\",\n      \"anchor\": \"Magneto IT Solutions\",\n      \"rank\": 113,\n      \"domainRank\": 231,\n      \"spamScore\": 20,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-10-27 19:13:19 +00:00\",\n      \"lastSeen\": \"2025-10-27 19:13:19 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"BEDSHEET - Chocolate Single Bedsheet CHO59101 (55*90) | Gifted To All\",\n      \"reason\": \"Spam score above acceptable threshold (20%); reject due to spam risk.\"\n    },\n    {\n      \"domain\": \"www.hyva.io\",\n      \"url\": \"https://www.hyva.io/find-an-agency\",\n      \"fromDomain\": \"www.hyva.io\",\n      \"score\": 40,\n      \"tier\": \"Tier 1\",\n      \"fromUrl\": \"https://www.hyva.io/find-an-agency\",\n      \"anchor\": \"Magneto IT Solutions Pvt. Ltd\",\n      \"rank\": 129,\n      \"domainRank\": 470,\n      \"spamScore\": 20,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-03-14 04:42:03 +00:00\",\n      \"lastSeen\": \"2025-10-19 03:07:04 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"All Agencies\",\n      \"reason\": \"Spam score (20%) exceeds maximum allowed for accepted links.\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "json": {
+          "output": "{\n  \"domain\": \"https://www.hiddenbrains.com/\",\n  \"accepted\": [\n    {\n      \"domain\": \"www.rockeye.com\",\n      \"url\": \"https://www.rockeye.com/\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.rockeye.com\",\n      \"fromUrl\": \"https://www.rockeye.com/\",\n      \"anchor\": \"Hidden Brains\",\n      \"rank\": 361,\n      \"domainRank\": 323,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-07-05 15:50:40 +00:00\",\n      \"lastSeen\": \"2025-09-13 03:37:24 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Powerful Cloud-Based ERP Software Solution: ROCKEYE\",\n      \"reason\": \"Passed all filters including high domain rank, zero spam score, dofollow status, valid link history, relevant anchor.\"\n    },\n    {\n      \"domain\": \"www.datums.ai\",\n      \"url\": \"https://www.datums.ai/\",\n      \"score\": 95,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.datums.ai\",\n      \"fromUrl\": \"https://www.datums.ai/\",\n      \"anchor\": \"Hidden Brains\",\n      \"rank\": 360,\n      \"domainRank\": 321,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-08-30 20:21:30 +00:00\",\n      \"lastSeen\": \"2025-11-04 21:02:53 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"AI Powered Data Analysis for Smarter Decisions | Datums\",\n      \"reason\": \"Passed all filters including high domain rank, zero spam score, dofollow status, valid link history, relevant anchor.\"\n    },\n    {\n      \"domain\": \"www.controlany.com\",\n      \"url\": \"https://www.controlany.com/\",\n      \"score\": 94,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.controlany.com\",\n      \"fromUrl\": \"https://www.controlany.com/\",\n      \"anchor\": \"Hiddenbrains.com\",\n      \"rank\": 335,\n      \"domainRank\": 322,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-08-10 03:38:20 +00:00\",\n      \"lastSeen\": \"2025-11-04 21:03:08 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"IoT Automation Solutions | Smart Home and IoT Industrial Automation | ControlAny\",\n      \"reason\": \"Passed all filters including high domain rank, zero spam score, dofollow status, valid link history, topical anchor.\"\n    },\n    {\n      \"domain\": \"www.strategymission.org\",\n      \"url\": \"https://www.strategymission.org/strategic-partnership-2/\",\n      \"score\": 80,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.strategymission.org\",\n      \"fromUrl\": \"https://www.strategymission.org/strategic-partnership-2/\",\n      \"anchor\": \"No anchor text\",\n      \"rank\": 126,\n      \"domainRank\": 92,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2025-09-05 22:14:56 +00:00\",\n      \"lastSeen\": \"2025-10-06 10:00:48 +00:00\",\n      \"linkType\": \"image\",\n      \"pageTitle\": \"الشركاء الاستراتيجيون - Strategy Mission 2023\",\n      \"reason\": \"Passed authority and spam, dofollow, status 200, though link type is image, no anchor text but accepted due to high authority and no spam.\"\n    },\n    {\n      \"domain\": \"www.selfposts.com\",\n      \"url\": \"https://www.selfposts.com/author/janebrewer16/\",\n      \"score\": 90,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"www.selfposts.com\",\n      \"fromUrl\": \"https://www.selfposts.com/author/janebrewer16/\",\n      \"anchor\": \"software development company\",\n      \"rank\": 113,\n      \"domainRank\": 244,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2022-11-07 18:32:09 +00:00\",\n      \"lastSeen\": \"2025-11-08 17:13:08 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Jane Brewer, Author at Self Posts\",\n      \"reason\": \"High domain rank, zero spam, stable backlink history, topical anchor, dofollow, status 200.\"\n    },\n    {\n      \"domain\": \"codinginfinite.com\",\n      \"url\": \"https://codinginfinite.com/author/albertsmith/\",\n      \"score\": 88,\n      \"tier\": \"Tier 1\",\n      \"fromDomain\": \"codinginfinite.com\",\n      \"fromUrl\": \"https://codinginfinite.com/author/albertsmith/\",\n      \"anchor\": \"Albert Smith\",\n      \"rank\": 113,\n      \"domainRank\": 238,\n      \"spamScore\": 0,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2023-05-12 19:46:25 +00:00\",\n      \"lastSeen\": \"2025-10-10 19:49:52 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Albert Smith, Author at Coding Infinite\",\n      \"reason\": \"High domain rank, zero spam, dofollow, topical anchor, valid backlink history.\"\n    },\n    {\n      \"domain\": \"go4it.com.au\",\n      \"url\": \"https://go4it.com.au/hidden-brains-infotech-llc/\",\n      \"score\": 78,\n      \"tier\": \"Tier 2\",\n      \"fromDomain\": \"go4it.com.au\",\n      \"fromUrl\": \"https://go4it.com.au/hidden-brains-infotech-llc/\",\n      \"anchor\": \"Website\",\n      \"rank\": 113,\n      \"domainRank\": 157,\n      \"spamScore\": 10,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2022-02-06 15:15:01 +00:00\",\n      \"lastSeen\": \"2025-09-08 03:15:21 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Hidden Brains Infotech LLC Amaroo Canberra ACT\",\n      \"reason\": \"Domain rank over 45 with spam at 10%, dofollow is true, stable link history, and accepted TLD (.com.au).\"\n    }\n  ],\n  \"rejected\": [\n    {\n      \"domain\": \"www.callupcontact.com\",\n      \"url\": \"https://www.callupcontact.com/b/businessprofile/Hidden_Brains/7015601\",\n      \"fromDomain\": \"www.callupcontact.com\",\n      \"score\": 40,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.callupcontact.com/b/businessprofile/Hidden_Brains/7015601\",\n      \"anchor\": \"https://www.hiddenbrains.com\",\n      \"rank\": 113,\n      \"domainRank\": 472,\n      \"spamScore\": 30,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-01-07 17:35:17 +00:00\",\n      \"lastSeen\": \"2025-09-30 01:36:48 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Hidden Brains in 60193, Schaumburg - Illinois - Contact Us, Phone Number, Address and Map\",\n      \"reason\": \"Spam score too high (30%) exceeding allowed threshold for domain rank and spam ratio; rejected due to spam risk.\"\n    },\n    {\n      \"domain\": \"www.callupcontact.com\",\n      \"url\": \"https://www.callupcontact.com/b/businessprofile/Hidden_Brains/7013664\",\n      \"fromDomain\": \"www.callupcontact.com\",\n      \"score\": 50,\n      \"tier\": \"Tier 3\",\n      \"fromUrl\": \"https://www.callupcontact.com/b/businessprofile/Hidden_Brains/7013664\",\n      \"anchor\": \"https://www.hiddenbrains.com\",\n      \"rank\": 113,\n      \"domainRank\": 472,\n      \"spamScore\": 20,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2024-01-07 17:35:19 +00:00\",\n      \"lastSeen\": \"2025-09-29 23:37:24 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Hidden Brains in Schaumburg - Illinois - Contact Us, Phone Number, Address and Map\",\n      \"reason\": \"Spam score at 20% is above allowed threshold for domain rank and spam ratio, fails spam criteria.\"\n    },\n    {\n      \"domain\": \"go4it.com.au\",\n      \"url\": \"https://go4it.com.au/category/web-design/location/amaroo_act/\",\n      \"fromDomain\": \"go4it.com.au\",\n      \"fromUrl\": \"https://go4it.com.au/category/web-design/location/amaroo_act/\",\n      \"anchor\": \"Website\",\n      \"rank\": 113,\n      \"domainRank\": 157,\n      \"spamScore\": 25,\n      \"dofollow\": true,\n      \"isBroken\": false,\n      \"firstSeen\": \"2022-04-17 00:33:23 +00:00\",\n      \"lastSeen\": \"2025-09-09 12:16:22 +00:00\",\n      \"linkType\": \"anchor\",\n      \"pageTitle\": \"Web Design Amaroo ACT\",\n      \"score\": 35,\n      \"tier\": \"Tier 3\",\n      \"reason\": \"Spam score too high (25%), exceeding spam threshold limits; rejected.\"\n    }\n  ]\n}"
+        }
+      }
     ]
   },
   "connections": {
@@ -5874,24 +5831,12 @@
         ]
       ]
     },
-    "Check for Report Error": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
     "Check for Backlink Error": {
       "main": [
         [],
         [
           {
-            "node": "Loop Over Backlink data",
+            "node": "Generate Enhanced Email Report",
             "type": "main",
             "index": 0
           }
@@ -5915,24 +5860,6 @@
         [
           {
             "node": "Get backlinks",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Over Backlink data": {
-      "main": [
-        [
-          {
-            "node": "Generate Enhanced Email Report",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Create Backlink",
             "type": "main",
             "index": 0
           }
@@ -5965,9 +5892,9 @@
       "main": [
         [
           {
-            "node": "Send Enhanced Email Report",
+            "node": "Merge1",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -5976,7 +5903,7 @@
       "main": [
         [
           {
-            "node": "Log Report Success",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -5994,11 +5921,6 @@
         ]
       ]
     },
-    "Domains based Filter": {
-      "main": [
-        []
-      ]
-    },
     "Backlink data": {
       "main": [
         [
@@ -6014,20 +5936,9 @@
       "main": [
         [
           {
-            "node": "Check for Report Error",
+            "node": "Report ad Backlink data merge",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "Backlink data ",
-            "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -6036,7 +5947,7 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Backlink data ",
             "type": "main",
             "index": 0
           }
@@ -6058,7 +5969,7 @@
       "main": [
         [
           {
-            "node": "Loop Over Backlink data",
+            "node": "Report Raw formatted Data",
             "type": "main",
             "index": 0
           }
@@ -6068,9 +5979,92 @@
             "node": "Raw Backlink data",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Domain Assignee Details",
+            "type": "main",
+            "index": 0
           },
           {
             "node": "Report Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Report ad Backlink data merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Domain Assignee Details": {
+      "main": [
+        [
+          {
+            "node": "Domain Assignee Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Domain Assignee Emails": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload ": {
+      "main": [
+        [
+          {
+            "node": "Create Backlink",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Send Enhanced Email Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Raw formatted Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report ad Backlink data merge": {
+      "main": [
+        [
+          {
+            "node": "Payload ",
             "type": "main",
             "index": 0
           }
@@ -6082,7 +6076,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "2fbd30ad-6cf6-4674-9569-7a9ba07fde60",
+  "versionId": "9b955625-82e9-4bfe-8ae3-917837e52d99",
   "meta": {
     "instanceId": "29e3afd51a041bd4690a287a9578813e88030cec004df9cbfbb33a08c4c74783"
   },

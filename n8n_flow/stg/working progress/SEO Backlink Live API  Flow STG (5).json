@@ -87,8 +87,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1216,
-        -96
+        -1280,
+        -336
       ],
       "id": "8bea24e9-51af-4a5a-b28d-09b6d6d88710",
       "name": "DataForSEO API Call"
@@ -102,7 +102,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1104,
+        1056,
         -656
       ]
     },
@@ -115,7 +115,7 @@
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
-        1152,
+        1056,
         -800
       ]
     },
@@ -134,13 +134,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// Input\nconst data = $input.all(); \nconst clientDomains = $('Current Client Domain List').all().map(i => i.json);\n\nconst reportId = $input.last().json.data.id;\nconst clientId = $input.last().json.data.client_id;\n\nconst normalize = str => str?.replace(/\\/+$/, \"\").trim().toLowerCase();\n\nconst findDomain = (id, url, rivalUrl) => {\n  return clientDomains.find(d => \n    Number(d.client_domain_id) === Number(id) &&\n    normalize(d.client_domain) === normalize(url) &&\n    normalize(d.rival_domain) === normalize(rivalUrl)\n  );\n};\n\nconst backlinkPayloads = [];\n\nfor (const item of data) {\n  const backlinkParsed = item.json;\n  if (!backlinkParsed) continue;\n\n  const accepted = backlinkParsed.data?.accepted || [];\n  const rejected = backlinkParsed.data?.rejected || [];\n\n  const domainId = backlinkParsed.domain_id;\n  const domainUrl = backlinkParsed.domain;\n  const rivalUrl = backlinkParsed.data?.domain;\n\n  const clientMatch = findDomain(domainId, domainUrl, rivalUrl);\n\n  if (!clientMatch) {\n    console.log(\"No match found for:\", domainId, domainUrl, rivalUrl);\n    continue; // or handle gracefully\n  }\n\n  const pushLinks = (arr, status) => {\n    if (!Array.isArray(arr)) return;\n\n    for (const link of arr) {\n      backlinkPayloads.push({\n        report_id: reportId,\n        client_id: clientId.id,\n\n        target_domain: clientMatch.rival_domain_title,\n        target_url: rivalUrl,\n\n        domain: clientMatch.client_domain_title,\n        domain_url: clientMatch.client_domain,\n\n        from_domain: link.domain || link.fromDomain,\n        from_url: link.fromUrl,\n        url: link.url,\n        anchor: link.anchor ?? null,\n        page_title: link.pageTitle ?? null,\n        link_type: \"contextual\",\n\n        rank: link.rank ?? null,\n        domain_rank: link.domainRank ?? null,\n        spam_score: link.spamScore ?? null,\n        do_follow: link.dofollow ? 1 : 0,\n        tier: parseInt(link.tier?.replace(\"Tier \", \"\"), 10) || 0,\n        score: link.score ?? 0,\n        is_broken: link.isBroken ? 1 : 0,\n\n        status,\n        reason: link.reason ?? null,\n\n        first_seen: link.firstSeen ? new Date(link.firstSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n        last_seen: link.lastSeen ? new Date(link.lastSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n      });\n    }\n  };\n\n  pushLinks(accepted, \"accepted\");\n  pushLinks(rejected, \"rejected\");\n}\n\nreturn backlinkPayloads.map(b => ({\n  json: { api: \"backlinkdatum/store\", payload: b }\n}));\n"
+        "jsCode": "// Input\nconst data = $input.all(); \nconst clientDomains = $('Current Client Domain List').all().map(i => i.json);\n\nconst normalize = str => str?.replace(/\\/+$/, \"\").trim().toLowerCase();\n\nconst findDomain = (id, url, rivalUrl) => {\n  return clientDomains.find(d => \n    Number(d.client_domain_id) === Number(id) &&\n    normalize(d.client_domain) === normalize(url) &&\n    normalize(d.rival_domain) === normalize(rivalUrl)\n  );\n};\n\nconst backlinkPayloads = [];\n\nfor (const item of data) {\n  const backlinkParsed = item.json;\n  if (!backlinkParsed) continue;\n\n  const accepted = backlinkParsed.data?.accepted || [];\n  const rejected = backlinkParsed.data?.rejected || [];\n\n  const domainId = backlinkParsed.domain_id;\n  const domainUrl = backlinkParsed.domain;\n  const rivalUrl = backlinkParsed.data?.domain;\n\n  const clientMatch = findDomain(domainId, domainUrl, rivalUrl);\n\n  if (!clientMatch) {\n    console.log(\"No match found for:\", domainId, domainUrl, rivalUrl);\n    continue; // or handle gracefully\n  }\n\n  const pushLinks = (arr, status) => {\n    if (!Array.isArray(arr)) return;\n    \n    for (const link of arr) {\n      backlinkPayloads.push({\n        // report_id: reportId,\n        client_id: $input.first().json.clientId,\n        domain_id : domainId,\n\n        target_domain: clientMatch.rival_domain_title,\n        target_url: rivalUrl,\n\n        domain: clientMatch.client_domain_title,\n        domain_url: clientMatch.client_domain,\n\n        from_domain: link.domain || link.fromDomain,\n        from_url: link.fromUrl,\n        url: link.url,\n        anchor: link.anchor ?? null,\n        page_title: link.pageTitle ?? null,\n        link_type: \"contextual\",\n\n        rank: link.rank ?? null,\n        domain_rank: link.domainRank ?? null,\n        spam_score: link.spamScore ?? null,\n        do_follow: link.dofollow ? 1 : 0,\n        tier: parseInt(link.tier?.replace(\"Tier \", \"\"), 10) || 0,\n        score: link.score ?? 0,\n        is_broken: link.isBroken ? 1 : 0,\n\n        status,\n        reason: link.reason ?? null,\n\n        first_seen: link.firstSeen ? new Date(link.firstSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n        last_seen: link.lastSeen ? new Date(link.lastSeen).toISOString().slice(0, 19).replace('T', ' ') : null,\n      });\n    }\n  };\n\n  pushLinks(accepted, \"accepted\");\n  pushLinks(rejected, \"rejected\");\n}\n\nreturn backlinkPayloads.map(b => ({\n  json: {\n    api: \"backlinkdatum/store\",\n    payload: b\n  }\n}));\n\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -32,
-        -80
+        -64
       ],
       "id": "9e93c3d6-c4da-4efc-b29d-9ba80b237d2d",
       "name": "Backlink data ",
@@ -181,7 +181,7 @@
     {
       "parameters": {
         "content": "## Start LLM Process With Filter Prompt",
-        "height": 640,
+        "height": 384,
         "width": 1088
       },
       "type": "n8n-nodes-base.stickyNote",
@@ -229,13 +229,13 @@
       "parameters": {
         "content": "## Get Merged LLM and Report data and create a backlink record with API",
         "height": 400,
-        "width": 1936,
+        "width": 1728,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -624,
+        -416,
         224
       ],
       "id": "9f463593-bfd7-4cb3-b37d-86eeef62a410",
@@ -244,15 +244,15 @@
     {
       "parameters": {
         "content": "📊 N8N SEO – BACKLINK AUTOMATION WORKFLOW\n\n🔹 PURPOSE  \nAutomates SEO BACKLINK research & reporting using DataForSEO API and LLM OpenRouter (OpenAI) SEO Agent filter prompt, with error checks, merges, and final report creation.\n\n🔹 FLOW OVERVIEW  \n1. START PROCESS → Fetch domains & prep data  \n2. DataForSEO API Call → Give domains and Get Response  \n3. SEO AGENT → Give API data to SEO agent with filter prompt and get response  \n4. CREATE REPORT → Create report with agent response and merge with llm response\n5. ERROR CHECKS → Catch/report failures at multiple stages  \n6. CREATE BACKLINK → Create backlink with report data and llm response \n7. ERROR CHECKS → Catch/backlink failures at multiple stages  ",
-        "height": 1984,
+        "height": 2544,
         "width": 3392,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1984,
-        -1280
+        -1728,
+        -1296
       ],
       "id": "82d57515-bd16-45e9-9a58-4f76cde5bede",
       "name": "Sticky Note8"
@@ -297,8 +297,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        -880,
-        -144
+        -832,
+        -176
       ],
       "id": "08fa40e1-7fd5-4f8a-8921-11625349f9ee",
       "name": "OpenAI Model",
@@ -339,7 +339,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        720,
+        688,
         -704
       ]
     },
@@ -373,8 +373,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1056,
-        -80
+        1488,
+        0
       ],
       "onError": "continueRegularOutput"
     },
@@ -408,7 +408,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1040,
+        1088,
         368
       ],
       "onError": "continueRegularOutput"
@@ -454,7 +454,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        80,
+        32,
         -704
       ],
       "id": "732248d4-7655-4910-8edc-76a7767e31e2",
@@ -462,12 +462,14 @@
     },
     {
       "parameters": {
-        "options": {}
+        "options": {
+          "reset": false
+        }
       },
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -432,
+        320,
         352
       ],
       "id": "535ecacd-8e8f-46ae-92f2-bf567249b72a",
@@ -496,7 +498,7 @@
       "type": "n8n-nodes-dataforseo.dataForSeo",
       "typeVersion": 1,
       "position": [
-        400,
+        352,
         -704
       ],
       "id": "19a39fd7-31ad-4f5e-897d-f2447c0c07af",
@@ -517,14 +519,14 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1232,
-        352
+        -1264,
+        784
       ]
     },
     {
       "parameters": {
         "fromEmail": "ankit.p@addwebsolution.in",
-        "toEmail": "vatsal.a@addwebsolution.in",
+        "toEmail": "={{ $json.emails }}",
         "subject": "={{ $json.subject }}",
         "html": "={{ $json.htmlBody }}",
         "options": {
@@ -536,8 +538,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        -1056,
-        352
+        -832,
+        768
       ],
       "webhookId": "c0d56253-36ba-43a7-b212-387309d19ae7",
       "credentials": {
@@ -556,15 +558,15 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -848,
-        352
+        -624,
+        768
       ]
     },
     {
       "parameters": {
         "content": "## Send Email Report",
-        "height": 400,
-        "width": 704,
+        "height": 432,
+        "width": 912,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
@@ -605,7 +607,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        336,
+        784,
         368
       ],
       "id": "a1954ccf-4245-4660-95ec-0f4fb1bd4b65",
@@ -626,12 +628,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const inputItems = $input.all();               // Backlink responses (index-based)\nconst listData = $(\"Current Client Domain List\").all(); // Row mappings (index-based)\n\nconst allReports = [];\n\nfor (let index = 0; index < listData.length; index++) {\n  const row = listData[index].json;\n  const backlinkItem = inputItems[index];\n\n  if (!row.client_domain_id || !row.client_domain) {\n    console.warn(\"Skipping row - missing client info:\", row);\n    continue;\n  }\n\n  let clientData = { accepted_count: 0, rejected_count: 0, total_count: 0, backlinkDetails: {} };\n  let rivalData = { accepted_count: 0, rejected_count: 0, total_count: 0, backlinkDetails: {} };\n\n  if (backlinkItem?.json?.output) {\n    try {\n      const parsed = JSON.parse(backlinkItem.json.output);\n\n      clientData = {\n        accepted_count: parsed.accepted?.length || 0,\n        rejected_count: parsed.rejected?.length || 0,\n        total_count: (parsed.accepted?.length || 0) + (parsed.rejected?.length || 0),\n        backlinkDetails: parsed\n      };\n\n      // In Row-based mode, rival data comes from **its own row's output**\n      // If rival also needs backlink scan, it must have its own row/backlinkItem\n\n    } catch (e) {\n      console.error(`Error parsing backlink for row ${index}:`, e);\n    }\n  }\n\n  const runId = `RUN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;\n  const totalAccepted = clientData.accepted_count;\n  const totalRejected = clientData.rejected_count;\n\n  const report = {\n    run_id: runId,\n    client_id: row.client_id,\n    client_domain_id: row.client_domain_id,\n    client_domain: row.client_domain,\n    client_domain_title: row.client_domain_title,\n    clientBacklink: clientData.backlinkDetails,\n    rivalBacklinks: [], // Will only contain data if rival also scanned\n    accepted_backlinks: totalAccepted,\n    rejected_backlinks: totalRejected,\n    total_backlink: totalAccepted + totalRejected,\n    total_domains: clientData.total_count > 0 ? 1 : 0,\n    raw_backlink_data: [{\n      domain_id: row.client_domain_id,\n      domain: row.client_domain,\n      domain_title: row.client_domain_title,\n      data: clientData.backlinkDetails\n    }],\n    run_at: new Date().toISOString()\n  };\n\n  allReports.push({ json: report });\n}\n\nreturn allReports;\n"
+        "jsCode": "const inputItems = $input.all();               // Backlink responses (index-based)\nconst listData = $(\"Current Client Domain List\").all(); // Row mappings (index-based)\n\nconst allReports = [];\n\nfor (let index = 0; index < listData.length; index++) {\n  const row = listData[index].json;\n  const backlinkItem = inputItems[index];\n\n  if (!row.client_domain_id || !row.client_domain) {\n    console.warn(\"Skipping row - missing client info:\", row);\n    continue;\n  }\n\n  let clientData = { accepted_count: 0, rejected_count: 0, total_count: 0, backlinkDetails: {} };\n  let rivalData = { accepted_count: 0, rejected_count: 0, total_count: 0, backlinkDetails: {} };\n\n  if (backlinkItem?.json?.output) {\n    try {\n      const parsed = JSON.parse(backlinkItem.json.output);\n\n      clientData = {\n        accepted_count: parsed.accepted?.length || 0,\n        rejected_count: parsed.rejected?.length || 0,\n        total_count: (parsed.accepted?.length || 0) + (parsed.rejected?.length || 0),\n        backlinkDetails: parsed\n      };\n\n      // In Row-based mode, rival data comes from **its own row's output**\n      // If rival also needs backlink scan, it must have its own row/backlinkItem\n\n    } catch (e) {\n      console.error(`Error parsing backlink for row ${index}:`, e);\n    }\n  }\n\n  const runId = `RUN-${Date.now()}`;\n  const totalAccepted = clientData.accepted_count;\n  const totalRejected = clientData.rejected_count;\n\n  const report = {\n    run_id: runId,\n    client_id: row.client_id,\n    client_domain_id: row.client_domain_id,\n    client_domain: row.client_domain,\n    client_domain_title: row.client_domain_title,\n    clientBacklink: clientData.backlinkDetails,\n    rivalBacklinks: [], // Will only contain data if rival also scanned\n    accepted_backlinks: totalAccepted,\n    rejected_backlinks: totalRejected,\n    total_backlink: totalAccepted + totalRejected,\n    total_domains: clientData.total_count > 0 ? 1 : 0,\n    raw_backlink_data: [{\n      domain_id: row.client_domain_id,\n      clientId : row.client_id,\n      domain: row.client_domain,\n      domain_title: row.client_domain_title,\n      data: clientData.backlinkDetails\n    }],\n    run_at: new Date().toISOString()\n  };\n\n  allReports.push({ json: report });\n}\n\nreturn allReports;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        0,
+        -32,
         -320
       ],
       "id": "786a92ba-0699-422f-aa1a-dd10d6638634",
@@ -696,8 +698,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1088,
-        -304
+        -720,
+        400
       ],
       "id": "6dfc48d5-3794-4403-acd2-99003eae0823",
       "name": "Create Report"
@@ -707,8 +709,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        704,
-        -96
+        1504,
+        208
       ],
       "id": "7346ffc9-c52f-4f90-8e95-a9cdb4a694ca",
       "name": "Merge"
@@ -720,21 +722,21 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        -112
+        960,
+        -48
       ],
       "id": "465dd43e-298f-4c56-b0f3-852e58f70ccf",
       "name": "Raw Backlink data"
     },
     {
       "parameters": {
-        "jsCode": "const allItems = $input.all().map(i => i.json);\n\n// Build your final output object here\nconst first = allItems[0];\n\nconst report = {\n  run_id: first.run_id,\n  client_id: first.client_id,\n  domain_count: first.total_domains,\n  total_backlink: first.total_backlink,\n  accepted_backlinks: first.accepted_backlinks,\n  rejected_backlinks: first.rejected_backlinks,\n  run_at: new Date().toISOString(),\n};\n\n// Return **ONE** item only\nreturn [\n  {\n    json: report\n  }\n];\n"
+        "jsCode": "const input = $input.first().json;\nconst payloads = input.payloads || [];\nconst runId = `RUN-${Date.now()}`;\nlet accepted_backlinks = 0;\nlet rejected_backlinks = 0;\n\nconst domainSet = new Set();\nif (input.client_domain_url) domainSet.add(input.client_domain_url);\n\nfor (const item of payloads) {\n  const p = item.payload;\n\n  if (p.status === \"accepted\") accepted_backlinks++;\n  if (p.status === \"rejected\") rejected_backlinks++;\n\n  // Add rival domain URL (target_url)\n  if (p.target_url) domainSet.add(p.target_url);\n}\n\nconst summary = {\n  run_id : runId,\n  client_id: input.client_id,\n  domain_id: input.domain_id,\n  client_domain: input.client_domain,\n  client_domain_url: input.client_domain_url,\n\n  total_backlink: payloads.length,\n  accepted_backlinks,\n  rejected_backlinks,\n  total_domains: domainSet.size,  \n};\n\n// Return summary\nreturn [{ json: summary }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        864,
-        -304
+        -960,
+        400
       ],
       "id": "476f8320-7bc6-43b0-83fb-a219b0fc9d83",
       "name": "Report Summary"
@@ -746,11 +748,159 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        400,
+        560,
         -320
       ],
       "id": "f7c41d53-95c0-4dda-9f43-58cf72142f71",
       "name": "Loop report"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1248,
+        32
+      ],
+      "id": "8d01370d-2b32-42cd-b77c-1f66695e7bfa",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "content": "## Start LLM Process With Filter Prompt",
+        "height": 240,
+        "width": 1088,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1344,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "bc496209-4553-476c-b18b-cadb9dfabe20",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "url": "=https://new-suddenly-sailfish.ngrok-free.app/api/user/assignable-users/{{ $json.domain_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer MF04MMWBivkOmIfvx1iIEGOJm60WT5re9OhGulHnffc1cd6d"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -896,
+        48
+      ],
+      "id": "cd0d1aa7-81ef-423f-b725-01ae397ec9e1",
+      "name": "Domain Assignee Details"
+    },
+    {
+      "parameters": {
+        "jsCode": "const assigned = $input.first().json.assigned || [];\n\nconst emails = assigned.map(u => u.email).join(',');\n\nreturn [\n  {\n    json: {\n      emails\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        48
+      ],
+      "id": "1c48bed5-17d5-4a1b-87f9-f2ed25b7c96e",
+      "name": "Domain Assignee Emails"
+    },
+    {
+      "parameters": {
+        "jsCode": "const first = $input.first().json;\nconst reportId = $input.last().json.data.id\nconst updatedPayloads = first.payloads.map(p => ({\n  ...p,\n  payload: {\n    ...p.payload,\n    report_id: reportId,\n  }\n}));\n\nreturn updatedPayloads;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        352
+      ],
+      "id": "26d33685-7838-4f31-a797-ac38f45b78e0",
+      "name": "Payload "
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1024,
+        768
+      ],
+      "id": "570b45ba-7eb4-4e14-8873-8f5c12b8aa53",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "content": "## Send Email Report",
+        "height": 400,
+        "width": 912,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        672
+      ],
+      "id": "b685ae20-024c-4cd6-977e-e948b33d13f1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: Flat array of backlink responses\nconst records = $input.all();\n\nconst grouped = {};\n\n// Group by client domain\nfor (const item of records) {\n  const payload = item.json.payload;\n  if (!payload) continue;\n\n  const clientId = payload.client_id;\n  const domainId = payload.domain_id;\n  const clientDomain = payload.domain;\n  const clientDomainUrl = payload.domain_url;\n\n  const key = `${clientId}|${clientDomainUrl}`;\n\n  if (!grouped[key]) {\n    grouped[key] = {\n      client_id: clientId,\n      domain_id : domainId,\n      client_domain: clientDomain,\n      client_domain_url: clientDomainUrl,\n      payloads: []\n    };\n  }\n\n  grouped[key].payloads.push({\n    api: \"backlinkdatum/store\",\n    payload: { ...payload }\n  });\n}\n\n// Return result as array\nreturn Object.values(grouped).map(group => ({ json: group }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        320
+      ],
+      "id": "0348c22e-6210-4218-ac7b-a6ffb3daff50",
+      "name": "Report Raw formatted Data"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -304,
+        352
+      ],
+      "id": "b736c22f-f693-4c8c-b95f-9175cb5c14ac",
+      "name": "Report ad Backlink data merge"
     }
   ],
   "pinData": {
@@ -5919,13 +6069,7 @@
     "Check for Report Error": {
       "main": [
         [],
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
+        []
       ]
     },
     "Check for Backlink Error": {
@@ -6007,9 +6151,9 @@
       "main": [
         [
           {
-            "node": "Send Enhanced Email Report",
+            "node": "Merge1",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -6018,7 +6162,7 @@
       "main": [
         [
           {
-            "node": "Log Report Success",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -6056,29 +6200,23 @@
       "main": [
         [
           {
-            "node": "Check for Report Error",
+            "node": "Report ad Backlink data merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
     },
     "Merge": {
       "main": [
-        [
-          {
-            "node": "Backlink data ",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Raw Backlink data": {
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Backlink data ",
             "type": "main",
             "index": 0
           }
@@ -6098,15 +6236,104 @@
     },
     "Loop report": {
       "main": [
-        [],
+        [
+          {
+            "node": "Report Raw formatted Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Raw Backlink data",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Domain Assignee Details",
+            "type": "main",
+            "index": 0
           },
           {
             "node": "Report Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Report ad Backlink data merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Domain Assignee Details": {
+      "main": [
+        [
+          {
+            "node": "Domain Assignee Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Domain Assignee Emails": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload ": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Backlink data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Send Enhanced Email Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Raw formatted Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report ad Backlink data merge": {
+      "main": [
+        [
+          {
+            "node": "Payload ",
             "type": "main",
             "index": 0
           }
@@ -6118,7 +6345,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "3a614f76-1f95-47f6-a280-613b7c873d33",
+  "versionId": "2c851f9c-885e-4cce-9668-9647dafdf887",
   "meta": {
     "instanceId": "29e3afd51a041bd4690a287a9578813e88030cec004df9cbfbb33a08c4c74783"
   },
