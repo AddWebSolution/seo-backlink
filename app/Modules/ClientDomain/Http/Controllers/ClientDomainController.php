@@ -104,12 +104,12 @@ class ClientDomainController extends BaseController
     public function assignUsersToDomain(Request $request, $domainId)
     {
         $request->validate([
-            'user_ids' => 'required|array',
+            'user_ids' => 'array',
         ]);
 
         $domain = ClientDomain::findOrFail($domainId);
 
-        $domain->users()->sync($request->user_ids);
+        $domain->users()->sync($request->user_ids ?? []);
 
         return response()->json([
             'success' => true,

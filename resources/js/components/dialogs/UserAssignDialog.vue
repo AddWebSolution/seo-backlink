@@ -127,7 +127,6 @@ const assignUsers = () => {
         <VBtn
             color="primary"
             @click="assignUsers"
-            :disabled="selectedUsers.length === 0"
         >
           Assign ({{ selectedUsers.length }})
         </VBtn>
