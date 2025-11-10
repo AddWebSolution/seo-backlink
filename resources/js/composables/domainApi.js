@@ -311,7 +311,30 @@ export function useDomainApi() {
     }
   };
 
-  return {
+  // assign domains to users
+    const assignUsersToDomain = async (domainId, userIds) => {
+        loading.value = true;
+        error.value = null;
+
+        try {
+            const result = await useApi(`api/clientdomain/assign-users/${domainId}`, {
+                method: "POST",
+                body: { user_ids: userIds },
+            });
+
+            showAlert("Users assigned successfully!", "success");
+            return result;
+        } catch (err) {
+            error.value = err;
+            showAlert("Failed to assign users", "error");
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+
+    return {
     domains: readonly(domains),
     backlinkhistory: readonly(backlinkhistory),
     pagination: pagination,
@@ -332,6 +355,7 @@ export function useDomainApi() {
     updateDomain,
     deleteDomain,
 
+    assignUsersToDomain,
     showAlert,
   };
 }
