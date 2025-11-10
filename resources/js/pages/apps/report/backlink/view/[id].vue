@@ -34,8 +34,8 @@
               name: 'report-view',
               params: { id: backlink.report_id },
             }">
-              <VIcon icon="tabler-arrow-autofit-left" size= "large" />
-              Back to Report Details
+              <VIcon icon="tabler-arrow-autofit-left" size= "xl-large" class="me-1" />
+              Back
             </VBtn>
           </VCol>
         </VRow>
