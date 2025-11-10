@@ -205,6 +205,8 @@ const applyFilters = async () => {
 const handleDeleteDomain = async (id) => {
   try {
     await deleteDomain(id);
+    const index = selectedRows.value.findIndex((row) => row === id);
+    if (index !== -1) selectedRows.value.splice(index, 1);
     await loadDomains(clientId);
   } catch (error) {
     console.error("Delete failed:", error);
@@ -711,7 +713,7 @@ Back
           <VTooltip v-if="ability.can('delete','clientdomain')" text="Delete">
             <template #activator="{ props }">
               <IconBtn v-bind="props" color="error" icon="tabler-trash" size="small"
-                @click="openDeleteDialog(item.id)" />
+                @click="handleDeleteDomain(item.id)" />
             </template>
           </VTooltip>
 

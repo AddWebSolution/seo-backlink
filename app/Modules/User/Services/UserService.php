@@ -66,9 +66,9 @@ class UserService extends BaseService
     {
         $user = auth()->user();
 
-        if ($user->hasRole('super_admin')) {
+        if ($user->role !== UserRole::SUPERADMIN->value) {
             $query = User::query();
-        } elseif ($user->hasRole('client')) {
+        } elseif ($user->role === UserRole::CLIENT->value) {
             $query = User::where('id', $user->id);
         } else {
             $query = User::whereRaw('0=1');
