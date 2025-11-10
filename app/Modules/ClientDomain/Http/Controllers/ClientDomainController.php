@@ -100,4 +100,21 @@ class ClientDomainController extends BaseController
 
         return $this->service->downloadTemplate();
     }
+
+    public function assignUsersToDomain(Request $request, $domainId)
+    {
+        $request->validate([
+            'user_ids' => 'array',
+        ]);
+
+        $domain = ClientDomain::findOrFail($domainId);
+
+        $domain->users()->sync($request->user_ids ?? []);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Users assigned successfully.'
+        ]);
+    }
+
 }

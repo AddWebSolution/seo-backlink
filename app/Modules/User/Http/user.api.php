@@ -47,7 +47,10 @@ Route::prefix('api')
 			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete')->middleware('permission:delete user');
 
 			Route::post('/profile/upload', [UserController::class, 'updateProfilePic'])->name('profile.upload');
-		});
+
+            Route::get('assignable-users/{domainId}', [UserController::class, 'listAssignableUsers']);
+
+        });
 
 
 		// =========================

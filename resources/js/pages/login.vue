@@ -32,9 +32,6 @@ const errors = ref({
   password: undefined,
 })
 
-const errorMessage = ref('')
-const showErrorChip = ref(false)
-
 const refVForm = ref()
 
 const credentials = ref({
@@ -100,15 +97,7 @@ const onSubmit = () => {
       </RouterLink>
       <VRow no-gutters class="auth-wrapper d-flex align-center justify-center">
         <VCol class="d-flex align-center justify-center">
-          <VCard flat :max-width="500" class="mt-12 mt-sm-0 pa-6 auth-card-shadow">
-            <Transition name="slide-fade">
-              <VChip v-if="showErrorChip" color="error" variant="elevated" class="mb-4 error-chip" closable
-                @click:close="showErrorChip = false">
-                <VIcon start icon="tabler-alert-circle" />
-                {{ errorMessage }}
-              </VChip>
-            </Transition>
-
+          <VCard flat :max-width="500" class="pa-6 pa-sm-8 auth-card-shadow">
             <VCardText>
               <h4 class="text-h3 mb-2 text-center">
                 <span class="text-capitalize text-primary">{{ themeConfig.app.title }}</span>
@@ -237,7 +226,6 @@ const onSubmit = () => {
   opacity: 0;
 }
 
-// Enhanced form styling
 .v-text-field {
   .v-field {
     border-radius: 8px;
@@ -249,4 +237,32 @@ const onSubmit = () => {
   text-transform: none;
   font-weight: 600;
 }
+
+@media (max-width: 600px) {
+  .auth-bg-image {
+    background-position: top;
+    background-size: cover;
+  }
+
+  .auth-card-shadow {
+    padding: 1.5rem !important; 
+    margin-top: 2rem !important;
+    margin-inline: 1rem;
+  }
+
+  h4 {
+    font-size: 1.4rem;
+  }
+
+  .v-btn {
+    height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .auth-logo {
+    justify-content: center;
+    padding: 1rem 0;
+  }
+}
+
 </style>

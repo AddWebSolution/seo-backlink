@@ -2,6 +2,7 @@
 
 namespace App\Modules\User\Http\Controllers;
 
+use App\Modules\ClientDomain\Models\ClientDomain;
 use App\Traits\HasProfilePicUpload;
 use App\Modules\User\Http\Requests\RegisterUserRequest;
 use Illuminate\Http\Request;
@@ -122,4 +123,27 @@ class UserController extends BaseController
         $this->uploadProfilePic($user, $request->file('profile_pic'), 'user');
         return response()->json(['success' => true]);
     }
+
+    public function listAssignableUsers($domainId)
+    {
+        $domain = ClientDomain::findOrFail($domainId);
+
+        $users = User::where('role', '!=', '2')
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
+
+        $assigned = $domain->users()
+            ->select('users.id', 'users.name', 'users.email')
+            ->orderBy('users.name')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'users' => $users,
+            'assigned' => $assigned
+        ]);
+    }
+
+
 }

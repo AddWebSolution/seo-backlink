@@ -2,6 +2,7 @@
 
 namespace App\Modules\User\Services;
 
+use App\Enums\UserRole;
 use App\Modules\User\Models\User;
 use Addweb\Base\Services\BaseService;
 use Illuminate\Support\Facades\Auth;
@@ -33,9 +34,15 @@ class UserService extends BaseService
     protected function loadRelations(): void
     {
         $route = request()->route()?->getName();
+        $authUser = auth()->user();
 
         if ($route === 'client.get') {
             $this->query->where('role', '2');
+            if ($authUser->role !== UserRole::SUPERADMIN->value) {
+                $this->query->whereHas('clientDomains.users', function ($q) use ($authUser) {
+                    $q->where('users.id', $authUser->id);
+                });
+            }
             $this->loadExtraRelation();
         } else if ($route === 'user.get') {
             $this->query->whereNotIn('role', ['1', '2']);
@@ -59,9 +66,9 @@ class UserService extends BaseService
     {
         $user = auth()->user();
 
-        if ($user->hasRole('super_admin')) {
+        if ($user->role !== UserRole::SUPERADMIN->value) {
             $query = User::query();
-        } elseif ($user->hasRole('client')) {
+        } elseif ($user->role === UserRole::CLIENT->value) {
             $query = User::where('id', $user->id);
         } else {
             $query = User::whereRaw('0=1');

@@ -7,6 +7,18 @@ import { VBtn } from "vuetify/components";
 import { useRoute, useRouter } from "vue-router";
 import useAuthStore from "@/router/store/auth";
 import { useAbility } from "@casl/vue";
+import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
+import { useUserApi} from "@/composables/userApi.js";
+
+const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
+const showAssignDialog = ref(false);
+const currentDomainId = ref(null);
+
+const openDialog = (domainId) => {
+  currentDomainId.value = domainId;
+  showAssignDialog.value = true;
+  fetchAssignableUsers(domainId);
+};
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -63,8 +75,15 @@ const {
   downloadTemplate,
   importDomains,
   deleteDomain,
+  assignUsersToDomain,
   showAlert,
 } = useDomainApi();
+
+const onUsersAssigned = async (selectedUserIds) => {
+  console.log(selectedUserIds)
+  await assignUsersToDomain(currentDomainId.value, selectedUserIds);
+  showAssignDialog.value = false;
+};
 
 // Filters
 const selectedStatus = ref();
@@ -186,6 +205,8 @@ const applyFilters = async () => {
 const handleDeleteDomain = async (id) => {
   try {
     await deleteDomain(id);
+    const index = selectedRows.value.findIndex((row) => row === id);
+    if (index !== -1) selectedRows.value.splice(index, 1);
     await loadDomains(clientId);
   } catch (error) {
     console.error("Delete failed:", error);
@@ -668,6 +689,14 @@ Back
             </template>
           </VTooltip>
 
+          <VTooltip text="User Assignment">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="openDialog(item.id)">
+                  <VIcon color="secondary" icon="tabler-users-plus" size="20" />
+              </IconBtn>
+            </template>
+          </VTooltip>
+
           <VTooltip text="View history">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
@@ -684,7 +713,7 @@ Back
           <VTooltip v-if="ability.can('delete','clientdomain')" text="Delete">
             <template #activator="{ props }">
               <IconBtn v-bind="props" color="error" icon="tabler-trash" size="small"
-                @click="openDeleteDialog(item.id)" />
+                @click="handleDeleteDomain(item.id)" />
             </template>
           </VTooltip>
 
@@ -856,6 +885,14 @@ Back
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <UserAssignDialog
+      v-model="showAssignDialog"
+      :users="assignableUsers"
+      :assigned="assignedUserIds"
+      @assign="onUsersAssigned"
+  />
+
 </template>
 
 <style lang="scss" scoped>

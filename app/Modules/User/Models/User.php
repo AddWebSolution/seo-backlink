@@ -21,7 +21,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, SoftDeletes, HasRoles;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes, HasRoles, Relation;
 
     // protected $fillable = [
     //     'name',
