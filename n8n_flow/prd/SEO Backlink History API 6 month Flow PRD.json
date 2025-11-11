@@ -1,0 +1,763 @@
+{
+  "name": "SEO Backlink History API 6 month Flow PRD",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "a8d5f42b-60a8-41bd-a1a8-89a270838629",
+      "name": "Daily Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        944,
+        560
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://seo-stream.addwebprojects.com/api/user/client/domains",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer B82VKlSDTYxos6EvFeNW1Vftrltp42NxmIzXRpqs180daac8"
+            },
+            {
+              "name": "Cookie",
+              "value": "XSRF-TOKEN=eyJpdiI6ImtSUlJld1BMREwxajh3cEgvRkx3UEE9PSIsInZhbHVlIjoiR2xkQ21LN3V3ZEF0SVVoNGpnZThIS2RkSExveEdGRWFFMjV2dHI5RlVjbzY2VFhabWlrTVRYaHdjbytHYklWZnFNTzVqV3c0MWV4aSsxb3YxTnhsOEdrRWl6NDlMVDFQdUJ1REs3Mjg2TnVET1JvN0s5RlE0TmpHU0ozc3NNemYiLCJtYWMiOiIyMjZlY2ZjOTg4ZmYyMTgyZmRhODc1Y2UwNTc2MGUxYjRiZjM3MWU2YTAyNmM3NmRlZGRjNGI1NjZiN2ZiODg1IiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6ImI1ZnZsR2o5RUIvZDk4WjVUV1Q3SlE9PSIsInZhbHVlIjoiaWliVzJuQlBNVEdxcGVnMFlxWHdjUGR0RTI4QWpsemlqS3ozZDVVNVNoR3ZKY0dFVjFRczgvbjFNZkhsaGFBb00zeEI1cWhFUWgxVU9KYWgybUZwSEFNRW8zRHg4RzJHTXE2RUNYTEgwOFE3NmlHWUtKK1VEOE5GL3F5cktuUWMiLCJtYWMiOiI3Y2QxYjQ3OTYxOTNmYzYyOTVmNTQ0MzAwMGEwZjVjNDk4ZjVkOWM3YmJjNDZiZTFmMjA5NTM4YTM3M2IwYjJhIiwidGFnIjoiIn0%3D"
+            },
+            {
+              "name": "cookie",
+              "value": "XSRF-TOKEN=eyJpdiI6ImtSUlJld1BMREwxajh3cEgvRkx3UEE9PSIsInZhbHVlIjoiR2xkQ21LN3V3ZEF0SVVoNGpnZThIS2RkSExveEdGRWFFMjV2dHI5RlVjbzY2VFhabWlrTVRYaHdjbytHYklWZnFNTzVqV3c0MWV4aSsxb3YxTnhsOEdrRWl6NDlMVDFQdUJ1REs3Mjg2TnVET1JvN0s5RlE0TmpHU0ozc3NNemYiLCJtYWMiOiIyMjZlY2ZjOTg4ZmYyMTgyZmRhODc1Y2UwNTc2MGUxYjRiZjM3MWU2YTAyNmM3NmRlZGRjNGI1NjZiN2ZiODg1IiwidGFnIjoiIn0%3D;laravel_session=eyJpdiI6ImI1ZnZsR2o5RUIvZDk4WjVUV1Q3SlE9PSIsInZhbHVlIjoiaWliVzJuQlBNVEdxcGVnMFlxWHdjUGR0RTI4QWpsemlqS3ozZDVVNVNoR3ZKY0dFVjFRczgvbjFNZkhsaGFBb00zeEI1cWhFUWgxVU9KYWgybUZwSEFNRW8zRHg4RzJHTXE2RUNYTEgwOFE3NmlHWUtKK1VEOE5GL3F5cktuUWMiLCJtYWMiOiI3Y2QxYjQ3OTYxOTNmYzYyOTVmNTQ0MzAwMGEwZjVjNDk4ZjVkOWM3YmJjNDZiZTFmMjA5NTM4YTM3M2IwYjJhIiwidGFnIjoiIn0%3D;"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "id": "35349f68-4e33-4c82-be6c-7940fa453a6a",
+      "name": "Get Domains List",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1248,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clientData = $('Current Client Domain List').all();\nconst seoTasks = $input.all();\n\nconst records = [];\nlet clientIndex = 0;\n\nseoTasks.forEach(task => {\n  const result = task.json.tasks[0].result[0];\n  if (!result) return;\n\n  const targetDomain = result.target;\n  const items = result.items || [];\n\n  const clientInfo = clientData[clientIndex];\n  if (!clientInfo) return;\n\n  items.forEach(item => {\n    records.push({\n      client_id: clientInfo.json.client_id,\n      client_domain_id: clientInfo.json.client_domain_id,\n      client_domain: clientInfo.json.client_domain,\n      rival_domain_id: clientInfo.json.id,\n      history_date: item.date.split(' ')[0],\n      target: targetDomain,\n      date_from: result.date_from,\n      date_to: result.date_to,\n      rank: item.rank,\n      backlinks: item.backlinks,\n      new_backlinks: item.new_backlinks,\n      lost_backlinks: item.lost_backlinks,\n      new_referring_domains: item.new_referring_domains,\n      lost_referring_domains: item.lost_referring_domains,\n      internal_links_count: item.internal_links_count,\n      external_links_count: item.external_links_count,\n      broken_backlinks: item.broken_backlinks,\n      broken_pages: item.broken_pages,\n      referring_domains: item.referring_domains,\n      referring_domains_nofollow: item.referring_domains_nofollow,\n      referring_main_domains: item.referring_main_domains,\n      referring_main_domains_nofollow: item.referring_main_domains_nofollow,\n      referring_ips: item.referring_ips,\n      referring_subnets: item.referring_subnets,\n      referring_pages: item.referring_pages,\n      referring_pages_nofollow: item.referring_pages_nofollow,\n      referring_links_tld: item.referring_links_tld,\n      referring_links_types: item.referring_links_types,\n      referring_links_attributes: item.referring_links_attributes,\n      referring_links_platform_types: item.referring_links_platform_types,\n      referring_links_semantic_locations: item.referring_links_semantic_locations,\n      referring_links_countries: item.referring_links_countries\n    });\n  });\n\n  clientIndex++; // move to next clientData entry\n});\n\nreturn records; // <-- return an array of plain objects\n"
+      },
+      "id": "b829b4e8-41c4-40ab-8753-798ce1cb9927",
+      "name": "Process DataForSEO Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3360,
+        608
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "errorMessage": "an error happned"
+      },
+      "id": "4e2bb2dd-8c78-4f24-b4da-8f5191918fdd",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3280,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Start Here",
+        "height": 224,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "f0c48e08-234f-4499-a2fd-333c444c843a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Get Domain List and Pass to DataForSEO API\n",
+        "height": 384,
+        "width": 480,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1168,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "ff09cdba-0277-4697-9d6d-be867370cdc5",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Get DataForSEO API Response and Check for error\n",
+        "height": 384,
+        "width": 768,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2832,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "81da89c6-d26c-45f0-a16f-3a3a267fbf07",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Get Merged LLM and Report data and create a backlink record with API",
+        "height": 400,
+        "width": 1920,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        864
+      ],
+      "id": "3280bc25-01ac-4f14-911f-2331bb43ada7",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "📊 N8N SEO – BACKLINK AUTOMATION WORKFLOW\n\n🔹 PURPOSE  \nAutomates SEO BACKLINK research & reporting using DataForSEO API and LLM OpenRouter (OpenAI) SEO Agent filter prompt, with error checks, merges, and final report creation.\n\n🔹 FLOW OVERVIEW  \n1. START PROCESS → Fetch domains & prep data  \n2. DataForSEO API Call → Give domains and Get Response  \n3. SEO AGENT → Give API data to SEO agent with filter prompt and get response  \n4. CREATE REPORT → Create report with agent response and merge with llm response\n5. ERROR CHECKS → Catch/report failures at multiple stages  \n6. CREATE BACKLINK → Create backlink with report data and llm response \n7. ERROR CHECKS → Catch/backlink failures at multiple stages  ",
+        "height": 1568,
+        "width": 3392,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        0
+      ],
+      "id": "5e24501b-578a-46e9-82e4-60fdc94494bd",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "📌 Workflow Legend  \n\n🟩 Get Domain List and Pass to DataForSEO API\n\n- Get Domains List → Fetch all domains.  \n- Process Domain and Filter Date → Prepare domains with last 24 hours time and format the data.\n- DataForSEO API Call →  Fetch data from SEO API for domains. \n\n \n🟥 Get DataForSEO API Response and Check for error\n\n- Check for API Error → Catch/DataForSEO API errors.  \n- Log Error → Log any error if any in DataForSEO API.  \n- Process DataForSEO Response → Process reponse and format .\n\n  \n🟩 Start LLM Process With Filter Prompt \n- SEO Agent → Pass the DataForSEO formated response to seo agent and get filtered resposne.  \n- OpenAI Model → Branch on success/error.  \n\n\n\n🟦 Get LLM data and create report and merge \n- Report data → Get seo agent filtered repsone and create a format for report.\n- Create Report → HTTP call to create a report with report data.  \n- Check for Report Error → Catch/report errors.  \n- Merge Report and LLM Data → get create report reponse and llm filtered response.  \n\n\n🟪 Get Merged LLM and Report data and create a backlink record with API  \n- Backlink data  → get merge report and llm filtered response and format for backlink data.  \n- Loop Over Backlink data → pass backlink to loop to process one by one .  \n- Create Backlink → POST backlink data to API.  \n- Check for Backlink Error → Catch/Backlink errors.  \n\n\n⚠️ Token usage warning  \n- OpenRouter reserves the FULL context window if no limits are set.  \n- Always set `\"max_tokens\": 256–512` to avoid 32k token charges.  \n- The `web` plugin pulls in full search results → huge input tokens.  \n- Use the plugin only when fresh data is needed.",
+        "height": 992,
+        "width": 512
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bf6ef0e3-91d2-4014-8c3f-bbd1ec26f9c1",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "1a2b3c4d-5e6f-7890-1234-567890abcdef",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "06152895-d2bc-4bbd-b881-cecc6cfab8b4",
+      "name": "Check for API Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2944,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "1a2b3c4d-5e6f-7890-1234-567890abcdef",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "42b27a9d-f6dc-45e3-a00a-8bf546fe82bf",
+      "name": "Check for Backlink Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        976
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3cd5839b-c918-45af-a444-6845e5c220da",
+              "leftValue": "={{ $json.domains }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        560
+      ],
+      "id": "23696ff5-840e-4797-a58c-ce0add48edfe",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2000,
+        576
+      ],
+      "id": "c72ee9d6-0402-4d8e-8b29-b1be1343bbdf",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the first input item (the full client object)\nconst input = $input.first().json;\n\nconst cleanDomain = url => {\n  if (!url) return \"\";\n  // Remove protocol\n  url = url.replace(/^https?:\\/\\//, \"\");\n  // Remove www.\n  url = url.replace(/^www\\./, \"\");\n  // Keep only domain part (in case path exists)\n  url = url.split(\"/\")[0];\n  return url;\n};\n\n// Collect all rival domains with their parent client and domain info\nconst allRivals = [];\n\n(input.client_domains || []).forEach(domain => {\n  allRivals.push({\n      client_id: input.client_id || input.id,\n      client_name: input.client_name || input.name,\n      client_domain_id: domain.client_domain_id || domain.id,\n      client_domain_title: domain.client_domain_title || domain.title,\n      client_domain: cleanDomain(domain.client_domain) || domain.target_url,\n      id: domain.client_domain_id,\n      rival_domain_title: domain.client_domain_title || domain.title,\n      rival_domain: cleanDomain(domain.client_domain) || domain.target_url,\n      current_time : domain.current_time,\n      last_six_month_date : domain.last_six_month_date\n    });\n  (domain.rival_domains || []).forEach(rival => {\n    allRivals.push({\n      client_id: input.client_id || input.id,\n      client_name: input.client_name || input.name,\n      client_domain_id: domain.client_domain_id || domain.id,\n      client_domain_title: domain.client_domain_title || domain.title,\n         current_time : domain.current_time,\n      last_six_month_date : domain.last_six_month_date,\n      client_domain: cleanDomain(domain.client_domain) || domain.target_url,\n      id: rival.id,\n      rival_domain_title: rival.rival_domain_title || rival.title,\n      rival_domain: cleanDomain(rival.rival_domain) || rival.target_url\n    });\n  });\n});\n\n// Return as n8n items\nreturn allRivals.map(r => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        592
+      ],
+      "id": "c5343e58-8e80-420c-a75f-f40036daffe2",
+      "name": "Current Client Domain List"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1904,
+        960
+      ],
+      "id": "95b8b647-6459-4ad0-90bf-f4aa58680207",
+      "name": "Loop Over Backlink data"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 384,
+        "width": 512,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1936,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "6e916c77-bb9a-4198-9cc1-b1da17d4998f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 384,
+        "width": 224,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "f47fc3c4-5c3f-44a4-9725-41b275796b52",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate current timestamp\nfunction getStartDate({ monthsAgo = 0, hoursAgo = 0, minDate = \"2019-01-01\" } = {}) {\n  const now = new Date();\n\n  // Subtract months or hours if provided\n  if (monthsAgo) now.setMonth(now.getMonth() - monthsAgo);\n  if (hoursAgo) now.setHours(now.getHours() - hoursAgo);\n\n  // Use minDate if calculated date is before it\n  const min = new Date(minDate);\n  const start = now < min ? min : now;\n\n  const pad = n => (n < 10 ? \"0\" + n : n);\n  const formatted = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`;\n\n  return formatted;\n}\n\nconst current = getStartDate();                    \n// // const last24Hours = getStartDate({ hoursAgo: 24 }); \n// // const lastMonth = getStartDate({ monthsAgo: 1 });  \nconst last6Months = getStartDate({ monthsAgo: 6 }); \n\n\n// Get all input clients\nconst clients = $input.all().map(item => item.json);\n\n// Build grouped output\nconst result = [];\n\nclients.forEach(client => {\n  const clientData = {\n    client_id: client.id,\n    client_name: client.name,\n    client_domains: []\n  };\n\n  (client.client_domains || []).forEach(domain => {\n    if (!domain.rival_domains || domain.rival_domains.length === 0) return; // skip domains with no rivals\n\n    clientData.client_domains.push({\n      client_domain_id: domain.id,\n      client_domain_title: domain.title,\n      client_domain: domain.target_url,\n      current_time : current,\n      last_six_month_date : last6Months,\n      rival_domains: domain.rival_domains.map(rival => ({\n        id: rival.id,\n        rival_domain_title: rival.title,\n        rival_domain: rival.target_url\n      }))\n    });\n  });\n\n  // only push clients that actually have domains with rivals\n  if (clientData.client_domains.length > 0) {\n    result.push(clientData);\n  }\n});\n\n// Return as n8n items\nreturn result.map(r => ({ json: r }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        576
+      ],
+      "id": "46e1f4c4-757f-4df9-918d-e3fc27600fb1",
+      "name": "Get Last Six Month Data"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 384,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2480,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "cd5c3f1a-4ed3-47da-9b26-34849428a12a",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dataforseo.com/v3/backlinks/history/live",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic Y29mZmVlQGFkZHdlYnNvbHV0aW9uLmNvbTozNmVlYzZhNmU2YTg1YWM1"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"target\": \"{{ $json.rival_domain }}\",\n    \"date_to\": \"{{ $json.current_time }}\",\n    \"date_from\": \"{{ $json.last_six_month_date }}\"\n  }\n]",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          },
+          "timeout": 90000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3360,
+        944
+      ],
+      "id": "dc02d1b5-4ec4-449d-afb2-be6127f19104",
+      "name": "DataForSEO History API"
+    },
+    {
+      "parameters": {
+        "content": "## Laravel Event Based Start\n",
+        "height": 224,
+        "width": 352,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        912
+      ],
+      "typeVersion": 1,
+      "id": "00f7a60c-88bc-41e8-bf88-697761e34516",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "backlink/history/sixmonth/data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        944,
+        976
+      ],
+      "id": "747577b9-9793-43ff-9ebf-3f993858fb0c",
+      "name": "Webhook",
+      "webhookId": "bc2adfa4-1598-4b5b-ae7b-7e3f88456510"
+    },
+    {
+      "parameters": {
+        "content": "## Get Domain and Pass to DataForSEO API\n",
+        "height": 384,
+        "width": 480,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1168,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "5922b83c-3898-4fe1-b122-1434b89a57dd",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://seo-stream.addwebprojects.com/api/backlinkhistory/store",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer B82VKlSDTYxos6EvFeNW1Vftrltp42NxmIzXRpqs180daac8"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json}}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2496,
+        976
+      ],
+      "id": "7babe9cc-d180-46e2-a8ff-25dd0f830b9f",
+      "name": "Create Backlink History",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.body\nreturn data;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        976
+      ],
+      "id": "deb1a8f5-4b95-4847-9fb7-45e9308d678b",
+      "name": "Format Webhook Data"
+    },
+    {
+      "parameters": {
+        "operation": "get-historical-backlink-summary",
+        "target_domain": "={{ $json.rival_domain }}",
+        "date_from": "={{ $json.last_six_month_date }}",
+        "date_to": "={{ $json.current_time }}"
+      },
+      "type": "n8n-nodes-dataforseo.dataForSeo",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        592
+      ],
+      "id": "f524eea3-977b-4736-8442-8260d5cef647",
+      "name": "Get historical backlink summary",
+      "credentials": {
+        "dataForSeoApi": {
+          "id": "2yGvbF0oN29ZazZv",
+          "name": "DataForSEO account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Domains List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Domains List": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process DataForSEO Response": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for API Error": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process DataForSEO Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Backlink Error": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Backlink data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Backlink data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get Last Six Month Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Current Client Domain List": {
+      "main": [
+        [
+          {
+            "node": "Get historical backlink summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Backlink data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Current Client Domain List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Backlink data": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Create Backlink History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Six Month Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataForSEO History API": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Webhook Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Backlink History": {
+      "main": [
+        [
+          {
+            "node": "Check for Backlink Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Webhook Data": {
+      "main": [
+        [
+          {
+            "node": "Get Last Six Month Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get historical backlink summary": {
+      "main": [
+        [
+          {
+            "node": "Check for API Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "853429bf-cb18-467b-b2dc-bf04d6a30aea",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "29e3afd51a041bd4690a287a9578813e88030cec004df9cbfbb33a08c4c74783"
+  },
+  "id": "9E9U4jHFgAzh74LW",
+  "tags": [
+    {
+      "createdAt": "2025-10-17T06:37:39.810Z",
+      "updatedAt": "2025-10-17T06:37:39.810Z",
+      "id": "cO67Ys3uLpLdrmxU",
+      "name": "History"
+    },
+    {
+      "createdAt": "2025-10-17T06:37:44.176Z",
+      "updatedAt": "2025-10-17T06:37:44.176Z",
+      "id": "XitzGJ2UqKO5UtGc",
+      "name": "6 month"
+    },
+    {
+      "createdAt": "2025-10-10T12:28:45.037Z",
+      "updatedAt": "2025-10-10T12:28:45.037Z",
+      "id": "4t6o6np8icPWjyeM",
+      "name": "BACKLINK 2.0"
+    },
+    {
+      "createdAt": "2025-10-30T07:10:20.222Z",
+      "updatedAt": "2025-10-30T07:10:20.222Z",
+      "id": "0aeT5AmjQcBmqVg3",
+      "name": "PRD"
+    }
+  ]
+}
