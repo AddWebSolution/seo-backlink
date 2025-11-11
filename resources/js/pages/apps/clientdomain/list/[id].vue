@@ -680,7 +680,7 @@ Back
             </template>
           </VTooltip>
 
-          <VTooltip text="User Assignment">
+          <VTooltip v-if="ability.can('assign','clientdomain')" text="User Assignment">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="openDialog(item.id)">
                   <VIcon color="secondary" icon="tabler-users-plus" size="20" />
