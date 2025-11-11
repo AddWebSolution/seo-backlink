@@ -37,8 +37,12 @@ class UserService extends BaseService
         $authUser = auth()->user();
 
         if ($route === 'client.get') {
-            $this->query->where('role', '2');
-            if ($authUser->role !== UserRole::SUPERADMIN->value) {
+            $this->query->where('role', UserRole::CLIENT->value);
+            if ($authUser->role === UserRole::CLIENT->value) {
+                $this->query->where('id', $authUser->id);
+            }
+
+            elseif ($authUser->role !== UserRole::SUPERADMIN->value) {
                 $this->query->whereHas('clientDomains.users', function ($q) use ($authUser) {
                     $q->where('users.id', $authUser->id);
                 });

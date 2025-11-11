@@ -31,7 +31,7 @@ class DashboardService extends BaseService
         $this->object = new Dashboard();
 
         $this->user = auth()->user();
-        $this->isAdmin = $this->user && $this->user->role === UserRole::SUPERADMIN;
+        $this->isAdmin = $this->user && $this->user->role === UserRole::SUPERADMIN->value;
         $this->userId = $this->user?->id;
     }
 
@@ -40,13 +40,13 @@ class DashboardService extends BaseService
     {
         $query = $model::query();
 
-        if ($userId && $filterColumn) {
+        if (!is_null($userId) && $filterColumn) {
             $query->where($filterColumn, $userId);
         }
 
         return $query
             ->selectRaw('MONTH(created_at) as month, COUNT(*) as total')
-            ->whereYear('created_at', date('Y'))
+            ->whereYear('created_at', now()->year)
             ->groupByRaw('MONTH(created_at)')
             ->pluck('total', 'month')
             ->toArray();
