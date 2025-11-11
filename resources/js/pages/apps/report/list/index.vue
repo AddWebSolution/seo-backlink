@@ -206,10 +206,23 @@ const handleExportSingleReport = async (reportId) => {
 
 const handleDeleteReport = async (id) => {
   try {
+    id = parseInt(id, 10)
     await deleteReport(id);
     const index = selectedRows.value.findIndex((row) => row == id);
     if (index !== -1) selectedRows.value.splice(index, 1);
   } catch (error) {
+    console.error("Delete failed:", error);
+  }
+};
+
+const handleDeleteReportBatch = async (ids) => {
+  loading.value = true;
+  try {
+    await Promise.all(ids.map((id) => deleteReport(id)));
+    selectedRows.value = [];
+    await loadReports();
+  } catch (error) {
+    ss;
     console.error("Delete failed:", error);
   }
 };
@@ -406,7 +419,7 @@ const formatRunAt = (dateString) => {
       </div>
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" @click="handleDeleteReport(selectedRows)" variant="text" size="small" color="error">
+        <VBtn v-if="selectedRows.length" @click="handleDeleteReportBatch(selectedRows)" variant="text" size="small" color="error">
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
