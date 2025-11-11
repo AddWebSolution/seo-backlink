@@ -70,9 +70,9 @@ class RolePermissionSeeder extends Seeder
             $role->syncPermissions($rolePermissions);
         }
 
-        $adminUser = User::where('role', 'super_admin')->first();
-        if ($adminUser) {
-            $adminUser->assignRole('super_admin');
-        }
+//        $adminUser = User::where('role', 'super_admin')->first();
+//        if ($adminUser) {
+//            $adminUser->assignRole('super_admin');
+//        }
     }
 }
