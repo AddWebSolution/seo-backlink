@@ -49,7 +49,7 @@ class UserService extends BaseService
             }
             $this->loadExtraRelation();
         } else if ($route === 'user.get') {
-            $this->query->whereNotIn('role', ['1', '2']);
+            $this->query->whereNot('role', '2');
             $this->loadExtraRelation();
         }
     }
