@@ -48,7 +48,7 @@ Route::prefix('api')
 
 			Route::post('/profile/upload', [UserController::class, 'updateProfilePic'])->name('profile.upload');
 
-            Route::get('assignable-users/{domainId}', [UserController::class, 'listAssignableUsers']);
+            Route::get('assignable-users/{domainId}', [UserController::class, 'listAssignableUsers'])->middleware('permission:assign clientdomain');
 
         });
 
