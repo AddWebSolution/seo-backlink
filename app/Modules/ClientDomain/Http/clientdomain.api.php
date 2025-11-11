@@ -32,7 +32,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 			//Route::group(['middleware' => ['can:Delete ClientDomain']], function () {
 			Route::post('delete/{id}', [ClientDomainController::class, 'destroy'])->name('delete')->middleware('permission:delete clientdomain');
 			//});
-            Route::post('assign-users/{id}', [ClientDomainController::class, 'assignUsersToDomain']);
+            Route::post('assign-users/{id}', [ClientDomainController::class, 'assignUsersToDomain'])->middleware('permission:assign clientdomain');
 
         });
 	});
