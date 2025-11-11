@@ -100,6 +100,18 @@ class RoleController extends Controller
         ]);
     }
 
+    public function roleListForForm()
+    {
+        $roles = Role::select('id', 'name', 'guard_name')
+            ->withCount('permissions')
+            ->where('id', '!=', 2)
+            ->get();
+
+        return response()->json([
+            'data' => $roles,
+        ]);
+    }
+
     public function permissionsList()
     {
         $permissions = Permission::select('id','name', 'guard_name')->get();

@@ -87,6 +87,7 @@ Route::prefix('api')
 		Route::prefix('roles')->name('roles.')->group(function () {
 
 			Route::get('/', [RoleController::class, 'roleList'])->name('index')->middleware('permission:view role_permission');
+			Route::get('/roleListForForm', [RoleController::class, 'roleListForForm']);
 			Route::post('/create', [RoleController::class, 'store'])->name('store')->middleware('permission:create role_permission');
 			Route::post('/edit/{roleId}', [RoleController::class, 'update'])->name('update')->middleware('permission:update role_permission');
 

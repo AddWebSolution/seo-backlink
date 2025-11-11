@@ -7,6 +7,7 @@ export function useRolePermissions() {
     const { showAlert } = useAlert();
 
     const roles = ref([]);
+    const rolesForForm = ref([]);
     const permissions = ref([]);
     const loading = ref(false);
     const error = ref(null);
@@ -18,6 +19,23 @@ export function useRolePermissions() {
         try {
             const result = await useApi("/api/roles", { method: "GET" });
             roles.value = result?.data?.value?.data || [];
+            return result;
+        } catch (err) {
+            error.value = err;
+            roles.value = [];
+            showAlert("Failed to fetch roles", "error");
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const fetchRolesForForm = async () => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const result = await useApi("/api/roles/roleListForForm", { method: "GET" });
+            rolesForForm.value = result?.data?.value?.data || [];
             return result;
         } catch (err) {
             error.value = err;
@@ -138,5 +156,7 @@ export function useRolePermissions() {
         fetchRoleDetails,
         createRole,
         updateRole,
+        fetchRolesForForm,
+        rolesForForm,
     };
 }

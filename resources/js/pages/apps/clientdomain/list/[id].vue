@@ -540,15 +540,6 @@ Back
         <VBtn v-if="ability.can('export','clientdomain')" variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
-        <!-- create domain-->
-        <VBtn v-if="ability.can('create','clientdomain')" color="primary" prepend-icon="tabler-plus" @click="
-            $router.push({
-              name: 'clientdomain-add',
-              params: { id: clientId },
-            })
-          ">
-          Add Domain
-        </VBtn>
       </div>
     </div>
 
