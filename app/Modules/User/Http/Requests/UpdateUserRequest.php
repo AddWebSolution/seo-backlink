@@ -23,7 +23,7 @@ class UpdateUserRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            //
+            'email' => 'required|email|unique:users,email,' . $this->id,
         ];
     }
 }

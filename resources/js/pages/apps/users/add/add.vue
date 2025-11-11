@@ -5,8 +5,8 @@ import { useRouter } from 'vue-router'
 import {useRolePermissions} from "@/composables/rolePermissionApi.js";
 
 const {
-  roles,
-  fetchRoles,
+  rolesForForm,
+  fetchRolesForForm,
   loading,
 } = useRolePermissions();
 
@@ -116,7 +116,7 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   await fetchUserList()
-  await fetchRoles()
+  await fetchRolesForForm()
 })
 </script>
 
@@ -253,7 +253,7 @@ onMounted(async () => {
           <VCol cols="12" md="4">
             <AppSelect
                 v-model="form.role"
-                :items="roles.map(r => ({ title: r.name, value: r.id }))"
+                :items="rolesForForm.map(r => ({ title: r.name, value: r.id }))"
                 label="Role"
                 prepend-inner-icon="tabler-shield"
                 variant="outlined"
