@@ -47,6 +47,31 @@ class ReportController extends BaseController
         ]);
     }
 
+
+       public function domainbacklinkshow(Request $request, $id)
+    {
+        $perPage = $request->get('per_page', 10);
+
+        $filters = [
+            'search'          => $request->get('search'),
+            'domain'          => $request->get('domain'),
+            'rival_domain' => $request->get('rival_domain'),
+            'status'          => $request->get('status'),
+            'sort_by'        => $request->get('sort_by', 'id'),
+            'sort_order'     => $request->get('sort_order', 'desc'),
+        ];
+
+        $result = $this->service->getLatestReportByDomain($id, $perPage, $filters);
+
+         return response()->json([
+            'success'   => true,
+            'report'    => $result['report'],
+            'backlinks' => $result['backlinks'],
+            'domains'       => $result['domains'],
+            'rival_domains' => $result['rival_domains']
+        ]);
+    }
+
     public function reportExport(Request $request)
     {
         $reportIds = $request->input('report_ids');

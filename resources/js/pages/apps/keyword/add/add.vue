@@ -41,7 +41,7 @@ const handleSubmit = async () => {
   try {
     await createKeyword(form.value)
     showAlert('Keyword added successfully!', 'success')
-    // router.push({ name: 'apps-keyword-list' })
+    // router.push({ name: 'keyword-list' })
     resetForm()
   } catch (err) {
     console.error('Keyword creation failed:', err)
@@ -72,7 +72,7 @@ const handleSubmit = async () => {
         </VCol>
         <!-- <VCol cols="12" md="4" class="text-md-end">
           <VBtn variant="outlined" size="large" class="text-primary font-weight-medium"
-            :to="{ name: 'apps-domain-add' }">
+            :to="{ name: 'domain-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
             Add Domain
           </VBtn>
@@ -128,7 +128,7 @@ const handleSubmit = async () => {
           <VBtn :loading="submitting" color="primary" type="submit" class="mr-3">
             Add Keyword
           </VBtn>
-          <VBtn variant="text" @click="$router.back()">Cancel</VBtn>
+          <VBtn color="error" variant="flat" @click="$router.back()">Cancel</VBtn>
         </VCol>
       </VRow>
     </VForm>

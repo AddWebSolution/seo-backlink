@@ -1,83 +1,118 @@
 // navConfig.js
+
 export default [
+  // ==========================
+  // Dashboard
+  // ==========================
   { heading: 'Dashboard' },
   {
     title: 'Dashboard',
     icon: { icon: 'tabler-dashboard' },
     to: 'dashboards-analytics',
+    meta: {
+      action: 'view',
+      subject: 'dashboard',
+      roles: [1, 2],
+    },
   },
+
+  // ==========================
+  // Client Management
+  // ==========================
   { heading: 'Clients' },
   {
-    title: 'Client',
-    to: 'apps-client-list',
+    title: 'Clients',
     icon: { icon: 'tabler-user' },
+    to: 'client-list',
     meta: {
       action: 'view',
       subject: 'client',
       roles: [1],
     },
-    // children: [
-    //   { title: 'Client List', to: 'apps-client-list', action: 'view', subject: 'client', icon: { icon: 'tabler-list' } },
-    //   { title: 'Add Client', to: 'apps-client-add', action: 'create', subject: 'client', icon: { icon: 'tabler-circle-plus' } },
-    // ],
   },
+
+  // ==========================
+  // User Management
+  // ==========================
+  { heading: 'Users' },
+  {
+    title: 'Users',
+    icon: { icon: 'tabler-users' },
+    to: 'users-list',
+    meta: {
+      action: 'view',
+      subject: 'user',
+      roles: [1],
+    },
+  },
+
+  // ==========================
+  // Domains
+  // ==========================
   { heading: 'Domains' },
   {
-    title: 'Domain',
+    title: 'Domains',
     icon: { icon: 'tabler-world' },
-    to: 'apps-clientdomain-list',
+    to: 'clientdomain-list',
     meta: {
       action: 'view',
       subject: 'clientdomain',
-      roles: [1, 3],
+      roles: [1, 2],
     },
-    // children: [
-    //   { title: 'Domain List', to: 'apps-clientdomain-list', action: 'view', subject: 'clientdomain', icon: { icon: 'tabler-list' } },
-    //   { title: 'Domain Add', to: 'apps-clientdomain-add', action: 'create', subject: 'clientdomain', icon: { icon: 'tabler-circle-plus' } },
-    // ],
   },
+
+  // ==========================
+  // Backlinks
+  // ==========================
   { heading: 'Backlinks' },
   {
-    title: 'Backlink Report',
+    title: 'Backlink Reports',
     icon: { icon: 'tabler-report' },
-    to: 'apps-report-list',
+    to: 'report-list',
     meta: {
       action: 'view',
       subject: 'report',
-      roles: [1, 3],
+      roles: [1, 2],
     },
-    // children: [
-    //   { title: 'Report List', to: 'apps-report-list', action: 'view', subject: 'report', icon: { icon: 'tabler-list' } },
-    // ],
   },
 
+  // ==========================
+  // Keywords
+  // ==========================
   { heading: 'Keywords' },
   {
-    title: 'Keyword',
+    title: 'Keywords',
     icon: { icon: 'tabler-key' },
-    to: 'apps-keyword-list',
+    to: 'keyword-list',
     meta: {
       action: 'view',
       subject: 'keyword',
-      roles: [1, 3],
+      roles: [1, 2],
     },
-    // children: [
-    //   { title: 'Keyword', to: 'apps-keyword-list', action: 'view', subject: 'keyword', icon: { icon: 'tabler-list' } },
-    //   { title: 'Add Keyword', to: 'apps-keyword-add', action: 'create', subject: 'keyword', icon: { icon: 'tabler-circle-plus' } },
-    // ],
   },
-
   {
-    title: 'Report',
-    icon: { icon: 'tabler-report' },
-    to: 'apps-keywordreport-list',
+    title: 'Keyword Reports',
+    icon: { icon: 'tabler-report-analytics' },
+    to: 'keywordreport-list',
     meta: {
       action: 'view',
       subject: 'keywordreport',
-      roles: [1, 3],
+      roles: [1, 2],
     },
-    // children: [
-    //   { title: 'Report List', to: 'apps-keywordreport-list', action: 'view', subject: 'keywordreport', icon: { icon: 'tabler-list' } },
-    // ],
+  },
+
+  // ==========================
+  // Settings
+  // ==========================
+  { heading: 'Settings' },
+  {
+    title: 'Role & Permissions',
+    icon: { icon: 'tabler-lock' },
+    to: 'role-permissions-list',
+    meta: {
+      action: 'view',
+      subject: 'role_permission',
+      roles: [1],
+    },
   },
 ]

@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted } from 'vue'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
 import {
@@ -7,6 +8,8 @@ import {
 } from '@core/stores/config'
 import { hexToRgb } from '@core/utils/colorConverter'
 import { useTheme } from 'vuetify'
+import GlobalDialog from "@/components/dialogs/GlobalDialog.vue";
+import CustomAlert from './layouts/components/CustomAlert.vue'
 
 const { global } = useTheme()
 
@@ -14,7 +17,14 @@ const { global } = useTheme()
 initCore()
 initConfigStore()
 
+const confirmDialogRef = ref(null)
+const { setDialogRef } = useConfirmDialog()
+
 const configStore = useConfigStore()
+
+onMounted(() => {
+  setDialogRef(confirmDialogRef.value)
+})
 </script>
 
 <template>
@@ -22,7 +32,9 @@ const configStore = useConfigStore()
     <!-- ℹ️ This is required to set the background color of active nav link based on currently active global theme's primary -->
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
       <RouterView />
+      <CustomAlert />
       <ScrollToTop />
+      <GlobalDialog ref="confirmDialogRef" />
     </VApp>
   </VLocaleProvider>
 </template>

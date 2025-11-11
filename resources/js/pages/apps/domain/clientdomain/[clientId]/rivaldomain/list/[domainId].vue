@@ -326,9 +326,9 @@ onMounted(async () => {
 
       <VCol cols="12" md="4" class="mt-8 text-md-end">
         <VBtn color="primary" variant="flat"
-          @click="router.push({ name: 'apps-domain-clientdomain-list', params: { id: clientId } })">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Clients Domain
+          @click="router.push({ name: 'domain-clientdomain-list', params: { id: clientId } })">
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCol>
 
@@ -511,7 +511,7 @@ onMounted(async () => {
         </VBtn>
         <!-- create domain-->
         <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push({
-          name: 'apps-domain-clientdomain-rivaldomain-add',
+          name: 'domain-clientdomain-rivaldomain-add',
           params: { clientId: clientId, domainId: clientDomainId }
         })">
           Add Rival Domain
@@ -628,7 +628,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link
-                  :to="{ name: 'apps-domain-clientdomain-rivaldomain-view', params: { clientId : clientId ,id: item.id } }">
+                  :to="{ name: 'domain-clientdomain-rivaldomain-view', params: { clientId : clientId ,id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -654,7 +654,7 @@ onMounted(async () => {
             started.
           </p>
           <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push({
-            name: 'apps-domain-clientdomain-rivaldomain-add',
+            name: 'domain-clientdomain-rivaldomain-add',
             params: { clientId: clientId, domainId: clientDomainId }
           })">
             Add First Rival Domain
@@ -780,10 +780,10 @@ onMounted(async () => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" color="error" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="importing" :disabled="!selectedFile || !!fileError"
+        <VBtn color="primary" :loading="importing" variant="flat" :disabled="!selectedFile || !!fileError"
           @click="handleImportDomains">
           <VIcon icon="tabler-download" class="me-2" />
           Import Domains

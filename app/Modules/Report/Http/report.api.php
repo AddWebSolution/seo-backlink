@@ -8,27 +8,28 @@ use App\Modules\Report\Http\Controllers\ReportController;
 Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 	Route::prefix('api')->namespace('App\Modules\Report\Http\Controllers')->group(function () {
 		Route::prefix('report')->name('report.')->group(function () {
+
 			//Route::group(['middleware' => ['can:View Report']], function () {
-			Route::post('get', [ReportController::class, 'index'])->name('get');
-			Route::post('get-all', [ReportController::class, 'getAll'])->name('get-all');
-			Route::post('get/{id}', [ReportController::class, 'show'])->name('show');
+			Route::post('get', [ReportController::class, 'index'])->name('get')->middleware('permission:view report');
+			Route::post('get-all', [ReportController::class, 'getAll'])->name('get-all')->middleware('permission:view report');
+			Route::post('get/{id}', [ReportController::class, 'show'])->name('show')->middleware('permission:view report');
 			//});
 
-			Route::post('export', [ReportController::class, 'reportExport']);
+			Route::post('export', [ReportController::class, 'reportExport'])->middleware('permission:export report');
 
-			Route::post('backlinks/{id}', [ReportController::class, 'backlinkshow']);
+			Route::post('backlinks/{id}', [ReportController::class, 'backlinkshow'])->middleware('permission:view backlinkdatum');
+
+			Route::post('domain/backlinks/{domainId}', [ReportController::class, 'domainbacklinkshow'])->middleware('permission:view backlinkdatum');
 
 			//Route::group(['middleware' => ['can:Create Report']], function () {
-			Route::post('store', [ReportController::class, 'store'])->name('store');
+			Route::post('store', [ReportController::class, 'store'])->name('store')->middleware('permission:create report');
 			//});
 
 			//Route::group(['middleware' => ['can:Update Report']], function () {
-			Route::post('update/{id}', [ReportController::class, 'update'])->name('update');
+			Route::post('update/{id}', [ReportController::class, 'update'])->name('update')->middleware('permission:update report');
 			//});
 
-			Route::group(['middleware' => ['can:Delete Report']], function () {
-			Route::post('delete/{id}', [ReportController::class, 'destroy'])->name('delete');
-			});
+			Route::post('delete/{id}', [ReportController::class, 'destroy'])->name('delete')->middleware('permission:delete report');
 		});
 	});
 });

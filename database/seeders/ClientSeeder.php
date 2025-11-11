@@ -22,15 +22,17 @@ class ClientSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['email' => $client['email']],
                 [
-                    'name' => $client['name'],
-                    'phone' => '8888888888',
+                    'name'     => $client['name'],
+                    'phone'    => '8888888888',
                     'password' => Hash::make('password'),
-                    'role' => UserRole::CLIENT->value,
-                    'status' => UserStatus::ACTIVE->value,
+                    'role'     => UserRole::CLIENT->value,
+                    'status'   => UserStatus::ACTIVE->value,
                 ]
             );
 
-            $user->assignRole('client');
+            if ($user->wasRecentlyCreated && !$user->hasRole('client')) {
+                $user->assignRole('client');
+            }
         }
     }
 }

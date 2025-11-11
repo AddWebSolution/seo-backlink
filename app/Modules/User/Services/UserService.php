@@ -2,10 +2,15 @@
 
 namespace App\Modules\User\Services;
 
+use App\Enums\UserRole;
 use App\Modules\User\Models\User;
 use Addweb\Base\Services\BaseService;
-use App\Enums\UserRole;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
+use App\Modules\User\Events\UserRegisteredEvent;
+
+
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserService extends BaseService
@@ -28,9 +33,25 @@ class UserService extends BaseService
 
     protected function loadRelations(): void
     {
-        $this->query->where('role', 3);
+        $route = request()->route()?->getName();
+        $authUser = auth()->user();
 
-        $this->loadExtraRelation();
+        if ($route === 'client.get') {
+            $this->query->where('role', UserRole::CLIENT->value);
+            if ($authUser->role === UserRole::CLIENT->value) {
+                $this->query->where('id', $authUser->id);
+            }
+
+            elseif ($authUser->role !== UserRole::SUPERADMIN->value) {
+                $this->query->whereHas('clientDomains.users', function ($q) use ($authUser) {
+                    $q->where('users.id', $authUser->id);
+                });
+            }
+            $this->loadExtraRelation();
+        } else if ($route === 'user.get') {
+            $this->query->whereNotIn('role', ['1', '2']);
+            $this->loadExtraRelation();
+        }
     }
 
     public function __construct()
@@ -49,9 +70,9 @@ class UserService extends BaseService
     {
         $user = auth()->user();
 
-        if ($user->hasRole('super_admin')) {
+        if ($user->role !== UserRole::SUPERADMIN->value) {
             $query = User::query();
-        } elseif ($user->hasRole('client')) {
+        } elseif ($user->role === UserRole::CLIENT->value) {
             $query = User::where('id', $user->id);
         } else {
             $query = User::whereRaw('0=1');
@@ -73,4 +94,123 @@ class UserService extends BaseService
 
         return $query->paginate($perPage);
     }
+
+    public function userList(array $filters = [], int $perPage = 10): LengthAwarePaginator
+    {
+        $query = User::with(['roles:id,name'])
+            ->whereDoesntHave('roles', function ($q) {
+                $q->whereIn('id', [1, 2]);
+            })
+            ->orderBy('name');
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $users = $query->paginate($perPage);
+
+        $users->getCollection()->transform(function ($user) {
+            $role = $user->roles->first();
+            $user->role = $role ? [
+                'id' => $role->id,
+                'name' => $role->name,
+            ] : null;
+
+            unset($user->roles);
+
+            return $user;
+        });
+
+        return $users;
+    }
+
+
+       public function clientList(array $filters = [], int $perPage = 10): LengthAwarePaginator
+    {
+        $query = User::with(['roles:id,name'])
+            ->whereDoesntHave('roles', function ($q) {
+                $q->whereIn('id', [2]);
+            })
+            ->orderBy('name');
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $users = $query->paginate($perPage);
+
+        $users->getCollection()->transform(function ($user) {
+            $role = $user->roles->first();
+            $user->role = $role ? [
+                'id' => $role->id,
+                'name' => $role->name,
+            ] : null;
+
+            unset($user->roles);
+
+            return $user;
+        });
+
+        return $users;
+    }
+
+
+    public function clientCreate(array $data): User
+    {
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'],
+            'role'    =>  '2',
+            'password' => Hash::make($data['password']),
+        ]);
+        $role = Role::find(2);
+        $user->assignRole($role);
+
+        event(new UserRegisteredEvent($user));
+
+        return $user;
+    }
+
+    /**
+     * Register a new user
+     */
+    public function userCreate(array $data): User
+    {   
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'],
+            'role'    => $data['role'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        $role = Role::find($data['role']);
+        $user->assignRole($role);
+
+        event(new UserRegisteredEvent($user));
+
+        return $user;
+    }
+
 }

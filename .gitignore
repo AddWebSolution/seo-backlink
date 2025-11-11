@@ -12,8 +12,6 @@ Homestead.yaml
 Homestead.json
 .phpunit.cache
 .phpstorm.meta.php
-.eslintrc-auto-import.json
-.components.d.ts
 
 # Logs
 /storage/logs/*

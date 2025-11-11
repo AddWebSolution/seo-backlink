@@ -7,6 +7,18 @@ import { VBtn } from "vuetify/components";
 import { useRoute, useRouter } from 'vue-router'
 import useAuthStore from "@/router/store/auth";
 import { useAbility } from "@casl/vue";
+import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
+import { useUserApi} from "@/composables/userApi.js";
+
+const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
+const showAssignDialog = ref(false);
+const currentDomainId = ref(null);
+
+const openDialog = (domainId) => {
+  currentDomainId.value = domainId;
+  showAssignDialog.value = true;
+  fetchAssignableUsers(domainId);
+};
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "20px" },
@@ -59,8 +71,14 @@ const {
   downloadTemplate,
   importDomains,
   deleteDomain,
+  assignUsersToDomain,
   showAlert,
 } = useDomainApi();
+
+const onUsersAssigned = async (selectedUserIds) => {
+  await assignUsersToDomain(currentDomainId.value, selectedUserIds);
+  showAssignDialog.value = false;
+};
 
 
 // Filters
@@ -76,11 +94,9 @@ const showAdvancedFilters = ref(false);
 const route = useRoute()
 const router = useRouter()
 
-// const clientId = computed(() => {
-//   return route.params.id || authStore.user?.id
-// })
-
-const clientId = computed(() => authStore.isClient ? authStore.user.id : route.params.id)
+const clientId = computed(() =>
+ route.params.id
+);
 
 const showImportResult = ref(false)
 const importResult = ref({
@@ -337,9 +353,9 @@ onMounted(async () => {
       </VCol>
 
       <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="mt-8 text-md-end">
-        <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
-          <VIcon icon="tabler-arrow-left" />
-          Back to Clients
+        <VBtn color="primary" variant="flat" :to="{ name: 'client-list' }">
+          <VIcon icon="tabler-arrow-autofit-left" size= "xl-large" class="me-1" />
+          Back
         </VBtn>
       </VCol>
 
@@ -516,7 +532,7 @@ onMounted(async () => {
         </VBtn>
         <!-- create domain-->
         <VBtn color="primary" prepend-icon="tabler-plus"
-          @click="$router.push({ name: 'apps-domain-clientdomain-add', params: { id: clientId } })">
+          @click="$router.push({ name: 'domain-clientdomain-add', params: { id: clientId } })">
           Add Client Domain
         </VBtn>
       </div>
@@ -627,7 +643,7 @@ onMounted(async () => {
           <VTooltip text="View Rival Domains">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="$router.push({
-                name: 'apps-domain-clientdomain-rivaldomain-list',
+                name: 'domain-clientdomain-rivaldomain-list',
                 params: { clientId: item.client_id, domainId: item.id }
               })">
               <VChip color="info" variant="tonal" size="small">
@@ -646,9 +662,17 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link
-                  :to="{ name: 'apps-domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
+                  :to="{ name: 'domain-clientdomain-view', params: { clientId: item.client_id, domainId: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
+              </IconBtn>
+            </template>
+          </VTooltip>
+
+          <VTooltip v-if="ability.can('assign','clientdomain')" text="User Assignment">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="openDialog(item.id)">
+                <VIcon color="secondary" icon="tabler-users-plus" size="20" />
               </IconBtn>
             </template>
           </VTooltip>
@@ -657,7 +681,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                  name: 'apps-domain-clientdomain-history',
+                  name: 'domain-clientdomain-history',
                   params: {  view : 'client', id: item.id },
                 }">
                   <VIcon color="info" icon="tabler-chart-bar-popular" size="20" />
@@ -686,8 +710,8 @@ onMounted(async () => {
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
-          <VBtn color="primary" prepend-icon="tabler-plus"
-          @click="$router.push({ name: 'apps-domain-clientdomain-add', params: { id: clientId } })">
+          <VBtn color="primary"
+          @click="$router.push({ name: 'domain-clientdomain-add', params: { id: clientId } })">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Domain
           </VBtn>
@@ -812,10 +836,10 @@ onMounted(async () => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" color="error" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="importing" :disabled="!selectedFile || !!fileError"
+        <VBtn color="primary" :loading="importing" variant="flat" :disabled="!selectedFile || !!fileError"
           @click="handleImportDomains">
           <VIcon icon="tabler-download" class="me-2" />
           Import Domains
@@ -823,6 +847,14 @@ onMounted(async () => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <UserAssignDialog
+      v-model="showAssignDialog"
+      :users="assignableUsers"
+      :assigned="assignedUserIds"
+      @assign="onUsersAssigned"
+  />
+
 </template>
 
 <style lang="scss" scoped>

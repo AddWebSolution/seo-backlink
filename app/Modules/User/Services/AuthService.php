@@ -3,16 +3,17 @@
 namespace App\Modules\User\Services;
 
 use App\Modules\User\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Modules\User\Events\UserLoggedInEvent;
 use Illuminate\Validation\ValidationException;
 use App\Modules\User\Events\UserRegisteredEvent;
-use App\Modules\User\Events\UserLoggedInEvent;
 
 class AuthService
 {
     /**
-     * Register a new user
+     * Register a new client
      */
     public function register(array $data): User
     {
@@ -22,8 +23,29 @@ class AuthService
             'phone'    => $data['phone'],
             'password' => Hash::make($data['password']),
         ]);
+        $role = Role::find(2);
+        $user->assignRole( $role);
 
-        $user->assignRole('client');
+        event(new UserRegisteredEvent($user));
+
+        return $user;
+    }
+
+    /**
+     * Register a new user
+     */
+    public function userRegister(array $data): User
+    {   
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'],
+            'role'    => $data['role'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        $role = Role::find($data['role']);
+        $user->assignRole($role);
 
         event(new UserRegisteredEvent($user));
 
@@ -46,9 +68,9 @@ class AuthService
         /** @var User $user */
         $user = Auth::user();
 
-        if (!$user->hasRole('super_admin')) {
-            $user->assignRole('client');
-        }
+//        if (!$user->hasRole('super_admin')) {
+//            $user->assignRole('client');
+//        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

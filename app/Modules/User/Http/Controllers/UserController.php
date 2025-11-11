@@ -2,7 +2,9 @@
 
 namespace App\Modules\User\Http\Controllers;
 
+use App\Modules\ClientDomain\Models\ClientDomain;
 use App\Traits\HasProfilePicUpload;
+use App\Modules\User\Http\Requests\RegisterUserRequest;
 use Illuminate\Http\Request;
 use App\Modules\User\Models\User;
 use Addweb\Base\Controller\BaseController;
@@ -28,10 +30,31 @@ class UserController extends BaseController
         ];
     }
 
+
+    public function createClient(RegisterUserRequest $request)
+    {
+        $user = $this->service->clientCreate($request->validated());
+
+        return response()->json([
+            'message' => 'Client registered successfully',
+            'user'    => $user
+        ], 201);
+    }
+
+    public function createUser(RegisterUserRequest $request)
+    {
+        $user = $this->service->userCreate($request->validated());
+
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user'    => $user
+        ], 201);
+    }
+
     public function clientList()
     {
         $clients = User::select('id', 'name', 'company_name', 'phone', 'email')
-            ->where('role', '3')
+            ->where('role', '2')
             ->orderBy('name')
             ->get();
 
@@ -40,12 +63,34 @@ class UserController extends BaseController
             'clients' => $clients,
         ]);
     }
+     public function UserList(Request $request)
+    {   
+        $filters = $request->only(['search', 'status']);
+        $perPage = $request->input('per_page', 10);
+
+        $users = $this->service->UserList($filters, $perPage);
+
+        return response()->json([
+            'data' => [
+                'resource' => $users->items(),
+                'pagination' => [
+                    'total' => $users->total(),
+                    'currentPage' => $users->currentPage(),
+                    'perPage' => $users->perPage(),
+                    'lastPage' => $users->lastPage(),
+                ],
+            ],
+            'message' => 'Resource Fetched',
+            'success' => true,
+        ]);
+    }
+
 
     public function clientDomains()
     {
         return User::query()
             ->where('status', UserStatus::ACTIVE)
-            ->where('role', '3')
+            ->where('role', '2')
             ->with([
                 'clientDomains' => function ($query) {
                     $query->select('id', 'client_id', 'title', 'target_url') 
@@ -71,8 +116,6 @@ class UserController extends BaseController
         ]);
     }
 
-
-
     public function updateProfilePic(UploadProfilePicRequest $request)
     {
         $user = auth()->user();
@@ -80,4 +123,27 @@ class UserController extends BaseController
         $this->uploadProfilePic($user, $request->file('profile_pic'), 'user');
         return response()->json(['success' => true]);
     }
+
+    public function listAssignableUsers($domainId)
+    {
+        $domain = ClientDomain::findOrFail($domainId);
+
+        $users = User::where('role', '!=', '2')
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
+
+        $assigned = $domain->users()
+            ->select('users.id', 'users.name', 'users.email')
+            ->orderBy('users.name')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'users' => $users,
+            'assigned' => $assigned
+        ]);
+    }
+
+
 }

@@ -20,10 +20,10 @@ export function useAuthApi() {
       });
 
       if (result?.statusCode.value === 200) {
-        user.value = result.data.value.user;
-        showAlert(result.data.value.message || "Login successful", "success");
+        user.value = result.data.user;
+        showAlert(result.data.message || "Login successful", "success");
       } else {
-        showAlert(result?.data.value.message || "Login failed", "error");
+        showAlert(result?.data?.message || "Login didn’t work. Check your email and password.", "error")
       }
 
       return result;

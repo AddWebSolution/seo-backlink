@@ -15,8 +15,10 @@ class RolePermissionSeeder extends Seeder
     {
         return [
             'client' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'user' => ['view', 'create', 'update', 'delete', 'import','export'],
             'report' => ['view', 'create', 'update', 'delete', 'import','export'],
-            'clientdomain' => ['view', 'create', 'update', 'delete', 'import','export'],
+            'role_permission'  => ['view', 'create', 'update', 'delete', 'import','export'],
+            'clientdomain' => ['view', 'create', 'update', 'delete', 'import','export','assign'],
             'dashboard' => ['view', 'create', 'update', 'delete', 'import','export'],
             'rivaldomain' => ['view', 'create', 'update', 'delete', 'import','export'],
             'keyword' => ['view', 'create', 'update', 'delete', 'import','export'],
@@ -68,9 +70,9 @@ class RolePermissionSeeder extends Seeder
             $role->syncPermissions($rolePermissions);
         }
 
-        $adminUser = User::where('role', 'super_admin')->first();
-        if ($adminUser) {
-            $adminUser->assignRole('super_admin');
-        }
+//        $adminUser = User::where('role', 'super_admin')->first();
+//        if ($adminUser) {
+//            $adminUser->assignRole('super_admin');
+//        }
     }
 }

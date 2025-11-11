@@ -7,6 +7,18 @@ import { VBtn } from "vuetify/components";
 import { useRoute, useRouter } from "vue-router";
 import useAuthStore from "@/router/store/auth";
 import { useAbility } from "@casl/vue";
+import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
+import { useUserApi} from "@/composables/userApi.js";
+
+const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
+const showAssignDialog = ref(false);
+const currentDomainId = ref(null);
+
+const openDialog = (domainId) => {
+  currentDomainId.value = domainId;
+  showAssignDialog.value = true;
+  fetchAssignableUsers(domainId);
+};
 
 const headers = [
   { title: "ID", key: "id", align: "start", width: "60px" },
@@ -63,8 +75,15 @@ const {
   downloadTemplate,
   importDomains,
   deleteDomain,
+  assignUsersToDomain,
   showAlert,
 } = useDomainApi();
+
+const onUsersAssigned = async (selectedUserIds) => {
+  console.log(selectedUserIds)
+  await assignUsersToDomain(currentDomainId.value, selectedUserIds);
+  showAssignDialog.value = false;
+};
 
 // Filters
 const selectedStatus = ref();
@@ -128,13 +147,11 @@ const buildFilters = () => {
   if (Object.keys(filters).length > 0) {
     params.filters = filters;
   }
-  console.log("params", filters);
   return params;
 };
 
 const loadDomains = async (id = clientId) => {
   const filters = buildFilters();
-  console.log("client id", id);
   await fetchDomains(filters, pagination.value.page);
 };
 
@@ -188,6 +205,8 @@ const applyFilters = async () => {
 const handleDeleteDomain = async (id) => {
   try {
     await deleteDomain(id);
+    const index = selectedRows.value.findIndex((row) => row === id);
+    if (index !== -1) selectedRows.value.splice(index, 1);
     await loadDomains(clientId);
   } catch (error) {
     console.error("Delete failed:", error);
@@ -325,37 +344,30 @@ onMounted(async () => {
 <template>
   <!-- Header Section -->
   <VCard class="mb-6 pa-6 overflow-hidden" elevation="0">
-    <VRow align="start" justify="space-between">
-      <VCol cols="12" md="8">
-        <div class="d-flex align-center">
-          <VAvatar size="64" color="primary" variant="elevated" class="me-4">
-            <IconWorldWww stroke="{2}" />
-          </VAvatar>
-          <div>
-            <h1 class="text-h3 font-weight-bold mb-1">Domain Management</h1>
-            <p class="text-body-1 text-medium-emphasis mb-0">
-              Manage and monitor your domain portfolio
-            </p>
+    <VContainer fluid>
+      <VRow align="center">
+        <VCol cols="12" md="8">
+          <div class="d-flex align-center">
+            <VAvatar size="64" color="primary" variant="elevated" class="me-4">
+              <VIcon icon="tabler-user"></VIcon>
+            </VAvatar>
+            <div>
+              <h1 class="text-h3 font-weight-bold mb-1">Domain Management</h1>
+              <p class="text-body-1 text-medium-emphasis mb-0">
+                Manage and monitor your domain portfolio
+              </p>
+            </div>
           </div>
-        </div>
-      </VCol>
+        </VCol>
+      </VRow>
+    </VContainer>
 
-      <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
-        <VBtn color="primary" variant="flat" :to="{ name: 'apps-client-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Clients
+    <!-- <VCol v-if="ability.can('view', 'client')" cols="12" md="4" class="text-md-end">
+        <VBtn color="primary" variant="flat" :to="{ name: 'client-list' }">
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
         </VBtn>
       </VCol> -->
-
-      <VCol cols="12" class="mt-4">
-        <div v-if="currentClient" class="d-flex align-center">
-          <VChip color="primary" class="ms-3 pa-4" variant="flat" size="large" elevation="2" outlined>
-            <VIcon icon="tabler-user" class="me-2" />
-            Client Name : {{ currentClient.name }}
-          </VChip>
-        </div>
-      </VCol>
-    </VRow>
   </VCard>
 
   <!-- Enhanced Search & Filter Section -->
@@ -517,7 +529,7 @@ onMounted(async () => {
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
         <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+        <VBtn v-if="ability.can('import','clientdomain')" variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
@@ -525,17 +537,8 @@ onMounted(async () => {
           Download Template
         </VBtn> -->
         <!-- 👉 Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn v-if="ability.can('export','clientdomain')" variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
-        </VBtn>
-        <!-- create domain-->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="
-            $router.push({
-              name: 'apps-clientdomain-add',
-              params: { id: clientId },
-            })
-          ">
-          Add Domain
         </VBtn>
       </div>
     </div>
@@ -648,7 +651,7 @@ onMounted(async () => {
         <VTooltip text="View Rival Domains">
           <template #activator="{ props }">
             <IconBtn v-bind="props" size="small" class="d-flex align-center px-2" @click="$router.push({
-              name: 'apps-clientdomain-rivaldomain-list',
+              name: 'clientdomain-rivaldomain-list',
               params: { clientId: item.client_id, domainId: item.id },
             })">
               <VChip color="info" variant="tonal" size="small" class="d-flex align-center px-2 ml-10">
@@ -664,11 +667,11 @@ onMounted(async () => {
 
       <template #item.actions="{ item }">
         <div class="d-flex">
-          <VTooltip text="View Details">
+          <VTooltip v-if="ability.can('view','clientdomain')" text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                    name: 'apps-clientdomain-view',
+                    name: 'clientdomain-view',
                     params: { clientId: item.client_id, domainId: item.id },
                   }">
                   <VIcon icon="tabler-eye" size="20" />
@@ -677,11 +680,19 @@ onMounted(async () => {
             </template>
           </VTooltip>
 
+          <VTooltip v-if="ability.can('assign','clientdomain')" text="User Assignment">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="openDialog(item.id)">
+                  <VIcon color="secondary" icon="tabler-users-plus" size="20" />
+              </IconBtn>
+            </template>
+          </VTooltip>
+
           <VTooltip text="View history">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
                 <router-link :to="{
-                  name: 'apps-clientdomain-history',
+                  name: 'clientdomain-history',
                   params: { id: item.id  , view : 'domain' },
                 }">
                   <VIcon color="info" icon="tabler-chart-bar-popular" size="20" />
@@ -690,10 +701,10 @@ onMounted(async () => {
             </template>
           </VTooltip>
 
-          <VTooltip text="Delete">
+          <VTooltip v-if="ability.can('delete','clientdomain')" text="Delete">
             <template #activator="{ props }">
               <IconBtn v-bind="props" color="error" icon="tabler-trash" size="small"
-                @click="openDeleteDialog(item.id)" />
+                @click="handleDeleteDomain(item.id)" />
             </template>
           </VTooltip>
 
@@ -721,14 +732,14 @@ onMounted(async () => {
         <div class="text-center pa-8">
           <VIcon icon="tabler-world-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No domains found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create','clientdomain')">
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
 
           <!-- <VBtn color="primary" prepend-icon="tabler-plus" @click="
             $router.push({
-              name: 'apps-clientdomain-add',
+              name: 'clientdomain-add',
               params: { id: clientId },
             })
             ">
@@ -854,10 +865,10 @@ onMounted(async () => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" color="error" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="importing" :disabled="!selectedFile || !!fileError"
+        <VBtn color="primary" :loading="importing" variant="flat" :disabled="!selectedFile || !!fileError"
           @click="handleImportDomains">
           <VIcon icon="tabler-download" class="me-2" />
           Import Domains
@@ -865,6 +876,14 @@ onMounted(async () => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <UserAssignDialog
+      v-model="showAssignDialog"
+      :users="assignableUsers"
+      :assigned="assignedUserIds"
+      @assign="onUsersAssigned"
+  />
+
 </template>
 
 <style lang="scss" scoped>

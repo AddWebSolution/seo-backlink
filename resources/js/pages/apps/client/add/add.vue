@@ -10,7 +10,7 @@ const form = ref({
   name: '',
   email: '',
   company_name: '',
-  role: '3', 
+  role: '2', 
   designation: '',
   status: 1,
   profile_pic: '',
@@ -100,7 +100,7 @@ const handleSubmit = async () => {
   try {
     await createClient(form.value)
     showAlert('Client created successfully!', 'success')
-    router.push({ name: 'apps-client-list' })
+    router.push({ name: 'client-list' })
   } catch (err) {
     console.error(err)
     showAlert(err.response?.data?.message || 'Failed to create client.', 'error')
@@ -110,7 +110,6 @@ const handleSubmit = async () => {
 }
 
 onMounted(async () => {
-  await fetchClientList()
 })
 </script>
 
@@ -366,7 +365,6 @@ onMounted(async () => {
                 :loading="submitting"
                 color="primary"
                 type="submit"
-                size="large"
                 prepend-icon="tabler-check"
               >
                 Create Client
@@ -375,7 +373,6 @@ onMounted(async () => {
               <VBtn
                 variant="flat"
                 color="error"
-                size="large"
                 prepend-icon="tabler-x"
                 @click="router.back()"
               >

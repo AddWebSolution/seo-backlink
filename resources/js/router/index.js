@@ -2,11 +2,14 @@ import { createRouter, createWebHistory } from 'vue-router/auto'
 import { setupLayouts } from 'virtual:meta-layouts'
 import { setupGuards } from './guards';
 import { clientRoutes } from './modules/clients';
+import { userRoutes} from "@/router/modules/users.js";
 import { domainRoutes } from './modules/domains';
 import { rivalDomainRoutes } from './modules/rivalDomains';
 import { keywordRoutes } from './modules/keywords';
 import { reportRoutes } from './modules/reports';
 import { dashboardRoutes } from './modules/dashboards';
+import { roleRoutes } from './modules/role'
+import { clientDomainRoutes } from './modules/clientDomains';
 
 export const redirects = [
   { path: '/', name: 'index', redirect: { name: 'login' } },
@@ -34,9 +37,12 @@ const router = createRouter({
     ...[
       ...pages,
       ...clientRoutes,
+      ...userRoutes,
       ...domainRoutes,
       ...rivalDomainRoutes,
       ...keywordRoutes,
+      ...clientDomainRoutes,
+      ...roleRoutes,
       ...reportRoutes,
       ...dashboardRoutes
     ].map(route => recursiveLayouts(route)),

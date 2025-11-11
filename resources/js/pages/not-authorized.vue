@@ -25,7 +25,7 @@ const authThemeMask = useGenerateImageVariant(miscMaskLight, miscMaskDark)
 
     <VBtn
       class="mb-11"
-      to="/"
+      :to="{ name: 'dashboards-analytics' }"
     >
       Back To Home
     </VBtn>

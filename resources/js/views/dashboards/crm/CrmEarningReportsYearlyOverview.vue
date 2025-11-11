@@ -44,8 +44,6 @@ const chartSeries = computed(() => {
   }))
 })
 
-console.log('chartSeries', chartSeries)
-
 const chartConfigs = computed(() => {
   const currentTheme = vuetifyTheme.current.value.colors
   const variableTheme = vuetifyTheme.current.value.variables

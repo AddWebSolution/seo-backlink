@@ -287,7 +287,7 @@ onMounted(async () => {
         </VCol>
         <!-- <VCol cols="12" md="4" class="text-md-end">
           <VBtn variant="outlined" size="large" class="text-primary font-weight-medium"
-            :to="{ name: 'apps-domain-add' }">
+            :to="{ name: 'domain-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
             Add Domain
           </VBtn>
@@ -472,7 +472,7 @@ onMounted(async () => {
           Export
         </VBtn>
         <!-- create domain-->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/domain/add')">
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/domain/add')">
           Add Domain
         </VBtn>
       </div>
@@ -586,7 +586,7 @@ onMounted(async () => {
           <VTooltip text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-domain-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'domain-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -627,7 +627,7 @@ onMounted(async () => {
             Try adjusting your search criteria or add a new domain to get
             started.
           </p>
-          <VBtn color="primary" :to="{ name: 'apps-domain-add' }">
+          <VBtn color="primary" :to="{ name: 'domain-add' }">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Domain
           </VBtn>
@@ -752,10 +752,10 @@ onMounted(async () => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="flat" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" color="error" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="importing" :disabled="!selectedFile || !!fileError"
+        <VBtn color="primary" :loading="importing" variant="flat" :disabled="!selectedFile || !!fileError"
           @click="handleImportDomains">
           <VIcon icon="tabler-download" class="me-2" />
           Import Domains

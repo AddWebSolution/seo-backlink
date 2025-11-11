@@ -48,7 +48,7 @@ const handleDeleteDomain = async () => {
   try {
     await deleteDomainApi(rivalDomainId.value)
     showDeleteDialog.value = false
-    router.push({ name: 'apps-domain-list' })
+    router.push({ name: 'domain-list' })
   } catch (error) {
     // Error handling is done in the composable
     console.error('Delete failed:', error)
@@ -129,9 +129,9 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
             </VBtn>
             
             
-            <VBtn color="primary" variant="flat" :to="{ name: 'apps-domain-clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
-              <VIcon icon="tabler-arrow-left" class="me-2" />
-              Back to List
+            <VBtn color="primary" variant="flat" :to="{ name: 'domain-clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
+              <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+Back
             </VBtn>
           </VCol>
         </VRow>
@@ -458,9 +458,9 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
           The riavlDomain you're looking for doesn't exist or may have been deleted.
           Please check the ID and try again.
         </p>
-        <VBtn color="primary" size="large" :to="{ name: 'apps-domain-list' }">
-          <VIcon icon="tabler-arrow-left" class="me-2" />
-          Back to Domains
+        <VBtn color="primary" size="large" :to="{ name: 'domain-list' }">
+          <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+          Back
         </VBtn>
       </VCardText>
     </VCard>

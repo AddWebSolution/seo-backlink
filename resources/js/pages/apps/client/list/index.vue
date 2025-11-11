@@ -72,6 +72,8 @@ const clientData = ref({
 const submitting = ref(false);
 const formRef = ref(null);
 
+const clientDomainId =  computed(() => route.params.id)
+
 // Form validation rules
 const rules = {
   required: (value) => !!value || "This field is required",
@@ -206,13 +208,13 @@ const getStatusConfig = (status) => {
 };
 
 const getRoleConfig = (status) => {
-  if (status == "3")
+  if (status == "client")
     return {
       color: "info",
       icon: "tabler-user",
       text: "Client",
     };
-  if (status == "1")
+  if (status == "superadmin")
     return { color: "error", icon: "tabler-user", text: "SuperAdmin" };
 };
 
@@ -227,10 +229,10 @@ const handleDeleteClient = async (id) => {
     const index = selectedRows.value.findIndex((row) => row === id);
     if (index !== -1) selectedRows.value.splice(index, 1);
     await loadClients(); // Refresh the list
-    showAlert("Client deleted successfully!", "success");
+    // showAlert("Client deleted successfully!", "success");
   } catch (error) {
     console.error("Delete failed:", error);
-    showAlert("Failed to delete client", "error");
+    // showAlert("Failed to delete client", "error");
   }
 };
 
@@ -679,21 +681,22 @@ const updateOptions = async (options) => {
           Delete Selected
         </VBtn>
       </div>
-      <div v-if="ability.can('update', 'client')" class="d-flex gap-4 flex-wrap align-center">
+<!--      <div v-if="ability.can('update', 'client')" class="d-flex gap-4 flex-wrap align-center">-->
+      <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
 
         <!-- Excel Import Dialog Button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
+        <VBtn v-if="ability.can('import','client')" variant="tonal" color="secondary" prepend-icon="tabler-download" @click="importDialog = true">
           Import
         </VBtn>
 
         <!-- Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn  v-if="ability.can('export','client')" variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
           Export
         </VBtn>
 
         <!-- Add Client button -->
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/apps/client/add')">
+        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/client/add')" v-if="ability.can('create', 'client')">
           Add Client
         </VBtn>
       </div>
@@ -718,9 +721,10 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.role="{ item }">
-        <VChip :color="getRoleConfig(item.role)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getRoleConfig(item.role)?.icon || 'tabler-circle'" size="14" class="me-1" />
-          {{ getRoleConfig(item.role)?.text || "Unknown" }}
+        <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
+          <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
+<!--          {{ getRoleConfig(item.role)?.text || "Unknown" }}-->
+          {{ getRoleConfig(item.role.name).text }}
         </VChip>
       </template>
 
@@ -732,13 +736,10 @@ const updateOptions = async (options) => {
       </template>
 
       <template #item.manage_domains="{ item }">
-          <VTooltip v-if="ability.can('view', 'rivaldomain')" text="View Domains for This Client">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" @click="
-                $router.push({
-                  name: 'apps-domain-clientdomain-list',
-                  params: { id: item.id },
-                })
+        <VTooltip text="View Domains for This Client">
+          <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small"
+                 :to="{ name: 'domain-clientdomain-list', params: { id: item.id } }
                 ">
                 <VChip color="info" variant="tonal" size="small" class="ma-1">
                  <VIcon color="success" icon="tabler-external-link" size="20" class="me-1" />
@@ -752,19 +753,19 @@ const updateOptions = async (options) => {
 
       <template #item.actions="{ item }">
         <div class="d-flex ml-10">
-          <VTooltip text="View Details">
+          <VTooltip v-if="ability.can('view', 'client')" text="View Details">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-client-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'client-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
                 </router-link>
               </IconBtn>
             </template>
           </VTooltip>
 
-          <VTooltip text="Edit Client">
+          <VTooltip v-if="ability.can('update', 'client')" text="Edit Client">
             <template #activator="{ props }">
-              <IconBtn v-bind="props" size="small" :to="{ name: 'apps-client-edit', params: { id: item.id } }">
+              <IconBtn v-bind="props" size="small" :to="{ name: 'client-edit', params: { id: item.id } }">
                 <VIcon color="info" icon="tabler-edit" size="20" />
               </IconBtn>
             </template>
@@ -773,7 +774,7 @@ const updateOptions = async (options) => {
           <!-- <VTooltip v-if="ability.can('view','rivaldomain')" text="View Domains for This Client">
               <template #activator="{ props }">
                 <IconBtn v-bind="props" size="small"
-                  @click="$router.push({ name: 'apps-domain-clientdomain-list', params: { id: item.id } })">
+                  @click="$router.push({ name: 'domain-clientdomain-list', params: { id: item.id } })">
                   <VIcon color="success" icon="tabler-world" size="20" />
                 </IconBtn>
               </template>
@@ -792,13 +793,13 @@ const updateOptions = async (options) => {
       <!-- Empty State -->
       <template #no-data>
         <div class="text-center pa-8">
-          <VIcon icon="tabler-users-off" size="48" class="text-medium-emphasis mb-4" />
-          <h3 class="text-h6 mb-2">No clients found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <VIcon icon="tabler-user-off" size="48" class="text-medium-emphasis mb-4" />
+          <h3 class="text-h6 mb-2">No client found</h3>
+          <p class="text-body-2 text-medium-emphasis mb-4" v-if="ability.can('create', 'client')">
             Try adjusting your search criteria or add a new client to get
             started.
           </p>
-          <VBtn color="primary" @click="$router.push('/apps/client/add')">
+          <VBtn color="primary" @click="$router.push('/client/add')" v-if="ability.can('create', 'client')">
             <VIcon icon="tabler-plus" class="me-2" />
             Add First Client
           </VBtn>
@@ -925,10 +926,10 @@ const updateOptions = async (options) => {
 
       <VCardActions class="pa-6">
         <VSpacer />
-        <VBtn variant="outlined" @click="closeImportDialog" :disabled="importing">
+        <VBtn variant="flat" color="error" @click="closeImportDialog" :disabled="importing">
           Cancel
         </VBtn>
-        <VBtn color="primary" :loading="importing" @click="handleImportClients">
+        <VBtn color="primary" :loading="importing" variant="flat" @click="handleImportClients">
           <VIcon icon="tabler-download" class="me-2" />
           Import Clients
         </VBtn>

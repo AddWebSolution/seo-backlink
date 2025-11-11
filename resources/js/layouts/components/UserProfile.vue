@@ -144,7 +144,7 @@ const userProfileList = [
                   {{ userData.name }}
                 </h6>
                 <VListItemSubtitle class="text-capitalize text-disabled">
-                 {{ userData.role == 3 ? 'Client' : 'Admin' }}
+                 {{ userData.roles[0].name ?? 'Guest' }}
                 </VListItemSubtitle>
               </div>
             </div>

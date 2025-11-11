@@ -206,10 +206,23 @@ const handleExportSingleReport = async (reportId) => {
 
 const handleDeleteReport = async (id) => {
   try {
+    id = parseInt(id, 10)
     await deleteReport(id);
     const index = selectedRows.value.findIndex((row) => row == id);
     if (index !== -1) selectedRows.value.splice(index, 1);
   } catch (error) {
+    console.error("Delete failed:", error);
+  }
+};
+
+const handleDeleteReportBatch = async (ids) => {
+  loading.value = true;
+  try {
+    await Promise.all(ids.map((id) => deleteReport(id)));
+    selectedRows.value = [];
+    await loadReports();
+  } catch (error) {
+    ss;
     console.error("Delete failed:", error);
   }
 };
@@ -406,7 +419,7 @@ const formatRunAt = (dateString) => {
       </div>
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
+        <VBtn v-if="selectedRows.length" @click="handleDeleteReportBatch(selectedRows)" variant="text" size="small" color="error">
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
@@ -414,7 +427,7 @@ const formatRunAt = (dateString) => {
       <div class="d-flex gap-4 flex-wrap align-center">
         <AppSelect v-model="itemsPerPage" :items="[5, 10, 20, 25, 50]" />
         <!-- 👉 Export button -->
-        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports">
+        <VBtn variant="tonal" color="secondary" prepend-icon="tabler-upload" @click="handleExportReports" v-if="ability.can('export','report')">
           Export
         </VBtn>
       </div>
@@ -511,7 +524,7 @@ const formatRunAt = (dateString) => {
           <VTooltip text="View Report">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small">
-                <router-link :to="{ name: 'apps-report-view', params: { id: item.id } }">
+                <router-link :to="{ name: 'report-view', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="24" />
                 </router-link>
               </IconBtn>
@@ -533,14 +546,14 @@ const formatRunAt = (dateString) => {
         <div class="text-center pa-8">
           <VIcon icon="tabler-report-off" size="48" class="text-medium-emphasis mb-4" />
           <h3 class="text-h6 mb-2">No reports found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            No reports match your current search criteria. Try adjusting your
-            filters or generate a new report.
-          </p>
-          <VBtn color="primary">
-            <VIcon icon="tabler-plus" class="me-2" />
-            Generate New Report
-          </VBtn>
+<!--          <p class="text-body-2 text-medium-emphasis mb-4">-->
+<!--            No reports match your current search criteria. Try adjusting your-->
+<!--            filters or generate a new report.-->
+<!--          </p>-->
+<!--          <VBtn color="primary">-->
+<!--            <VIcon icon="tabler-plus" class="me-2" />-->
+<!--            Generate New Report-->
+<!--          </VBtn>-->
         </div>
       </template>
       <template #bottom>

@@ -26,13 +26,13 @@ const recentActivity = ref([
 const quickActions = ref(
   user.role == 1 
     ? [
-        { title: 'Add Client', icon: 'tabler-user-plus', color: 'primary', route: 'apps-client-add' },
+        { title: 'Add Client', icon: 'tabler-user-plus', color: 'primary', route: 'client-add' },
         { title: 'View Reports', icon: 'tabler-chart-bar', color: 'success', route: 'apps-reports' },
         { title: 'Manage Users', icon: 'tabler-users', color: 'info', route: 'apps-user-list' },
         { title: 'Settings', icon: 'tabler-settings', color: 'warning', route: 'settings' }
       ]
     : [
-        { title: 'My Domains', icon: 'tabler-world', color: 'primary', route: 'apps-clientdomain-list' },
+        { title: 'My Domains', icon: 'tabler-world', color: 'primary', route: 'clientdomain-list' },
         { title: 'View Reports', icon: 'tabler-chart-bar', color: 'success', route: 'apps-reports' },
         { title: 'Analytics', icon: 'tabler-chart-line', color: 'info', route: 'analytics' },
         { title: 'Support', icon: 'tabler-help', color: 'warning', route: 'support' }

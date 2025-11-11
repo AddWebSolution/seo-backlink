@@ -38,8 +38,12 @@ class ClientDomainService extends BaseService
     protected function loadRelations(): void
     {
         $authUser = auth()->user();
-        if ($authUser->role === UserRole::CLIENT) {
+        if ($authUser->role === UserRole::CLIENT->value) {
             $this->query->where('client_id', auth()->id());
+        } elseif ($authUser->role !== UserRole::SUPERADMIN->value) {
+            $this->query->whereHas('users', function ($q) use ($authUser) {
+                $q->where('users.id', $authUser->id);
+            });
         }
         $this->loadExtraRelation();
     }

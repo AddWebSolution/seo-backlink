@@ -31,7 +31,7 @@ const form = ref({
   email: '',
   company_name: '',
   website: '',
-  role: '3',
+  role:null,
   designation: '',
   status: 1,
   profile_pic: '',
@@ -104,6 +104,7 @@ const loadClientData = async () => {
     currentClient.value = response.data.value
     profileImagePreview.value = response.data.profile_pic
     Object.assign(form.value, currentClient.value)
+    form.value.role = currentClient.value.role?.id ?? currentClient.value.role
   } catch (err) {
     console.error(err)
   } finally {
@@ -129,12 +130,15 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     const updateData = { ...form.value }
+    updateData.role = updateData.role
+     delete updateData.role
     if (!showPasswordFields.value || !updateData.password) {
       delete updateData.password
       delete updateData.password_confirmation
     }
     await updateClient(currentClient.value.id, updateData)
     await loadClientData()
+    router.back()
     showPasswordFields.value = false
   } catch (err) {
     console.error(err)
@@ -171,9 +175,9 @@ onMounted(async () => {
       </VCol>
       <VCol cols="12" md="4" class="text-md-end">
         <div class="d-flex gap-2 justify-md-end">
-          <VBtn variant="flat" @click="router.push({ name: 'apps-client-list' })">
-            <VIcon icon="tabler-arrow-left" class="me-2" />
-            Back to List
+          <VBtn variant="flat" @click="router.push({ name: 'client-list' })">
+            <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
+            Back
           </VBtn>
         </div>
       </VCol>
@@ -316,12 +320,12 @@ onMounted(async () => {
           <VDivider class="mb-6" />
           <VCol cols="12" class="mt-6 d-flex justify-end">
             <div class="d-flex  space-between gap-4">
-              <VBtn :loading="submitting" color="primary" type="submit" size="large"
+              <VBtn :loading="submitting" color="primary" type="submit"
                 prepend-icon="tabler-device-floppy">
                 Save Changes
               </VBtn>
 
-              <VBtn variant="flat" color="error" size="large" prepend-icon="tabler-x" @click="router.back()"
+              <VBtn variant="flat" color="error" prepend-icon="tabler-x" @click="router.back()"
                 :disabled="submitting">
                 Cancel
               </VBtn>

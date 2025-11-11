@@ -1,63 +1,97 @@
 <?php
 
-namespace App\Modules\User\Http\Controllers;
-
 use Illuminate\Support\Facades\Route;
+use App\Modules\Client\Http\Controllers\ClientController;
+use App\Modules\User\Http\Controllers\AuthController;
+use App\Modules\User\Http\Controllers\UserController;
+use App\Modules\User\Http\Controllers\RoleController;
 
 
-// =========================
-// 🔹 Public Auth Routes
-// =========================
-Route::prefix('api')->namespace('App\Modules\User\Http\Controllers')->group(function () {
-	Route::prefix('auth')->name('auth.')->group(function () {
-		Route::post('register', [AuthController::class, 'register'])->name('register');
-		Route::post('login', [AuthController::class, 'login'])->name('login');
-	});
+// =============================
+// 🔓 Public Auth Routes
+// =============================
+Route::prefix('api/auth')->name('auth.')->group(function () {
+	Route::post('register', [AuthController::class, 'register'])->name('register')->middleware('permission:create client');
+	Route::post('register/user', [AuthController::class, 'userRegister'])->name('register.user')->middleware('permission:create user');
+	Route::post('login', [AuthController::class, 'login'])->name('login');
 });
 
 
-// =========================
-// 🔹 Protected User Routes
-// =========================
-Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
-	Route::prefix('api')->namespace('App\Modules\User\Http\Controllers')->group(function () {
+// =============================
+// 🔐 Protected Routes
+// =============================
+Route::prefix('api')
+	->middleware(['api', 'auth:sanctum'])
+	->group(function () {
+
+		// =========================
+		// 👤 User Management
+		// =========================
+
 		Route::prefix('user')->name('user.')->group(function () {
-			//Route::group(['middleware' => ['can:View User']], function () {
-			Route::post('get', [UserController::class, 'index'])->name('get');
-			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all');
-			Route::post('get/{id}', [UserController::class, 'show'])->name('show');
-			//});
 
-			Route::get('/webhook/data', function () {
-				$data = [
-					'value' => 6,
-					'message' => 'Hello from Laravel',
-					'timestamp' => now(),
-				];
+			Route::post('get', [UserController::class, 'index'])->name('get')->middleware('permission:view user');
+			
+			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all')->middleware('permission:view user');
 
-				return response()->json($data);
-			});
+			Route::post('get/{id}', [UserController::class, 'show'])->name('show')->middleware('permission:view user');
 
-			Route::post('list', [UserController::class, 'clientList'])->name('clientList');
+			Route::post('store', [UserController::class, 'createUser'])->name('createUser')->middleware('permission:create user');
 
-			Route::post('client/domains', [UserController::class, 'clientDomains'])->name('clientDomains');
+			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:update user');
+			
+			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport')->middleware('permission:import user');
 
-			Route::post('client/get/all', [UserController::class, 'ClientListByRole'])->name('ClientListByRole');
+			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload');
 
-			//Route::group(['middleware' => ['can:Create User']], function () {
-			Route::post('store', [UserController::class, 'store'])->name('store');
-			//});
+			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete')->middleware('permission:delete user');
 
-			Route::post('upload/profile/pic', [UserController::class, 'updateProfilePic'])->name('upload_profile_pic');
-			//});
+			Route::post('/profile/upload', [UserController::class, 'updateProfilePic'])->name('profile.upload');
 
-			//Route::group(['middleware' => ['can:Update User']], function () {
-			Route::post('update/{id}', [UserController::class, 'update'])->name('update');
-			//});
+            Route::get('assignable-users/{domainId}', [UserController::class, 'listAssignableUsers'])->middleware('permission:assign clientdomain');
 
-			//Route::group(['middleware' => ['can:Delete User']], function () {
-			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete');
-			//});
+        });
+
+
+		// =========================
+		// 🧩 Client 
+		// =========================
+
+		Route::prefix('client')->name('client.')->group(function () {
+
+			Route::post('get', [UserController::class, 'index'])->name('get')->middleware('permission:view client');
+
+			Route::post('get-all', [UserController::class, 'getAll'])->name('get-all')->middleware('permission:view client');
+
+			Route::post('get/{id}', [UserController::class, 'show'])->name('show')->middleware('permission:view client');
+
+			Route::post('store', [UserController::class, 'createClient'])->name('createClient')->middleware('permission:create client');
+
+			Route::post('domains', [UserController::class, 'clientDomains'])->name('clientDomains')->middleware('permission:create client');
+
+			Route::post('name/list', [UserController::class, 'clientList']);
+
+			Route::post('import', [ClientController::class, 'clientImport'])->name('clientImport')->middleware('permission:import client');
+
+			Route::get('import/template/download', [ClientController::class, 'clientImportTemplateDownload'])->name('clientImportTemplateDownload')->middleware('permission:import client');
+
+			Route::post('update/{id}', [UserController::class, 'update'])->name('update')->middleware('permission:update client');
+
+			Route::post('delete/{id}', [UserController::class, 'destroy'])->name('delete')->middleware('permission:delete client');
+		});
+
+
+		// =========================
+		// 🧩 Roles & Permissions
+		// =========================
+		Route::prefix('roles')->name('roles.')->group(function () {
+
+			Route::get('/', [RoleController::class, 'roleList'])->name('index')->middleware('permission:view role_permission');
+			Route::get('/roleListForForm', [RoleController::class, 'roleListForForm']);
+			Route::post('/create', [RoleController::class, 'store'])->name('store')->middleware('permission:create role_permission');
+			Route::post('/edit/{roleId}', [RoleController::class, 'update'])->name('update')->middleware('permission:update role_permission');
+
+			Route::get('/{roleId}/permissions', [RoleController::class, 'rolePermission'])->name('permissions.view')->middleware('permission:create role_permission');
+			Route::get('/permissions/all', [RoleController::class, 'permissionsList'])->name('permissions.list')->middleware('permission:create role_permission');
 		});
 	});
-});
