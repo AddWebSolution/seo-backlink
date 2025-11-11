@@ -406,7 +406,7 @@ const formatRunAt = (dateString) => {
       </div>
       <VSpacer />
       <div class="d-flex align-center gap-2">
-        <VBtn v-if="selectedRows.length" variant="text" size="small" color="error">
+        <VBtn v-if="selectedRows.length" @click="handleDeleteReport(selectedRows)" variant="text" size="small" color="error">
           <VIcon icon="tabler-trash" class="me-1" />
           Delete Selected
         </VBtn>
