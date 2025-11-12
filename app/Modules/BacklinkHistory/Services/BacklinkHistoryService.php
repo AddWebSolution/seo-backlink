@@ -3,6 +3,7 @@
 namespace App\Modules\BacklinkHistory\Services;
 
 use Addweb\Base\Services\BaseService;
+use Carbon\Carbon;
 use App\Modules\BacklinkHistory\Events\AfterBacklinkHistoryStoreEvent;
 use App\Modules\BacklinkHistory\Models\BacklinkHistory;
 use App\Modules\ClientDomain\Models\ClientDomain;
@@ -62,14 +63,38 @@ class BacklinkHistoryService extends BaseService
             'rival_history' => $rivalHistory,
         ];
     }
+    // public function updateOrCreateHistory(array $data): BacklinkHistory
+    // {
+    //     $target = trim(strtolower($data['target']));
+
+    //     $backlinkHistory = BacklinkHistory::where('client_domain_id', $data['client_domain_id'])
+    //         ->where('rival_domain_id', $data['rival_domain_id']) 
+    //         ->where('history_date', $data['history_date'])
+    //         ->whereRaw('LOWER(TRIM(target)) = ?', $target)
+    //         ->first();
+
+    //     if ($backlinkHistory) {
+    //         $backlinkHistory->update($data);
+    //     } else {
+    //         $backlinkHistory = BacklinkHistory::create($data);
+    //     }
+
+    //     event(new AfterBacklinkHistoryStoreEvent($backlinkHistory));
+
+    //     return $backlinkHistory;
+    // }
+
     public function updateOrCreateHistory(array $data): BacklinkHistory
     {
+        $data['history_date'] = $data['history_date'] ?? now();
         $target = trim(strtolower($data['target']));
+        $historyDate = Carbon::parse($data['history_date']);
 
         $backlinkHistory = BacklinkHistory::where('client_domain_id', $data['client_domain_id'])
-            ->where('rival_domain_id', $data['rival_domain_id']) 
-            ->where('history_date', $data['history_date'])
-            ->whereRaw('LOWER(TRIM(target)) = ?', $target)
+            ->where('rival_domain_id', $data['rival_domain_id'])
+            ->whereRaw('LOWER(TRIM(target)) = ?', [$target])
+            ->whereMonth('history_date', $historyDate->month)
+            ->whereYear('history_date', $historyDate->year)
             ->first();
 
         if ($backlinkHistory) {
