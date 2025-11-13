@@ -8,7 +8,6 @@ const headers = [
   { title: "Name", key: "name", align: "center", width: "100px" },
   { title: "E-Mail", key: "email", align: "center", width: "80px" },
   { title: "Company", key: "company_name", align: "center", width: "80px" },
-  { title: "role", key: "role", align: "center", width: "80px" },
   { title: "designation", key: "designation", align: "center", width: "60px" },
   { title: "Phone", key: "phone", align: "center", width: "100px" },
   {
@@ -725,14 +724,6 @@ const updateOptions = async (options) => {
 
       <template #item.designation="{ item }">
         {{ item.designation ?? '-' }}
-      </template>
-
-      <template #item.role="{ item }">
-        <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
-<!--          {{ getRoleConfig(item.role)?.text || "Unknown" }}-->
-          {{ getRoleConfig(item.role.name).text }}
-        </VChip>
       </template>
 
       <template #item.status="{ item }">
