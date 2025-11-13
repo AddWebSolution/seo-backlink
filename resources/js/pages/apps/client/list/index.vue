@@ -719,6 +719,14 @@ const updateOptions = async (options) => {
         <span v-else class="text-grey">N/A</span>
       </template>
 
+      <template #item.company_name="{ item }">
+        {{ item.company_name ?? '-' }}
+      </template>
+
+      <template #item.designation="{ item }">
+        {{ item.designation ?? '-' }}
+      </template>
+
       <template #item.role="{ item }">
         <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
           <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
