@@ -21,14 +21,9 @@ const openDialog = (domainId) => {
 };
 
 const headers = [
-  { title: "ID", key: "id", align: "start", width: "20px" },
   { title: "Title", key: "title", align: "center", width: "130px" },
   { title: "Target URL", key: "target_url", align: "center", width: "140px" },
-  { title: "DA", key: "domain_authority", align: "start", width: "80px" },
-  { title: "DR", key: "domain_rating", align: "start", width: "80px" },
-  { title: "Traffic", key: "organic_traffic", align: "start", width: "100px" },
   { title: "Price", key: "total_price", align: "start", width: "100px" },
-  { align: "start", width: "100px" },
   {
     title: "Turnaround",
     key: "turnaround_time",
@@ -42,7 +37,6 @@ const headers = [
     align: "center",
     width: "120px",
   },
-  { title: "Country", key: "country", align: "center", width: "40px" },
   {
     title: "Rival Domains",
     key: "manage_domains",

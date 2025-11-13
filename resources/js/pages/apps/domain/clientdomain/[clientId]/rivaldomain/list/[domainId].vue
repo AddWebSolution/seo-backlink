@@ -18,12 +18,8 @@ const clientId = computed(() => authStore.isClient ? authStore.user.id : route.p
 const clientDomainId =  computed(() => route.params.domainId)
 
 const headers = [
-  { title: "ID", key: "id", align: "start", width: "60px" },
   { title: "Title", key: "title", align: "center", width: "200px" },
   { title: "Target URL", key: "target_url", align: "center", width: "250px" },
-  { title: "DA", key: "domain_authority", align: "center", width: "80px" },
-  { title: "DR", key: "domain_rating", align: "center", width: "80px" },
-  { title: "Traffic", key: "organic_traffic", align: "center", width: "100px" },
   { title: "Price", key: "total_price", align: "center", width: "100px" },
   {
     title: "Turnaround",
@@ -38,7 +34,6 @@ const headers = [
     align: "center",
     width: "120px",
   },
-  { title: "Country", key: "country", align: "center", width: "100px" },
   {
     title: "Actions",
     key: "actions",

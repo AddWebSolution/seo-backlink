@@ -5,7 +5,6 @@ import { IconWorldWww } from "@tabler/icons-vue";
 import { useAbility } from "@casl/vue";
 
 const headers = [
-  { title: "ID", key: "id", align: "start", width: "60px" },
   { title: "Name", key: "name", align: "center", width: "100px" },
   { title: "E-Mail", key: "email", align: "center", width: "80px" },
   { title: "Company", key: "company_name", align: "center", width: "80px" },
