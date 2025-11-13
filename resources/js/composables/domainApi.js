@@ -240,6 +240,7 @@ export function useDomainApi() {
       });
 
       showAlert("Domain created successfully!", "success");
+      await fetchClientDomains(payload.client_id);
       return result;
     } catch (err) {
       error.value = err;
