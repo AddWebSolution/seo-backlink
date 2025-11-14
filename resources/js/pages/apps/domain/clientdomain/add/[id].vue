@@ -433,7 +433,7 @@ Back
             <VCardText class="pa-6">
               <VRow>
                 <VCol cols="12" md="6">
-                  <VLabel class="font-weight-medium mb-2">Domain Status</VLabel>
+                  <p class="text-body-2 font-weight-medium mb-1">Domain Status</p>
                   <VSelect
                       v-model="form.status"
                       :items="statusOptions"
@@ -445,7 +445,7 @@ Back
                 </VCol>
 
                 <VCol cols="12" md="6">
-                  <VLabel class="font-weight-medium mb-2">Approval Status</VLabel>
+                  <p class="text-body-2 font-weight-medium mb-1">Approval Status</p>
                   <VSelect
                       v-model="form.approval_status"
                       :items="approvalStatusOptions"

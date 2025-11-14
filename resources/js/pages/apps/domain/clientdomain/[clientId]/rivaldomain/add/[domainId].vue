@@ -437,65 +437,27 @@ Back
             <VCardText class="pa-6">
               <VRow>
                 <VCol cols="12" md="6">
-                  <p class="text-body-2 font-weight-medium mb-3">Domain Status</p>
-                  <VItemGroup v-model="form.status" mandatory>
-                    <VRow>
-                      <VCol v-for="status in statusOptions" :key="status.value" cols="12">
-                        <VItem :value="status.value" v-slot="{ isSelected, toggle }">
-                          <VCard :color="isSelected ? status.color : undefined"
-                            :variant="isSelected ? 'elevated' : 'outlined'" class="status-selection-card pa-4"
-                            @click="toggle">
-                            <div class="d-flex align-center">
-                              <VAvatar :color="status.color" variant="tonal" size="36" class="me-3">
-                                <VIcon :icon="status.icon" size="20" />
-                              </VAvatar>
-                              <div class="flex-grow-1">
-                                <p class=" font-weight-medium mb-0">
-                                  {{ status.title }}
-                                </p>
-                                <p class=" font-weight-medium mb-0">
-                                  {{ status.description }}
-                                </p>
-                              </div>
-                              <VIcon :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
-                                :color="isSelected ? status.color : 'grey'" />
-                            </div>
-                          </VCard>
-                        </VItem>
-                      </VCol>
-                    </VRow>
-                  </VItemGroup>
+                  <p class="text-body-2 font-weight-medium mb-1">Domain Status</p>
+                  <VSelect
+                      v-model="form.status"
+                      :items="statusOptions"
+                      item-title="title"
+                      item-value="value"
+                      placeholder="Select status"
+                      variant="outlined"
+                  />
                 </VCol>
 
                 <VCol cols="12" md="6">
-                  <p class="text-body-2 font-weight-medium mb-3">Approval Status</p>
-                  <VItemGroup v-model="form.approval_status" mandatory>
-                    <VRow>
-                      <VCol v-for="status in approvalStatusOptions" :key="status.value" cols="12">
-                        <VItem :value="status.value" v-slot="{ isSelected, toggle }">
-                          <VCard :color="isSelected ? status.color : undefined"
-                            :variant="isSelected ? 'elevated' : 'outlined'" class="status-selection-card pa-4"
-                            @click="toggle">
-                            <div class="d-flex align-center">
-                              <VAvatar :color="status.color" variant="tonal" size="36" class="me-3">
-                                <VIcon :icon="status.icon" size="20" />
-                              </VAvatar>
-                              <div class="flex-grow-1">
-                                <p class=" font-weight-medium mb-0">
-                                  {{ status.title }}
-                                </p>
-                                <p class=" font-weight-medium mb-0">
-                                  {{ status.description }}
-                                </p>
-                              </div>
-                              <VIcon :icon="isSelected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
-                                :color="isSelected ? status.color : 'grey'" />
-                            </div>
-                          </VCard>
-                        </VItem>
-                      </VCol>
-                    </VRow>
-                  </VItemGroup>
+                  <p class="text-body-2 font-weight-medium mb-1">Approval Status</p>
+                  <VSelect
+                      v-model="form.approval_status"
+                      :items="approvalStatusOptions"
+                      item-title="title"
+                      item-value="value"
+                      placeholder="Select approval"
+                      variant="outlined"
+                  />
                 </VCol>
               </VRow>
             </VCardText>
