@@ -593,21 +593,28 @@ Back
 
       <template #item.total_price="{ item }">
         <div class="d-flex align-center">
-          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />
-          <span class="font-weight-bold text-success">${{ item.total_price }}</span>
+          <span class="font-weight-bold text-dark">{{ item.total_price ? `$${item.total_price}` : '-' }}</span>
         </div>
       </template>
 
       <template #item.turnaround_time="{ item }">
-        <VChip size="small" :color="
-            item.turnaround_time <= 3
-              ? 'success'
-              : item.turnaround_time <= 7
-              ? 'warning'
-              : 'error'
-          " variant="tonal">
-          {{ item.turnaround_time }}d
-        </VChip>
+        <template v-if="item.turnaround_time && item.turnaround_time > 0">
+          <VChip
+              size="small"
+              :color="
+        item.turnaround_time <= 3
+          ? 'success'
+          : item.turnaround_time <= 7
+          ? 'warning'
+          : 'error'
+      "
+              variant="tonal"
+          >
+            {{ item.turnaround_time }}d
+          </VChip>
+        </template>
+
+        <template v-else>-</template>
       </template>
 
       <template #item.status="{ item }">

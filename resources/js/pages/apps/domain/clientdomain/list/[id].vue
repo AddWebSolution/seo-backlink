@@ -586,7 +586,6 @@ onMounted(async () => {
 
       <template #item.total_price="{ item }">
         <div class="d-flex align-center">
-<!--          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />-->
           <span class="font-weight-bold text-dark">{{ item.total_price ? `$${item.total_price}` : '-' }}</span>
         </div>
       </template>
