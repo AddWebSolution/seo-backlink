@@ -203,7 +203,13 @@ const submitForm = async () => {
     await createRivalDomain(payload)
     
     localStorage.removeItem('domain_draft')
-
+    router.push({
+      name: 'domain-clientdomain-rivaldomain-list',
+      params: {
+        clientId: clientId.value,
+        domainId: clientDomainId.value,
+      }
+    })
   } catch (err) {
     console.error('Create domain failed:', err)
     

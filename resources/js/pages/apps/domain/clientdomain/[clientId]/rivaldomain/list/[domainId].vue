@@ -167,6 +167,8 @@ const applyFilters = async () => {
 const handleDeleteDomain = async (id) => {
   try {
     await deleteRivalDomain(id);
+    const index = selectedRows.value.findIndex((row) => row === id);
+    if (index !== -1) selectedRows.value.splice(index, 1);
     await loadRivalDomains(clientDomainId.value);
   } catch (error) {
     console.error("Delete failed:", error);
