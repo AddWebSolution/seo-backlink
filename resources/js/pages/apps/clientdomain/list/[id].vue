@@ -21,14 +21,9 @@ const openDialog = (domainId) => {
 };
 
 const headers = [
-  { title: "ID", key: "id", align: "start", width: "60px" },
   { title: "Title", key: "title", align: "center", width: "200px" },
   { title: "Target URL", key: "target_url", align: "center", width: "140px" },
-  { title: "DA", key: "domain_authority", align: "start", width: "80px" },
-  { title: "DR", key: "domain_rating", align: "start", width: "80px" },
-  { title: "Traffic", key: "organic_traffic", align: "start", width: "100px" },
   { title: "Price", key: "total_price", align: "start", width: "100px" },
-  { align: "start", width: "100px" },
   {
     title: "Turnaround",
     key: "turnaround_time",
@@ -42,7 +37,6 @@ const headers = [
     align: "center",
     width: "120px",
   },
-  { title: "Country", key: "country", align: "center", width: "40px" },
   {
     title: "Manage Domains",
     key: "manage_domains",
@@ -599,21 +593,28 @@ Back
 
       <template #item.total_price="{ item }">
         <div class="d-flex align-center">
-          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />
-          <span class="font-weight-bold text-success">${{ item.total_price }}</span>
+          <span class="font-weight-bold text-dark">{{ item.total_price ? `$${item.total_price}` : '-' }}</span>
         </div>
       </template>
 
       <template #item.turnaround_time="{ item }">
-        <VChip size="small" :color="
-            item.turnaround_time <= 3
-              ? 'success'
-              : item.turnaround_time <= 7
-              ? 'warning'
-              : 'error'
-          " variant="tonal">
-          {{ item.turnaround_time }}d
-        </VChip>
+        <template v-if="item.turnaround_time && item.turnaround_time > 0">
+          <VChip
+              size="small"
+              :color="
+        item.turnaround_time <= 3
+          ? 'success'
+          : item.turnaround_time <= 7
+          ? 'warning'
+          : 'error'
+      "
+              variant="tonal"
+          >
+            {{ item.turnaround_time }}d
+          </VChip>
+        </template>
+
+        <template v-else>-</template>
       </template>
 
       <template #item.status="{ item }">

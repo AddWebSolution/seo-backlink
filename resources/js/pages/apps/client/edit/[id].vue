@@ -247,8 +247,8 @@ onMounted(async () => {
           </VCol>
 
           <VCol cols="12" md="6">
-            <AppTextField v-model="form.designation" label="Designation" placeholder="e.g., Manager, Director"
-              prepend-inner-icon="tabler-briefcase" variant="outlined" density="comfortable" />
+            <AppTextField model-value="Client" label="Role" prepend-inner-icon="tabler-shield" variant="outlined"
+                          density="comfortable" readonly disabled />
           </VCol>
 
           <!-- Company Information Section -->
@@ -262,8 +262,8 @@ onMounted(async () => {
           </VCol>
 
           <VCol cols="12" md="6">
-            <AppTextField model-value="Client" label="Role" prepend-inner-icon="tabler-shield" variant="outlined"
-              density="comfortable" readonly disabled />
+            <AppTextField v-model="form.designation" label="Designation" placeholder="e.g., Manager, Director"
+                          prepend-inner-icon="tabler-briefcase" variant="outlined" density="comfortable" />
           </VCol>
 
           <VCol cols="12" md="6">

@@ -181,6 +181,8 @@ class UserService extends BaseService
             'name'     => $data['name'],
             'email'    => $data['email'],
             'phone'    => $data['phone'],
+            'company_name'    => $data['company_name'],
+            'designation'    => $data['designation'],
             'role'    =>  '2',
             'password' => Hash::make($data['password']),
         ]);

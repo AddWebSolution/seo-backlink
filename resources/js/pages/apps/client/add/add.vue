@@ -242,15 +242,16 @@ onMounted(async () => {
             />
           </VCol>
 
-          <!-- Designation -->
+          <!-- Role (Hidden or Display Only) -->
           <VCol cols="12" md="6">
             <AppTextField
-              v-model="form.designation"
-              label="Designation"
-              placeholder="e.g., Manager, Director"
-              prepend-inner-icon="tabler-briefcase"
-              variant="outlined"
-              density="comfortable"
+                model-value="Client"
+                label="Role"
+                prepend-inner-icon="tabler-shield"
+                variant="outlined"
+                density="comfortable"
+                readonly
+                disabled
             />
           </VCol>
 
@@ -271,18 +272,19 @@ onMounted(async () => {
             />
           </VCol>
 
-          <!-- Role (Hidden or Display Only) -->
+          <!-- Designation -->
           <VCol cols="12" md="6">
             <AppTextField
-              model-value="Client"
-              label="Role"
-              prepend-inner-icon="tabler-shield"
-              variant="outlined"
-              density="comfortable"
-              readonly
-              disabled
+                v-model="form.designation"
+                label="Designation"
+                placeholder="e.g., Manager, Director"
+                prepend-inner-icon="tabler-briefcase"
+                variant="outlined"
+                density="comfortable"
             />
           </VCol>
+
+
 
           <!-- Status -->
           <VCol cols="12" md="6">

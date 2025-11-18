@@ -5,7 +5,6 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useAbility } from "@casl/vue";
 
 const headers = [
-  { title: "ID", key: "id", width: "80px" },
   { title: "Run ID", key: "run_id", width: "120px" },
   { title: "Client", key: "client_id.name", width: "120px" },
   { title: "Run At", key: "run_at", width: "110px" },
