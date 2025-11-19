@@ -8,10 +8,12 @@ import { useRoute, useRouter } from "vue-router";
 import useAuthStore from "@/router/store/auth";
 import { useAbility } from "@casl/vue";
 import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
+import RivalBacklinksDialog from "@/components/dialogs/RivalBacklinksDialog.vue";
 import { useUserApi} from "@/composables/userApi.js";
 
 const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
 const showAssignDialog = ref(false);
+const showRivalBacklinks = ref(false);
 const currentDomainId = ref(null);
 
 const openDialog = (domainId) => {
@@ -45,6 +47,12 @@ const headers = [
     width: "100px",
   },
   {
+    title: "Rival Backlinks",
+    key: "rival_backlinks",
+    sortable: false,
+    width: "120px",
+  },
+  {
     title: "Actions",
     key: "actions",
     align  : "center",
@@ -62,16 +70,24 @@ const deleteId = ref(null)
 
 const {
   domains,
+  rivalBacklinks,
   pagination,
   loading,
   error,
   fetchDomains,
+  fetchRivalBacklinks,
   downloadTemplate,
   importDomains,
   deleteDomain,
   assignUsersToDomain,
   showAlert,
 } = useDomainApi();
+
+const openRivalBacklinksDialog = (domainId) => {
+  currentDomainId.value = domainId;
+  showRivalBacklinks.value = true;
+  fetchRivalBacklinks(domainId);
+};
 
 const onUsersAssigned = async (selectedUserIds) => {
   console.log(selectedUserIds)
@@ -664,7 +680,19 @@ Back
         </VTooltip>
       </template>
 
-
+      <template #item.rival_backlinks="{ item }">
+        <div class="d-flex align-center gap-1">
+          <VTooltip text="View Rival Backlinks">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small" @click="openRivalBacklinksDialog(item.id)">
+                <VChip color="warning" variant="tonal" size="small">
+                  <VIcon color="warning" icon="tabler-link" size="20" />
+                </VChip>
+              </IconBtn>
+            </template>
+          </VTooltip>
+        </div>
+      </template>
 
       <template #item.actions="{ item }">
         <div class="d-flex">
@@ -883,6 +911,11 @@ Back
       :users="assignableUsers"
       :assigned="assignedUserIds"
       @assign="onUsersAssigned"
+  />
+
+  <RivalBacklinksDialog
+      v-model="showRivalBacklinks"
+      :rivalBacklinks="rivalBacklinks"
   />
 
 </template>
