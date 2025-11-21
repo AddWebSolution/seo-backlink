@@ -3,6 +3,8 @@
 namespace App\Modules\ClientDomain\Http\Controllers;
 
 use Addweb\Base\Controller\BaseController;
+use Addweb\Base\Helpers\Response;
+use App\Modules\BacklinkDatum\Models\BacklinkDatum;
 use App\Modules\ClientDomain\Models\ClientDomain;
 use App\Modules\ClientDomain\Services\ClientDomainService;
 use App\Modules\ClientDomain\Http\Resources\ClientDomainResource;
@@ -115,6 +117,23 @@ class ClientDomainController extends BaseController
             'success' => true,
             'message' => 'Users assigned successfully.'
         ]);
+    }
+
+    public function rivalBacklinksClientwise($domainId)
+    {
+        $domain = ClientDomain::select('client_id','target_url')->findOrFail($domainId);
+
+        $urls = BacklinkDatum::where('domain_id', $domainId)
+            ->where('client_id', $domain->client_id)
+            ->where('target_url', '!=', $domain->target_url)
+            ->pluck('url');
+
+        $uniqueDomains = $urls->map(function ($url) {
+            return str_replace('www.', '', parse_url($url, PHP_URL_HOST));
+        })->unique()
+          ->values();
+
+        return Response::success($uniqueDomains, 'Rival Backlinks Clientwise Fetched.');
     }
 
 }

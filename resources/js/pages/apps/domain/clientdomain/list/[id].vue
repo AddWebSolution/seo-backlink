@@ -8,10 +8,12 @@ import { useRoute, useRouter } from 'vue-router'
 import useAuthStore from "@/router/store/auth";
 import { useAbility } from "@casl/vue";
 import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
+import RivalBacklinksDialog from "@/components/dialogs/RivalBacklinksDialog.vue";
 import { useUserApi} from "@/composables/userApi.js";
 
 const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
 const showAssignDialog = ref(false);
+const showRivalBacklinks = ref(false);
 const currentDomainId = ref(null);
 
 const openDialog = (domainId) => {
@@ -21,14 +23,9 @@ const openDialog = (domainId) => {
 };
 
 const headers = [
-  { title: "ID", key: "id", align: "start", width: "20px" },
   { title: "Title", key: "title", align: "center", width: "130px" },
   { title: "Target URL", key: "target_url", align: "center", width: "140px" },
-  { title: "DA", key: "domain_authority", align: "start", width: "80px" },
-  { title: "DR", key: "domain_rating", align: "start", width: "80px" },
-  { title: "Traffic", key: "organic_traffic", align: "start", width: "100px" },
   { title: "Price", key: "total_price", align: "start", width: "100px" },
-  { align: "start", width: "100px" },
   {
     title: "Turnaround",
     key: "turnaround_time",
@@ -42,10 +39,15 @@ const headers = [
     align: "center",
     width: "120px",
   },
-  { title: "Country", key: "country", align: "center", width: "40px" },
   {
     title: "Rival Domains",
     key: "manage_domains",
+    sortable: false,
+    width: "120px",
+  },
+  {
+    title: "Rival Backlinks",
+    key: "rival_backlinks",
     sortable: false,
     width: "120px",
   },
@@ -64,16 +66,24 @@ const ability = useAbility()
 
 const {
   domains,
+  rivalBacklinks,
   pagination,
   loading,
   error,
   fetchClientDomains,
+  fetchRivalBacklinks,
   downloadTemplate,
   importDomains,
   deleteDomain,
   assignUsersToDomain,
   showAlert,
 } = useDomainApi();
+
+const openRivalBacklinksDialog = (domainId) => {
+  currentDomainId.value = domainId;
+  showRivalBacklinks.value = true;
+  fetchRivalBacklinks(domainId);
+};
 
 const onUsersAssigned = async (selectedUserIds) => {
   await assignUsersToDomain(currentDomainId.value, selectedUserIds);
@@ -592,20 +602,28 @@ onMounted(async () => {
 
       <template #item.total_price="{ item }">
         <div class="d-flex align-center">
-          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />
-          <span class="font-weight-bold text-success">${{ item.total_price }}</span>
+          <span class="font-weight-bold text-dark">{{ item.total_price ? `$${item.total_price}` : '-' }}</span>
         </div>
       </template>
 
       <template #item.turnaround_time="{ item }">
-        <VChip size="small" :color="item.turnaround_time <= 3
-            ? 'success'
-            : item.turnaround_time <= 7
-              ? 'warning'
-              : 'error'
-          " variant="tonal">
-          {{ item.turnaround_time }}d
-        </VChip>
+        <template v-if="item.turnaround_time && item.turnaround_time > 0">
+          <VChip
+              size="small"
+              :color="
+        item.turnaround_time <= 3
+          ? 'success'
+          : item.turnaround_time <= 7
+          ? 'warning'
+          : 'error'
+      "
+              variant="tonal"
+          >
+            {{ item.turnaround_time }}d
+          </VChip>
+        </template>
+
+        <template v-else>-</template>
       </template>
 
       <template #item.status="{ item }">
@@ -652,6 +670,20 @@ onMounted(async () => {
               </VChip>
               </IconBtn>
             </template>
+          </VTooltip>
+        </div>
+      </template>
+
+      <template #item.rival_backlinks="{ item }">
+        <div class="d-flex align-center gap-1">
+          <VTooltip text="View Rival Backlinks">
+        <template #activator="{ props }">
+          <IconBtn v-bind="props" size="small" @click="openRivalBacklinksDialog(item.id)">
+            <VChip color="warning" variant="tonal" size="small">
+            <VIcon color="warning" icon="tabler-link" size="20" />
+            </VChip>
+          </IconBtn>
+        </template>
           </VTooltip>
         </div>
       </template>
@@ -853,6 +885,11 @@ onMounted(async () => {
       :users="assignableUsers"
       :assigned="assignedUserIds"
       @assign="onUsersAssigned"
+  />
+
+  <RivalBacklinksDialog
+      v-model="showRivalBacklinks"
+      :rivalBacklinks="rivalBacklinks"
   />
 
 </template>

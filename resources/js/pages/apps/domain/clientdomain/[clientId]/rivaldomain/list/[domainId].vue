@@ -18,12 +18,8 @@ const clientId = computed(() => authStore.isClient ? authStore.user.id : route.p
 const clientDomainId =  computed(() => route.params.domainId)
 
 const headers = [
-  { title: "ID", key: "id", align: "start", width: "60px" },
   { title: "Title", key: "title", align: "center", width: "200px" },
   { title: "Target URL", key: "target_url", align: "center", width: "250px" },
-  { title: "DA", key: "domain_authority", align: "center", width: "80px" },
-  { title: "DR", key: "domain_rating", align: "center", width: "80px" },
-  { title: "Traffic", key: "organic_traffic", align: "center", width: "100px" },
   { title: "Price", key: "total_price", align: "center", width: "100px" },
   {
     title: "Turnaround",
@@ -38,7 +34,6 @@ const headers = [
     align: "center",
     width: "120px",
   },
-  { title: "Country", key: "country", align: "center", width: "100px" },
   {
     title: "Actions",
     key: "actions",
@@ -172,6 +167,8 @@ const applyFilters = async () => {
 const handleDeleteDomain = async (id) => {
   try {
     await deleteRivalDomain(id);
+    const index = selectedRows.value.findIndex((row) => row === id);
+    if (index !== -1) selectedRows.value.splice(index, 1);
     await loadRivalDomains(clientDomainId.value);
   } catch (error) {
     console.error("Delete failed:", error);
@@ -575,21 +572,28 @@ Back
 
       <template #item.total_price="{ item }">
         <div class="d-flex align-center">
-          <VIcon icon="tabler-currency-dollar" size="16" class="me-1 text-success" />
-          <span class="font-weight-bold text-success">${{ item.total_price }}</span>
+          <span class="font-weight-bold text-dark">{{ item.total_price ? `$${item.total_price}` : '-' }}</span>
         </div>
       </template>
 
       <template #item.turnaround_time="{ item }">
-        <VChip size="small" :color="
-            item.turnaround_time <= 3
-              ? 'success'
-              : item.turnaround_time <= 7
-              ? 'warning'
-              : 'error'
-          " variant="tonal">
-          {{ item.turnaround_time }}d
-        </VChip>
+        <template v-if="item.turnaround_time && item.turnaround_time > 0">
+          <VChip
+              size="small"
+              :color="
+        item.turnaround_time <= 3
+          ? 'success'
+          : item.turnaround_time <= 7
+          ? 'warning'
+          : 'error'
+      "
+              variant="tonal"
+          >
+            {{ item.turnaround_time }}d
+          </VChip>
+        </template>
+
+        <template v-else>-</template>
       </template>
 
       <template #item.status="{ item }">

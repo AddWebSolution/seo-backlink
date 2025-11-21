@@ -5,11 +5,9 @@ import { IconWorldWww } from "@tabler/icons-vue";
 import { useAbility } from "@casl/vue";
 
 const headers = [
-  { title: "ID", key: "id", align: "start", width: "60px" },
   { title: "Name", key: "name", align: "center", width: "100px" },
   { title: "E-Mail", key: "email", align: "center", width: "80px" },
   { title: "Company", key: "company_name", align: "center", width: "80px" },
-  { title: "role", key: "role", align: "center", width: "80px" },
   { title: "designation", key: "designation", align: "center", width: "60px" },
   { title: "Phone", key: "phone", align: "center", width: "100px" },
   {
@@ -720,12 +718,12 @@ const updateOptions = async (options) => {
         <span v-else class="text-grey">N/A</span>
       </template>
 
-      <template #item.role="{ item }">
-        <VChip :color="getRoleConfig(item.role.name)?.color || 'default'" variant="tonal" size="small" class="ma-1">
-          <VIcon :icon="getRoleConfig(item.role.name)?.icon || 'tabler-circle'" size="14" class="me-1" />
-<!--          {{ getRoleConfig(item.role)?.text || "Unknown" }}-->
-          {{ getRoleConfig(item.role.name).text }}
-        </VChip>
+      <template #item.company_name="{ item }">
+        {{ item.company_name ?? '-' }}
+      </template>
+
+      <template #item.designation="{ item }">
+        {{ item.designation ?? '-' }}
       </template>
 
       <template #item.status="{ item }">

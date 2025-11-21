@@ -235,96 +235,76 @@ Back
 
 
     <!-- View Mode -->
-    <VCard v-if="!isEditMode" elevation="0"
-      style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
-      <VCardText class="pa-6">
-        <VRow>
-          <!-- Profile Picture Section -->
-          <VCol cols="12" class="mb-4">
-            <div class="border rounded pa-6 text-center"
-              style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));">
-              <VAvatar size="140" :color="currentClient.profile_pic ? 'transparent' : 'primary'" variant="tonal"
-                class="mb-4 elevation-3">
+    <VCard
+        v-if="!isEditMode"
+        elevation="0"
+        class="border rounded-lg"
+        style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
+    >
+      <VCardText class="pa-5">
+        <VRow align="start">
+          <VCol cols="12" md="4" class="text-center mb-4 mb-md-0">
+            <div
+                class="border rounded pa-7"
+                style="border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));"
+            >
+              <VAvatar
+                  size="100"
+                  :color="currentClient.profile_pic ? 'transparent' : 'primary'"
+                  variant="tonal"
+                  class="mb-3 elevation-2"
+              >
                 <VImg v-if="currentClient.profile_pic" :src="currentClient.profile_pic" cover />
-                <span v-else class="text-h2 font-weight-bold">
-                  {{ currentClient.name ? currentClient.name.charAt(0).toUpperCase() : '?' }}
-                </span>
+                <span v-else class="text-h5 font-weight-bold">
+              {{ currentClient.name ? currentClient.name.charAt(0).toUpperCase() : '?' }}
+            </span>
               </VAvatar>
-              <h2 class="text-h5 font-weight-bold mb-1">{{ currentClient.name }}</h2>
-<!--              <p class="text-body-2 text-medium-emphasis">{{ currentClient.designation }}</p>-->
+
+              <h3 class="text-h6 font-weight-bold mb-1">{{ currentClient.name }}</h3>
             </div>
           </VCol>
 
-          <!-- Personal Information Section -->
-          <VCol cols="12">
-            <h3 class="text-h6 font-weight-semibold mb-4">Personal Information</h3>
-            <VDivider class="mb-4" />
-          </VCol>
+          <!-- Info Section -->
+          <VCol cols="12" md="8">
+            <!-- Personal Information -->
+            <h3 class="text-subtitle-2 font-weight-semibold mb-2">Personal Information</h3>
+            <VDivider class="mb-3" />
 
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-user" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Full Name</span>
-              </div>
-              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.name }}</p>
-            </div>
-          </VCol>
+            <VRow>
+              <VCol cols="12" sm="6" class="mb-3">
+                <div class="d-flex align-center mb-1">
+                  <VIcon icon="tabler-user" size="18" class="me-2 text-medium-emphasis" />
+                  <span class="text-caption text-medium-emphasis font-weight-medium">Full Name</span>
+                </div>
+                <p class="text-body-1 font-weight-medium pl-6 mb-0">{{ currentClient.name }}</p>
+              </VCol>
 
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-mail" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Email Address</span>
-              </div>
-              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.email }}</p>
-            </div>
-          </VCol>
+              <VCol cols="12" sm="6" class="mb-3">
+                <div class="d-flex align-center mb-1">
+                  <VIcon icon="tabler-mail" size="18" class="me-2 text-medium-emphasis" />
+                  <span class="text-caption text-medium-emphasis font-weight-medium">Email Address</span>
+                </div>
+                <p class="text-body-1 font-weight-medium pl-6 mb-0">{{ currentClient.email }}</p>
+              </VCol>
 
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-phone" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Phone Number</span>
-              </div>
-              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.phone || 'N/A' }}</p>
-            </div>
-          </VCol>
+              <VCol cols="12" sm="6" class="mb-3">
+                <div class="d-flex align-center mb-1">
+                  <VIcon icon="tabler-phone" size="18" class="me-2 text-medium-emphasis" />
+                  <span class="text-caption text-medium-emphasis font-weight-medium">Phone Number</span>
+                </div>
+                <p class="text-body-1 font-weight-medium pl-6 mb-0">
+                  {{ currentClient.phone || 'N/A' }}
+                </p>
+              </VCol>
 
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-shield" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Role</span>
-              </div>
-              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.role.name || 'N/A' }}</p>
-            </div>
-          </VCol>
-
-          <!-- Account Information Section -->
-          <VCol cols="12" class="mt-2">
-            <h3 class="text-h6 font-weight-semibold mb-4">Account Information</h3>
-            <VDivider class="mb-4" />
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-calendar-plus" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Created At</span>
-              </div>
-              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ formatDate(currentClient.created_at) }}</p>
-            </div>
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <div class="info-item mb-6">
-              <div class="d-flex align-center mb-2">
-                <VIcon icon="tabler-calendar-event" size="20" class="me-2 text-medium-emphasis" />
-                <span class="text-caption text-medium-emphasis font-weight-medium">Last Updated</span>
-              </div>
-              <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ formatDate(currentClient.updated_at) }}</p>
-            </div>
+              <VCol cols="12" sm="6" class="mb-3">
+                <div class="d-flex align-center mb-1">
+                  <VIcon icon="tabler-shield" size="18" class="me-2 text-medium-emphasis" />
+                  <span class="text-caption text-medium-emphasis font-weight-medium">Role</span>
+                </div>
+                <p class="text-body-1 font-weight-medium mb-0 pl-7">{{ currentClient.role.name || 'N/A' }}</p>
+              </VCol>
+            </VRow>
           </VCol>
         </VRow>
       </VCardText>

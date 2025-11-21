@@ -11,6 +11,7 @@ export function useDomainApi() {
 
   const domains = ref([]);
   const backlinkhistory = ref([]);
+  const rivalBacklinks = ref([]);
   const pagination = ref({
     total: 0,
     currentPage: 1,
@@ -148,8 +149,36 @@ export function useDomainApi() {
     }
   };
 
+    // fetch rival backlinks (unique domains)
+    const fetchRivalBacklinks = async (id, filters = {}) => {
+        loading.value = true;
+        error.value = null;
 
-  // import domains
+        try {
+            const body = {
+                ...filters,
+            };
+
+            const result = await useApi(
+                createUrl(`api/clientdomain/rival-backlinks/${id}`, { query: body }),
+                {
+                    method: "POST",
+                }
+            );
+
+            rivalBacklinks.value = result.data.value.data || [];
+
+            return result;
+        } catch (err) {
+            error.value = err;
+            showAlert("Failed to fetch rival backlinks", "error");
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    // import domains
 
   const importDomains = async (file) => {
     if (!file) {
@@ -240,6 +269,7 @@ export function useDomainApi() {
       });
 
       showAlert("Domain created successfully!", "success");
+      await fetchClientDomains(payload.client_id);
       return result;
     } catch (err) {
       error.value = err;
@@ -352,6 +382,7 @@ export function useDomainApi() {
     return {
     domains: readonly(domains),
     backlinkhistory: readonly(backlinkhistory),
+    rivalBacklinks: readonly(rivalBacklinks),
     pagination: pagination,
     domainList: domainList,
     currentDomain: readonly(currentDomain),
@@ -362,6 +393,7 @@ export function useDomainApi() {
     fetchDomains,
     fetchClientDomains,
     fetchClientDomainsHistory,
+    fetchRivalBacklinks,
     fetchDomainList,
     importDomains,
     fetchDomain,
