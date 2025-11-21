@@ -123,17 +123,22 @@ class ClientDomainController extends BaseController
     {
         $domain = ClientDomain::select('client_id','target_url')->findOrFail($domainId);
 
-        $urls = BacklinkDatum::where('domain_id', $domainId)
+        $backlinks = BacklinkDatum::where('domain_id', $domainId)
             ->where('client_id', $domain->client_id)
             ->where('target_url', '!=', $domain->target_url)
-            ->pluck('url');
+            ->get(['url', 'target_domain']);
 
-        $uniqueDomains = $urls->map(function ($url) {
-            return str_replace('www.', '', parse_url($url, PHP_URL_HOST));
-        })->unique()
-          ->values();
+        $grouped = $backlinks->groupBy('target_domain')->map(function ($items) {
+            return $items
+                ->pluck('url')
+                ->map(function ($url) {
+                    return str_replace('www.', '', parse_url($url, PHP_URL_HOST));
+                })
+                ->filter()
+                ->unique()
+                ->values();
+        });
 
-        return Response::success($uniqueDomains, 'Rival Backlinks Clientwise Fetched.');
+        return Response::success($grouped, 'Grouped Rival Backlinks Fetched.');
     }
-
 }
