@@ -245,13 +245,6 @@ const isLoading = computed(() => reportLoading.value);
 // DataTable configuration
 const headers = computed(() => [
   {
-    title: "ID",
-    key: "id",
-    align: "center",
-    sortable: true,
-    width: "80px",
-  },
-  {
     title: "Domain",
     key: "domain",
     align: "center",
