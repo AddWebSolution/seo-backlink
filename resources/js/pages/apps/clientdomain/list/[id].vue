@@ -47,7 +47,7 @@ const headers = [
     width: "100px",
   },
   {
-    title: "Rival Backlinks",
+    title: "Rivel Referring Domains",
     key: "rival_backlinks",
     sortable: false,
     width: "120px",
@@ -682,7 +682,7 @@ Back
 
       <template #item.rival_backlinks="{ item }">
         <div class="d-flex align-center gap-1">
-          <VTooltip text="View Rival Backlinks">
+          <VTooltip text="View Rivel Referring Domains">
             <template #activator="{ props }">
               <IconBtn v-bind="props" size="small" @click="openRivalBacklinksDialog(item.id)">
                 <VChip color="warning" variant="tonal" size="small">
