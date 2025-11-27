@@ -378,6 +378,47 @@ export function useDomainApi() {
         }
     };
 
+    const exportReferringDomains = async (domainId) => {
+        loading.value = true;
+        error.value = null;
+
+        try {
+            const response = await fetch(
+                `/api/clientdomain/referring-domains/export/${domainId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Accept:
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        Authorization: `Bearer ${useCookie("accessToken").value}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const blob = await response.blob();
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
+            a.download = `ReferringDomains_${timestamp}.xlsx`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showAlert("Export downloaded successfully!", "success");
+            return true;
+        } catch (err) {
+            error.value = err;
+            showAlert("Failed to export referring domains", "error");
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
 
     return {
     domains: readonly(domains),
@@ -401,6 +442,7 @@ export function useDomainApi() {
     createDomain,
     updateDomain,
     deleteDomain,
+    exportReferringDomains,
 
     assignUsersToDomain,
     showAlert,
