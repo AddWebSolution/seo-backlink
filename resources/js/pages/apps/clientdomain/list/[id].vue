@@ -80,6 +80,7 @@ const {
   importDomains,
   deleteDomain,
   assignUsersToDomain,
+  exportReferringDomains,
   showAlert,
 } = useDomainApi();
 
@@ -89,8 +90,12 @@ const openRivalBacklinksDialog = (domainId) => {
   fetchRivalBacklinks(domainId);
 };
 
+const exportReferringDomainsHandler = async (domainId) => {
+  await exportReferringDomains(domainId);
+  showRivalBacklinks.value = false;
+};
+
 const onUsersAssigned = async (selectedUserIds) => {
-  console.log(selectedUserIds)
   await assignUsersToDomain(currentDomainId.value, selectedUserIds);
   showAssignDialog.value = false;
 };
@@ -916,6 +921,9 @@ Back
   <RivalBacklinksDialog
       v-model="showRivalBacklinks"
       :rivalBacklinks="rivalBacklinks"
+      :domainId="currentDomainId"
+      :loading="loading"
+      @export="exportReferringDomainsHandler"
   />
 
 </template>

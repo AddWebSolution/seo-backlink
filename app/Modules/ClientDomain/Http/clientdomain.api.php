@@ -35,6 +35,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
             Route::post('assign-users/{id}', [ClientDomainController::class, 'assignUsersToDomain'])->middleware('permission:assign clientdomain');
 
             Route::post('rival-backlinks/{id}', [ClientDomainController::class, 'rivalBacklinksClientwise']);
+            Route::get('referring-domains/export/{id}', [ClientDomainController::class, 'referringDomainsExport']);
         });
 	});
 });

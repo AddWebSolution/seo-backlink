@@ -7,6 +7,7 @@ const props = defineProps({
   modelValue: Boolean,
   rivalBacklinks: { type: Object, default: () => ({}) },
   loading: { type: Boolean, default: false },
+  domainId: { type: Number, required: true },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -119,6 +120,9 @@ const totalCount = computed(() => {
 
       <VCardActions class="pt-0">
         <VSpacer />
+        <VBtn color="secondary" variant="tonal" size="small" @click="emit('export', props.domainId)">
+          Export
+        </VBtn>
         <VBtn color="primary" variant="flat" size="small" @click="closeDialog">
           Close
         </VBtn>
