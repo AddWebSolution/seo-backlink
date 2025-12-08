@@ -175,6 +175,8 @@ const rules = {
     v => !v || (v >= 0 && v <= 100) || 'Must be between 0 and 100',
     v => !v || Number.isInteger(Number(v)) || 'Must be a whole number',
   ],
+  countryCode: v =>
+      /^[A-Za-z]{2}$/.test(v) || 'Country must be exactly 2 letters (e.g., IN, US)',
 }
 
 const submitForm = async () => {
@@ -465,6 +467,7 @@ Back
                       v-model="form.country"
                       label="Country"
                       placeholder="e.g., IN"
+                      :rules="[rules.countryCode]"
                       variant="outlined"
                       hint="Target country for this backlink"
                       persistent-hint
