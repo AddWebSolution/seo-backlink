@@ -41,6 +41,7 @@ class RivalDomain extends BaseModel
     {
         return [
             'status' => 'int',
+            'categories' => 'array',
         ];
     }
 }

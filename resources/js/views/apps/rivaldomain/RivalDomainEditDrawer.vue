@@ -40,15 +40,22 @@ const formData = ref({
   status: 1,
   approval_status: 1,
   country: '',
+  platform_type: '',
+  categories: [],
+  categories_input: '',
   anchor_text: '',
   special_requirements: '',
 })
+
+formData.value.categories_input = Array.isArray(formData.value.categories)
+    ? formData.value.categories.join(', ')
+    : '';
 
 // Form state
 const isSubmitting = ref(false)
 const refVForm = ref()
 const currentStep = ref(1)
-const totalSteps = 5
+const totalSteps = 6
 const showSuccessAlert = ref(false)
 const errorMessage = ref('')
 
@@ -76,31 +83,38 @@ const formSteps = [
     title: 'Basic Info',
     icon: 'tabler-info-circle',
     color: 'primary',
-    fields: ['client_domain_id', 'title', 'country', 'turnaround_time']
+    fields: ['client_domain_id', 'title', 'turnaround_time']
   },
   {
     id: 2,
+    title: 'Platform & Categories',
+    icon: 'tabler-hierarchy',
+    color: 'secondary',
+    fields: ['platform_type','country', 'categories']
+  },
+  {
+    id: 3,
     title: 'Status & Approval',
     icon: 'tabler-shield-check',
     color: 'success',
     fields: ['status', 'approval_status']
   },
   {
-    id: 3,
+    id: 4,
     title: 'URLs & Links',
     icon: 'tabler-link',
     color: 'info',
     fields: ['source_url', 'target_url']
   },
   {
-    id: 4,
+    id: 5,
     title: 'SEO Metrics',
     icon: 'tabler-chart-line',
     color: 'warning',
     fields: ['domain_authority', 'domain_rating', 'organic_traffic']
   },
   {
-    id: 5,
+    id: 6,
     title: 'Pricing & Details',
     icon: 'tabler-currency-dollar',
     color: 'error',
@@ -136,7 +150,7 @@ const rules = {
   price_gp: [v => !v || v >= 0 || 'Price GP must be a positive number'],
   price: [v => !v || v >= 0 || 'Price must be a positive number'],
   // total_price: [v => !v || v >= 0 || 'Total Price must be a positive number'],
-  country: [v => !v || v.length <= 50 || 'Country name must be less than 50 characters'],
+  country: [v => !v || v.length <= 2 || 'Country name must be less than 3 characters'],
   anchor_text: [v => !v || v.length <= 200 || 'Anchor text must be less than 200 characters'],
   special_requirements: [v => !v || v.length <= 500 || 'Special requirements must be less than 500 characters'],
 }
@@ -174,6 +188,9 @@ const resetForm = () => {
     status: 1,
     approval_status: 1,
     country: '',
+    platform_type: '',
+    categories: [],
+    categories_input: '',
     anchor_text: '',
     special_requirements: '',
   }
@@ -190,6 +207,12 @@ const populateForm = () => {
         formData.value[key] = props.domain[key]
       }
     })
+
+    if (Array.isArray(formData.value.categories)) {
+      formData.value.categories_input = formData.value.categories.join(', ')
+    } else {
+      formData.value.categories_input = ''
+    }
   }
 }
 
@@ -233,6 +256,10 @@ const onSubmit = async () => {
   errorMessage.value = ''
 
   try {
+    formData.value.categories = (formData.value.categories_input || '')
+        .split(',')
+        .map(c => c.trim())
+        .filter(c => c.length > 0)
     // Prepare payload
     const payload = { ...formData.value }
 
@@ -250,8 +277,6 @@ const onSubmit = async () => {
       if (payload[field] === '') payload[field] = null
     })
 
-    console.log('Payload to submit:', payload)
-    console.log('Is Edit Mode:', isEdit.value)
     // Determine whether to update or create
     if (isEdit.value) {
       await updateRivalDomain(props.domain.id, payload)
@@ -329,7 +354,7 @@ const formatCurrency = (value) => {
 
       <!-- Step Navigation -->
       <div class="px-6 pb-4">
-        <VRow class="d-flex justify-space-between" dense>
+        <VRow class="d-flex" dense>
           <VCol v-for="step in formSteps" :key="step.id" cols="auto" class="px-1">
             <VBtn :color="currentStep === step.id ? step.color : 'grey lighten-3'"
               :variant="currentStep === step.id ? 'elevated' : 'text'" size="small"
@@ -397,11 +422,6 @@ const formatCurrency = (value) => {
                 </VCol>
 
                 <VCol cols="12" md="6">
-                  <AppTextField v-model="formData.country" label="Country" placeholder="Enter country"
-                    :rules="rules.country" prepend-inner-icon="tabler-map-pin" variant="outlined" />
-                </VCol>
-
-                <VCol cols="12" md="6">
                   <AppTextField v-model="formData.turnaround_time" label="Turnaround Time"
                     placeholder="e.g., 5-7 business days" :rules="rules.turnaround_time"
                     prepend-inner-icon="tabler-clock" variant="outlined" />
@@ -411,8 +431,40 @@ const formatCurrency = (value) => {
           </VCard>
         </div>
 
-        <!-- Step 2: Status & Approval -->
+        <!-- Step 2: Platform & Categories -->
         <div v-show="currentStep === 2" class="pa-6">
+          <VCard elevation="0" color="secondary" variant="tonal" class="mb-6">
+            <VCardTitle class="pa-4">
+              <div class="d-flex align-center">
+                <VIcon icon="tabler-hierarchy" class="me-2" />
+                Platform & Categories
+              </div>
+            </VCardTitle>
+            <VCardText class="pa-4 pt-0">
+              <VRow>
+                <VCol cols="12" md="6">
+                  <AppTextField v-model="formData.platform_type" label="Platform Type"
+                                placeholder="Enter platform type"
+                                prepend-inner-icon="tabler-brand-monday" variant="outlined" />
+                </VCol>
+
+                <VCol cols="12" md="6">
+                  <AppTextField v-model="formData.country" label="Country" placeholder="Enter country"
+                                :rules="rules.country" prepend-inner-icon="tabler-map-pin" variant="outlined" />
+                </VCol>
+
+                <VCol cols="12" md="6">
+                  <AppTextField v-model="formData.categories_input" label="Categories"
+                                placeholder="e.g., Business, Technology"  hint="Add multiple categories separated by commas"
+                                prepend-inner-icon="tabler-category-plus" variant="outlined" />
+                </VCol>
+              </VRow>
+            </VCardText>
+          </VCard>
+        </div>
+
+        <!-- Step 3: Status & Approval -->
+        <div v-show="currentStep === 3" class="pa-6">
           <VCard elevation="0" color="success" variant="tonal" class="mb-6">
             <VCardTitle class="pa-4">
               <div class="d-flex align-center">
@@ -486,8 +538,8 @@ const formatCurrency = (value) => {
           </VCard>
         </div>
 
-        <!-- Step 3: URLs & Links -->
-        <div v-show="currentStep === 3" class="pa-6">
+        <!-- Step 4: URLs & Links -->
+        <div v-show="currentStep === 4" class="pa-6">
           <VCard elevation="0" color="info" variant="tonal" class="mb-6">
             <VCardTitle class="pa-4">
               <div class="d-flex align-center">
@@ -532,8 +584,8 @@ const formatCurrency = (value) => {
           </VCard>
         </div>
 
-        <!-- Step 4: SEO Metrics -->
-        <div v-show="currentStep === 4" class="pa-6">
+        <!-- Step 5: SEO Metrics -->
+        <div v-show="currentStep === 5" class="pa-6">
           <VCard elevation="0" color="warning" variant="tonal" class="mb-6">
             <VCardTitle class="pa-4">
               <div class="d-flex align-center">
@@ -595,8 +647,8 @@ const formatCurrency = (value) => {
           </VCard>
         </div>
 
-        <!-- Step 5: Pricing & Additional Details -->
-        <div v-show="currentStep === 5" class="pa-6">
+        <!-- Step 6: Pricing & Additional Details -->
+        <div v-show="currentStep === 6" class="pa-6">
           <VCard elevation="0" color="error" variant="tonal" class="mb-6">
             <VCardTitle class="pa-4">
               <div class="d-flex align-center justify-space-between">

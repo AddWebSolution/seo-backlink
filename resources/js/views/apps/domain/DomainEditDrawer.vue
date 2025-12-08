@@ -51,9 +51,6 @@ formData.value.categories_input = Array.isArray(formData.value.categories)
     ? formData.value.categories.join(', ')
     : '';
 
-console.log(formData.value.categories_input)
-console.log(formData.value.categories)
-
 // Form state
 const isSubmitting = ref(false)
 const refVForm = ref()
@@ -153,7 +150,7 @@ const rules = {
   price_gp: [v => !v || v >= 0 || 'Price GP must be a positive number'],
   price: [v => !v || v >= 0 || 'Price must be a positive number'],
   // total_price: [v => !v || v >= 0 || 'Total Price must be a positive number'],
-  country: [v => !v || v.length <= 2 || 'Country name must be less than 2 characters'],
+  country: [v => !v || v.length <= 2 || 'Country name must be less than 3 characters'],
   anchor_text: [v => !v || v.length <= 200 || 'Anchor text must be less than 200 characters'],
   special_requirements: [v => !v || v.length <= 500 || 'Special requirements must be less than 500 characters'],
 }

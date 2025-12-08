@@ -108,10 +108,6 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
                 <VChip color="primary" variant="outlined" class="text-primary" small>
                   ID: {{ rivalDomainId }}
                 </VChip>
-
-                <VChip color="secondary" variant="outlined" class="text-secondary" small>
-                  {{ riavlDomain.country || 'No Country' }}
-                </VChip>
               </div>
             </div>
           </VCol>
@@ -220,6 +216,44 @@ Back
                 </div>
                 <p class="text-h6 mb-0 ml-7">{{ riavlDomain.client_domain_id || 'Not specified' }}</p>
               </div>
+            </VCol>
+
+            <VCol cols="12" md="6">
+              <div class="info-item mb-6">
+                <div class="d-flex align-center mb-2">
+                  <VIcon icon="tabler-clock" class="me-2 text-primary" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Turnaround Time</span>
+                </div>
+                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.turnaround_time || 'Not specified' }}</p>
+              </div>
+            </VCol>
+          </VRow>
+        </VCardText>
+      </VCard>
+
+      <!-- Platform & Categories -->
+      <VCard elevation="2" class="mb-8">
+        <VCardTitle class="pa-6 pb-4">
+          <div class="d-flex align-center">
+            <VAvatar color="secondary" variant="tonal" class="me-3">
+              <VIcon icon="tabler-hierarchy" />
+            </VAvatar>
+            <h5 class="text-h5">Platform & Categories</h5>
+          </div>
+        </VCardTitle>
+
+        <VDivider />
+
+        <VCardText class="pa-6">
+          <VRow>
+            <VCol cols="12" md="6">
+              <div class="info-item mb-6">
+                <div class="d-flex align-center mb-2">
+                  <VIcon icon="tabler-brand-monday" class="me-2 text-primary" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Platform Type</span>
+                </div>
+                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.platform_type || 'Not specified' }}</p>
+              </div>
 
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
@@ -233,10 +267,10 @@ Back
             <VCol cols="12" md="6">
               <div class="info-item mb-6">
                 <div class="d-flex align-center mb-2">
-                  <VIcon icon="tabler-clock" class="me-2 text-primary" size="20" />
-                  <span class="text-body-2 font-weight-medium text-high-emphasis">Turnaround Time</span>
+                  <VIcon icon="tabler-category-plus" class="me-2 text-primary" size="20" />
+                  <span class="text-body-2 font-weight-medium text-high-emphasis">Categories</span>
                 </div>
-                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.turnaround_time || 'Not specified' }}</p>
+                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.categories ? riavlDomain.categories.join(', ') : 'Not specified' }}</p>
               </div>
             </VCol>
           </VRow>

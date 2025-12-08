@@ -3,7 +3,15 @@ import { useRivalDomainApi } from '@/composables/rivalDomainApi';
 import { useClientApi } from '@/composables/clientApi';
 import { useDomainApi} from '@/composables/domainApi';
 import { useRoute, useRouter } from 'vue-router'
-import { IconWorldWww, IconDevicesCog, IconWorldMinus, IconUnlink, IconSeo, IconTag } from '@tabler/icons-vue';
+import {
+  IconWorldWww,
+  IconDevicesCog,
+  IconWorldMinus,
+  IconUnlink,
+  IconSeo,
+  IconTag,
+  IconHierarchy
+} from '@tabler/icons-vue';
 import { ref, reactive, watch, onMounted } from 'vue'
 
 const router = useRouter()
@@ -33,6 +41,9 @@ const form = ref({
   status: 1,
   approval_status: 1,
   country: '',
+  platform_type: '',
+  categories: [],
+  categories_input: '',
   anchor_text: '',
   special_requirements: '',
   price: null,
@@ -193,6 +204,10 @@ const submitForm = async () => {
   }
 
   try {
+    form.value.categories = form.value.categories_input
+        .split(',')
+        .map(c => c.trim())
+        .filter(c => c.length > 0)
     const payload = { ...form.value }
 
     const numericFields = ['domain_authority', 'domain_rating', 'organic_traffic', 'price_ne', 'price_gp', 'price', 'total_price']
@@ -412,6 +427,81 @@ Back
                     placeholder="e.g., 5-7 business days" variant="outlined" hint="Expected delivery timeframe"
                     persistent-hint @input="markFormTouched" />
                 </VCol>
+              </VRow>
+            </VCardText>
+          </div>
+        </VExpandTransition>
+      </VCard>
+
+      <!-- Section : Platform, Country & Categories -->
+      <VCard id="section-2" class="mb-6 section-card">
+        <VCardTitle class="section-header">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <VAvatar color="primary" variant="tonal" size="40" class="me-3">
+                <IconHierarchy stroke={2} />
+              </VAvatar>
+              <div>
+                <h2 class="text-h5 font-weight-bold">Platform & Categories</h2>
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  Additional metadata to help categorize and classify backlinks
+                </p>
+              </div>
+            </div>
+
+            <!-- Collapse Button -->
+            <VBtn icon variant="text" size="small" @click="toggleSection(1)">
+              <VIcon :icon="state.expandedSections[1] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+            </VBtn>
+          </div>
+        </VCardTitle>
+
+        <VExpandTransition>
+          <div v-show="state.expandedSections[1]">
+            <VDivider />
+
+            <VCardText class="pa-6">
+              <VRow>
+
+                <!-- Platform Type -->
+                <VCol cols="12" md="4">
+                  <AppTextField
+                      v-model="form.platform_type"
+                      label="Platform Type"
+                      placeholder="e.g., Blog"
+                      variant="outlined"
+                      hint="Specify the platform type"
+                      persistent-hint
+                      @input="markFormTouched"
+                  />
+                </VCol>
+
+                <!-- Country -->
+                <VCol cols="12" md="4">
+                  <AppTextField
+                      v-model="form.country"
+                      label="Country"
+                      placeholder="e.g., IN"
+                      variant="outlined"
+                      hint="Target country for this backlink"
+                      persistent-hint
+                      @input="markFormTouched"
+                  />
+                </VCol>
+
+                <!-- Categories -->
+                <VCol cols="12" md="4">
+                  <AppTextField
+                      v-model="form.categories_input"
+                      label="Categories"
+                      placeholder="e.g., Business, Technology, Health"
+                      variant="outlined"
+                      hint="Add multiple categories separated by commas"
+                      persistent-hint
+                      @input="markFormTouched"
+                  />
+                </VCol>
+
               </VRow>
             </VCardText>
           </div>
