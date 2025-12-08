@@ -223,19 +223,6 @@ export function useClientApi() {
   //   }
   // };
     const deleteClient = async (id) => {
-        const confirmed = await confirm({
-            title: 'Delete Client',
-            message: 'Are you sure you want to delete this client? This action cannot be undone.',
-            confirmText: 'Delete',
-            cancelText: 'Cancel',
-            confirmColor: 'error',
-            type: 'error'
-        })
-
-        if (!confirmed) {
-            return
-        }
-
         loading.value = true
         error.value = null
 

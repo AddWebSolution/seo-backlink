@@ -10,11 +10,13 @@ import { useAbility } from "@casl/vue";
 import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
 import RivalBacklinksDialog from "@/components/dialogs/RivalBacklinksDialog.vue";
 import { useUserApi} from "@/composables/userApi.js";
+import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
 
 const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
 const showAssignDialog = ref(false);
 const showRivalBacklinks = ref(false);
 const currentDomainId = ref(null);
+const { confirm } = useConfirmDialog()
 
 const openDialog = (domainId) => {
   currentDomainId.value = domainId;
@@ -218,6 +220,18 @@ const applyFilters = async () => {
 };
 
 const handleDeleteDomain = async (id) => {
+  const confirmed = await confirm({
+    title: 'Delete Domain',
+    message: 'Are you sure you want to delete this domain? This action cannot be undone.',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   try {
     await deleteDomain(id);
     const index = selectedRows.value.findIndex((row) => row === id);
@@ -229,6 +243,18 @@ const handleDeleteDomain = async (id) => {
 };
 
 const handleDeleteDomainBatch = async (ids) => {
+  const confirmed = await confirm({
+    title: 'Delete Domain',
+    message: `Are you sure you want to delete ${ids.length} domains?`,
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   loading.value = true;
   try {
     await Promise.all(ids.map((id) => deleteDomain(id)));

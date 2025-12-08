@@ -115,4 +115,19 @@ export default [
       roles: [1],
     },
   },
+
+    // ==========================
+    // Master
+    // ==========================
+    { heading: 'Master' },
+    {
+        title: 'Master Backlinks',
+        icon: { icon: 'tabler-table-import' },
+        to: 'master-backlinks-list',
+        meta: {
+            action: 'view',
+            subject: 'report',
+            roles: [1],
+        },
+    },
 ]
