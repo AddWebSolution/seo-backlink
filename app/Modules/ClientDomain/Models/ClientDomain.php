@@ -41,6 +41,7 @@ class ClientDomain extends BaseModel
     {
         return [
             'status' => 'int',
+            'categories' => 'array',
         ];
     }
 
