@@ -1,6 +1,7 @@
 <script setup>
 import { useRivalDomainApi } from '@/composables/rivalDomainApi'
 import { ref } from 'vue'
+import {getCodes} from "country-list";
 
 const { 
   currentRivalDomain, 
@@ -20,6 +21,8 @@ const props = defineProps({
     default: () => ({}),
   },
 })
+
+const countryCodes = getCodes();
 
 const emit = defineEmits(['update:isDrawerOpen', 'success'])
 
@@ -448,9 +451,18 @@ const formatCurrency = (value) => {
                                 prepend-inner-icon="tabler-brand-monday" variant="outlined" />
                 </VCol>
 
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="formData.country" label="Country" placeholder="Enter country"
-                                :rules="rules.country" prepend-inner-icon="tabler-map-pin" variant="outlined" />
+                <VCol cols="12" md="6" class="mt-6">
+                  <VAutocomplete
+                      v-model="formData.country"
+                      label="Country"
+                      :items="countryCodes"
+                      variant="outlined"
+                      hint="Target country for this domain"
+                      persistent-hint
+                      clearable
+                      :rules="rules.country"
+                      prepend-inner-icon="tabler-map-pin"
+                  />
                 </VCol>
 
                 <VCol cols="12" md="6">

@@ -4,6 +4,7 @@ import { useClientApi } from '@/composables/clientApi';
 import { useRouter } from 'vue-router'
 import { IconWorldWww, IconDevicesCog, IconWorldMinus, IconUnlink, IconSeo, IconTag, IconHierarchy } from '@tabler/icons-vue';
 import { ref, reactive, watch, onMounted } from 'vue'
+import { getCodes } from 'country-list';
 
 const route = useRoute()
 const router = useRouter()
@@ -14,6 +15,7 @@ const { ClientList,fetchClientList } = useClientApi();
 
 const clientId = computed(() => route.params.id)
 
+const countryCodes = getCodes();
 
 // Form data
 const form = ref({
@@ -462,16 +464,16 @@ Back
                 </VCol>
 
                 <!-- Country -->
-                <VCol cols="12" md="4">
-                  <AppTextField
+                <VCol cols="12" md="4" class="mt-6">
+                  <VAutocomplete
                       v-model="form.country"
                       label="Country"
-                      placeholder="e.g., IN"
-                      :rules="[rules.countryCode]"
+                      :items="countryCodes"
                       variant="outlined"
-                      hint="Target country for this backlink"
+                      hint="Target country for this domain"
                       persistent-hint
-                      @input="markFormTouched"
+                      clearable
+                      @update:model-value="markFormTouched"
                   />
                 </VCol>
 
