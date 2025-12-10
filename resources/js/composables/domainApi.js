@@ -405,6 +405,22 @@ export function useDomainApi() {
         }
     };
 
+    const recommendedBacklinks = async (domainId) => {
+        loading.value = true
+        try {
+            const res = await useApi(`api/clientdomain/recommended-backlinks/${domainId}`, {
+                method: "POST",
+            });
+            return res.data.value.data
+        } catch (err) {
+            error.value = err.response?.data?.message || 'Failed to load recommended backlinks'
+            return []
+        } finally {
+            loading.value = false
+        }
+    }
+
+
     return {
     domains: readonly(domains),
     backlinkhistory: readonly(backlinkhistory),
@@ -427,6 +443,7 @@ export function useDomainApi() {
     createDomain,
     updateDomain,
     deleteDomain,
+    recommendedBacklinks,
     exportReferringDomains,
 
     assignUsersToDomain,

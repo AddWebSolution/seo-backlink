@@ -4,6 +4,7 @@ import DomainEditDrawer from '@/views/apps/domain/DomainEditDrawer.vue';
 import { IconCheck, IconClock, IconX } from '@tabler/icons-vue';
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import RecommendedBacklinks from "@/components/dialogs/RecommendedBacklinks.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +14,7 @@ const {
   loading, 
   error, 
   fetchDomain,
+  recommendedBacklinks,
   updateDomain, 
   deleteDomain: deleteDomainApi,
   showAlert 
@@ -20,6 +22,14 @@ const {
 
 const domainId = computed(() => route.params.domainId);
 const clientId = computed(() => route.params.clientId);
+
+const showRecommendationsModal = ref(false)
+const recommended = ref([])
+
+const loadRecommendedBacklinks = async () => {
+  recommended.value = await recommendedBacklinks(domainId.value)
+  showRecommendationsModal.value = true
+}
 
 const isEditDrawerOpen = ref(false)
 const showDeleteDialog = ref(false)
@@ -125,7 +135,12 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
             
             <VBtn color="primary" variant="flat" :to="{ name: 'clientdomain-list',params: { id: clientId } }">
               <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
-Back
+                Back
+            </VBtn>
+
+            <VBtn color="primary" variant="tonal" @click="loadRecommendedBacklinks">
+              <VIcon icon="tabler-link" size="x-large" class="me-1"/>
+              Master Backlinks
             </VBtn>
           </VCol>
         </VRow>
@@ -537,6 +552,14 @@ Back
 
     <!-- Edit Drawer -->
     <DomainEditDrawer v-model:is-drawer-open="isEditDrawerOpen" :domain="currentDomain" @success="handleEditSuccess" />
+
+    <!-- Recommended Backlinks Modal -->
+    <RecommendedBacklinks
+        v-model="showRecommendationsModal"
+        max-width="1200"
+        :items="recommended"
+    />
+
   </div>
 </template>
 

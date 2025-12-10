@@ -11,6 +11,7 @@ use App\Modules\ClientDomain\Http\Resources\ClientDomainResource;
 
 use App\Modules\ClientDomain\Http\Requests\StoreClientDomainRequest;
 use App\Modules\ClientDomain\Http\Requests\UpdateClientDomainRequest;
+use App\Modules\MasterBacklink\Models\MasterBacklink;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -264,5 +265,76 @@ class ClientDomainController extends BaseController
 
         return $result;
     }
+
+    public function recommendedBacklinks($id)
+    {
+        $domain = ClientDomain::findOrFail($id);
+
+        $categories = $domain->categories ?? [];
+        $platformType = strtolower($domain->platform_type ?? '');
+        $country = $domain->country;
+        $da = (int) $domain->domain_authority;
+
+        $query = MasterBacklink::query();
+
+        $query->where(function ($q) use ($categories, $platformType, $country, $da) {
+
+            // 1. Category
+            if (!empty($categories)) {
+                foreach ($categories as $cat) {
+                    $cat = strtolower(trim($cat));
+
+                    $q->orWhereRaw("JSON_SEARCH(LOWER(categories), 'one', ?) IS NOT NULL", [$cat])
+                        ->orWhereRaw("LOWER(categories) LIKE ?", ["%{$cat}%"]);
+                }
+            }
+
+            // 2. Platform type
+            if ($platformType) {
+                $q->orWhereRaw("LOWER(platform_type) LIKE ?", ["%{$platformType}%"]);
+            }
+
+            // 3. Country
+            if ($country) {
+                $q->orWhere('country', $country);
+            }
+
+            // 4. Domain Authority
+            if ($da > 0) {
+                $q->orWhereBetween('da', [$da - 10, $da + 10]);
+            }
+
+        });
+
+        $results = $query->get()->map(function($mb) use ($domain) {
+            $matches = [
+                'platform_type' => stripos($mb->platform_type, $domain->platform_type) !== false ? 1 : 0,
+                'country' => $mb->country === $domain->country ? 1 : 0,
+                'da' => abs($mb->da - $domain->domain_authority) <= 10 ? 1 : 0,
+                'categories' => 0,
+            ];
+
+            $clientCats = collect($domain->categories ?? [])->map(fn($c) => strtolower($c));
+            $masterCats = collect($mb->categories ?? [])->map(fn($c) => strtolower($c));
+
+            foreach ($clientCats as $cc) {
+                foreach ($masterCats as $mc) {
+                    if (stripos($mc, $cc) !== false) {
+                        $matches['categories']++;
+                    }
+                }
+            }
+
+            $mb->match_summary = $matches;
+            return $mb;
+        });
+
+
+        return response()->json([
+            'success' => true,
+            'data' => $results,
+        ]);
+    }
+
 
 }
