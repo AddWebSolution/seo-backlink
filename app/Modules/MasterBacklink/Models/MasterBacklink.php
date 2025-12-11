@@ -24,9 +24,19 @@ class MasterBacklink extends BaseModel
         'platform_type',
         'country',
         'categories',
+        'dofollow',
+        'indexed',
+        'last_active',
+        'avg_traffic',
+        'domain_age',
     ];
 
     protected $casts = [
         'categories' => 'array',
+        'dofollow' => 'integer',
+        'indexed' => 'integer',
+        'last_active' => 'datetime',
+        'avg_traffic' => 'integer',
+        'domain_age' => 'integer',
     ];
 }

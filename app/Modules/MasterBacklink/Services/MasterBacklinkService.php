@@ -17,13 +17,63 @@ class MasterBacklinkService extends BaseService
     public array $searchFields = [
         'website_name' => [],
         'domain_url' => [],
-        'platform_type' => [],
-        'country' => [],
     ];
 
     public array $filters = [
-        'title' => ['filter' => 'contain'],
+        'platform_type' => ['filter' => 'default'],
+        'country' => ['filter' => 'default'],
+        'categories' => ['filter' => 'json_contains'],
+        'dofollow' => ['filter' => 'default'],
+        'indexed' => ['filter' => 'default'],
     ];
+
+    public array $relationFilters = ['categories'];
+
+    /**
+     * Override to process filter data for JSON contains
+     */
+    public function processFilterData($key, $value)
+    {
+        $jsonFilters = [
+            'categories',
+        ];
+
+        if (in_array($key, $jsonFilters, true)) {
+            if (!empty($value)) {
+                return [
+                    'filter' => 'json_contains',
+                    'value' => $value
+                ];
+            }
+        }
+
+        return parent::processFilterData($key, $value);
+    }
+
+    public function extraSearchConditions()
+    {
+        $jsonFilters = [
+            'categories',
+        ];
+
+        foreach ($jsonFilters as $field) {
+            if (!empty($this->filters[$field]['value'])) {
+                $value = $this->filters[$field]['value'];
+
+                if (is_string($value)) {
+                    $this->query->whereJsonContains($field, $value);
+                }
+
+                elseif (is_array($value)) {
+                    $this->query->where(function($q) use ($field, $value) {
+                        foreach ($value as $category) {
+                            $q->orWhereJsonContains($field, $category);
+                        }
+                    });
+                }
+            }
+        }
+    }
 
     public function __construct()
     {
@@ -80,6 +130,10 @@ class MasterBacklinkService extends BaseService
 
             $seenUrls[$url] = true;
 
+            $toBool = fn($v) =>
+            $v === 'Yes' ? 1 :
+                ($v === 'No' ? 0 : null);
+
             $insertData[] = [
                 'website_name' => $data['website_name'] ?? null,
                 'domain_url'   => $this->normalizeUrl($data['domain_url'] ?? null),
@@ -90,6 +144,11 @@ class MasterBacklinkService extends BaseService
                 'categories' => $data['categories']
                     ? json_encode($this->parseCategories($data['categories']))
                     : null,
+                'dofollow' => $toBool($data['dofollow'] ?? null),
+                'indexed'  => $toBool($data['indexed'] ?? null),
+                'last_active'  =>  $data['last_active'] ?? null,
+                'avg_traffic'  =>  $data['avg_traffic'] ?? null,
+                'domain_age'  =>  $data['domain_age'] ?? null,
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ];
