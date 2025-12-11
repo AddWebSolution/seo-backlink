@@ -11,6 +11,7 @@ import {CATEGORIES, PLATFORM_TYPES} from "@/utils/backlinkOptions.js";
 // Reactive variables
 const showImportResult = ref(false);
 const importing = ref(false);
+const downloading = ref(false);
 const selectedFile = ref(null);
 const importDialog = ref(false);
 const fileError = ref("");
@@ -40,6 +41,7 @@ const {
 const closeImportDialog = () => {
   importDialog.value = false;
   importing.value = false;
+  downloading.value = false;
   selectedFile.value = null;
   fileError.value = "";
 };
@@ -61,6 +63,7 @@ const formatFileSize = (bytes) => {
 -------------------------------------------- */
 const templateDownload = async () => {
   try {
+    downloading.value = true;
     const blob = await downloadTemplate();
 
     const url = URL.createObjectURL(blob);
@@ -72,6 +75,7 @@ const templateDownload = async () => {
     a.remove();
     URL.revokeObjectURL(url);
 
+    downloading.value = false;
     showAlert("Template downloaded successfully!", "success");
   } catch (err) {
     showAlert("Failed to download template", "error");
@@ -897,6 +901,7 @@ onMounted(() => {
                   variant="outlined"
                   size="small"
                   prepend-icon="tabler-download"
+                  :loading="downloading"
                   @click="templateDownload"
               >
                 Download Template
