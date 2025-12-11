@@ -5,6 +5,7 @@ namespace App\Modules\ClientDomain\Models;
 use Addweb\Base\Model\BaseModel;
 use App\Modules\BacklinkHistory\Models\BacklinkHistory;
 use App\Modules\Client\Models\Client;
+use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -47,7 +48,7 @@ class ClientDomain extends BaseModel
 
     public function client()
     {
-        return $this->belongsTo(Client::class, 'client_id', 'id');
+        return $this->belongsTo(User::class, 'client_id', 'id');
     }
 
      public function rivalDomains()

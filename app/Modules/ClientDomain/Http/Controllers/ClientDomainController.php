@@ -271,70 +271,80 @@ class ClientDomainController extends BaseController
         $domain = ClientDomain::findOrFail($id);
 
         $categories = $domain->categories ?? [];
-        $platformType = strtolower($domain->platform_type ?? '');
+        $platformType = strtolower(trim($domain->platform_type ?? ''));
         $country = $domain->country;
         $da = (int) $domain->domain_authority;
 
-        $query = MasterBacklink::query();
+        // Get all master backlinks
+        $allBacklinks = MasterBacklink::all();
 
-        $query->where(function ($q) use ($categories, $platformType, $country, $da) {
-
-            // 1. Category
-            if (!empty($categories)) {
-                foreach ($categories as $cat) {
-                    $cat = strtolower(trim($cat));
-
-                    $q->orWhereRaw("JSON_SEARCH(LOWER(categories), 'one', ?) IS NOT NULL", [$cat])
-                        ->orWhereRaw("LOWER(categories) LIKE ?", ["%{$cat}%"]);
-                }
-            }
-
-            // 2. Platform type
-            if ($platformType) {
-                $q->orWhereRaw("LOWER(platform_type) LIKE ?", ["%{$platformType}%"]);
-            }
-
-            // 3. Country
-            if ($country) {
-                $q->orWhere('country', $country);
-            }
-
-            // 4. Domain Authority
-            if ($da > 0) {
-                $q->orWhereBetween('da', [$da - 10, $da + 10]);
-            }
-
-        });
-
-        $results = $query->get()->map(function($mb) use ($domain) {
+        // Filter and score each backlink
+        $results = $allBacklinks->map(function($mb) use ($domain, $categories, $platformType, $country, $da) {
             $matches = [
-                'platform_type' => stripos($mb->platform_type, $domain->platform_type) !== false ? 1 : 0,
-                'country' => $mb->country === $domain->country ? 1 : 0,
-                'da' => abs($mb->da - $domain->domain_authority) <= 10 ? 1 : 0,
+                'platform_type' => 0,
+                'country' => 0,
+                'da' => 0,
                 'categories' => 0,
             ];
 
-            $clientCats = collect($domain->categories ?? [])->map(fn($c) => strtolower($c));
-            $masterCats = collect($mb->categories ?? [])->map(fn($c) => strtolower($c));
+            // 1. Check Categories (fuzzy match)
+            if (!empty($categories)) {
+                $clientCats = collect($categories)->map(fn($c) => strtolower(trim($c)));
+                $masterCats = collect($mb->categories ?? [])->map(fn($c) => strtolower(trim($c)));
 
-            foreach ($clientCats as $cc) {
-                foreach ($masterCats as $mc) {
-                    if (stripos($mc, $cc) !== false) {
-                        $matches['categories']++;
+                foreach ($clientCats as $cc) {
+                    foreach ($masterCats as $mc) {
+                        // Check if either contains the other (handles "tech" matching "technology")
+                        if (stripos($mc, $cc) !== false || stripos($cc, $mc) !== false) {
+                            $matches['categories']++;
+                            break 2; // Found at least one match, move on
+                        }
                     }
                 }
             }
 
-            $mb->match_summary = $matches;
-            return $mb;
-        });
+            // 2. Check Platform Type (fuzzy match)
+            if ($platformType && $mb->platform_type) {
+                $masterPlatform = strtolower(trim($mb->platform_type));
+                if (stripos($masterPlatform, $platformType) !== false ||
+                    stripos($platformType, $masterPlatform) !== false) {
+                    $matches['platform_type'] = 1;
+                }
+            }
 
+            // 3. Check Country (exact match)
+            if ($country && $mb->country === $country) {
+                $matches['country'] = 1;
+            }
+
+            // 4. Check Domain Authority (within range)
+            if ($da > 0 && $mb->da > 0) {
+                if (abs($mb->da - $da) <= 10) {
+                    $matches['da'] = 1;
+                }
+            }
+
+            // Calculate total matches
+            $totalMatches = array_sum($matches);
+
+            // Add match data to backlink
+            $mb->match_summary = $matches;
+            $mb->total_matches = $totalMatches;
+
+            return $mb;
+        })
+            // Filter out backlinks with NO matches at all
+            ->filter(function($mb) {
+                return $mb->total_matches > 0;
+            })
+            // Sort by total matches (descending)
+            ->sortByDesc('total_matches')
+            ->values();
 
         return response()->json([
             'success' => true,
+            'total_recommendations' => $results->count(),
             'data' => $results,
         ]);
     }
-
-
 }

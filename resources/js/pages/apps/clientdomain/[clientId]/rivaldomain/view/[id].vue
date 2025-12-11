@@ -57,19 +57,15 @@ const handleDeleteDomain = async () => {
 }
 
 const getStatusConfig = (status) => {
-  if (status == 1) {
-    return { color: 'success', icon: IconCheck, text: 'Active' }
-
-  }
-  if (status == 2)
-    return { color: 'error', icon: IconX, text: 'Inactive' }
+  return status == 1
+      ? { color: 'success', icon: IconCheck, text: 'Available' }
+      : { color: 'error', icon: IconX, text: 'Unavailable' }
 }
 
-
 const getApprovalStatusConfig = (status) => {
-  if (status == 1) return { color: 'orange', icon: IconClock, text: 'Pending' }
-  if (status == 2) return { color: 'red', icon: IconX, text: 'Rejected' }
-  return { color: 'green', icon: IconCheck, text: 'Approved' }
+  if (status == 1) return { color: 'warning', icon: IconClock, text: 'Pending' }
+  if (status == 2) return { color: 'error', icon: IconX, text: 'Rejected' }
+  return { color: 'success', icon: IconCheck, text: 'Approved' }
 }
 
 const formatCurrency = (value) => {
@@ -92,46 +88,40 @@ const hasDomain = computed(() => Object.keys(domain.value).length > 0)
 
 <template>
   <div>
-    <!-- Modern Header with Gradient Background -->
-    <VCard class="mb-8 overflow-hidden" elevation="2" color="grey lighten-4">
-      <VCardText class="pa-8">
-         <VRow align="center" justify="space-between">
-          <!-- Left Column: Domain Info -->
-          <VCol cols="12" md="8">
-            
-            <div class="mb-8 pt-6">
-              <h2 class="text-h3 font-weight-bold mb-2">
-                {{ riavlDomain.title || 'Domain Details' }}
-              </h2>
-
-              <div class="d-flex align-center gap-3">
-                <VChip color="primary" variant="outlined" class="text-primary" small>
-                  ID: {{ rivalDomainId }}
+    <!-- Compact Header -->
+    <VCard class="mb-4" elevation="2">
+      <VCardText class="pa-4">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-3">
+          <!-- Domain Title & Info -->
+          <div class="d-flex align-center gap-3">
+            <VAvatar color="primary" variant="tonal" size="40">
+              <VIcon icon="tabler-world" size="20" />
+            </VAvatar>
+            <div>
+              <h4 class="text-h5 mb-1">{{ riavlDomain.title || 'Domain Details' }}</h4>
+              <div class="d-flex gap-2">
+                <VChip size="x-small" :color="getStatusConfig(riavlDomain.status).color">
+                  {{ getStatusConfig(riavlDomain.status).text }}
+                </VChip>
+                <VChip size="x-small" :color="getApprovalStatusConfig(riavlDomain.approval_status).color">
+                  {{ getApprovalStatusConfig(riavlDomain.approval_status).text }}
                 </VChip>
               </div>
             </div>
-          </VCol>
+          </div>
 
-          <!-- Right Column: Actions -->
-          <VCol cols="12" md="4" class="d-flex justify-end gap-3">
-            <VBtn color="error" variant="elevated" @click="showDeleteDialog = true">
-              <VIcon icon="tabler-trash" class="me-2" />
-              Delete
+          <!-- Action Buttons -->
+          <div class="d-flex gap-2 flex-wrap">
+            <VBtn variant="flat" color="primary" @click="isEditDrawerOpen = true">
+              <VIcon icon="tabler-edit" size="18" class="me-1" />
+              Edit
             </VBtn>
-            
-            <VBtn variant="flat" @click="isEditDrawerOpen = true">
-              <VIcon icon="tabler-edit" class="me-2" />
-              Edit Domain
-            </VBtn>
-
-
             <VBtn color="primary" variant="flat" :to="{ name: 'clientdomain-rivaldomain-list', params : { clientId: clientId, domainId: domainId } }" class="mb-4">
               <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
-Back        
+              Back
             </VBtn>
-          </VCol>
-          
-        </VRow>
+          </div>
+        </div>
       </VCardText>
     </VCard>
 
@@ -152,334 +142,208 @@ Back
 
     <!-- Domain Details with Enhanced Cards -->
     <template v-else-if="riavlDomain.id">
-      <!-- Status Overview Cards -->
-      <VRow class="mb-8">
-        <VCol cols="12" md="6">
-          <VCard elevation="2" class="h-100" :color="getStatusConfig(riavlDomain.status).color" variant="tonal">
-            <VCardText class="pa-6">
+      <VRow>
+        <!-- Left Column -->
+        <VCol cols="12" md="8">
+          <!-- Basic Info Card -->
+          <VCard elevation="2" class="mb-4">
+            <VCardTitle class="pa-3 bg-primary-lighten">
               <div class="d-flex align-center">
-                <VAvatar size="56" :color="getStatusConfig(riavlDomain.status).color" variant="tonal" class="me-4">
-                  <component :is="getStatusConfig(riavlDomain.status).icon" size="28" />
-                </VAvatar>
-
-                <div>
-                  <p class="text-body-2 text-medium-emphasis mb-1">Domain Status</p>
-                  <h5 class="text-h5 font-weight-bold">
-                    {{ getStatusConfig(riavlDomain.status).text }}
-                  </h5>
-                </div>
+                <VIcon icon="tabler-info-circle" size="20" class="me-2" />
+                <span class="text-subtitle-1">Basic Information</span>
               </div>
+            </VCardTitle>
+            <VCardText class="pa-4">
+              <VRow dense>
+                <VCol cols="6" sm="4">
+                  <div class="info-compact mb-3">
+                    <p class="text-caption text-medium-emphasis mb-1">Client Domain</p>
+                    <p class="text-body-1 font-weight-medium mb-0">{{ riavlDomain.client_domain || '-' }}</p>
+                  </div>
+                </VCol>
+                <VCol cols="6" sm="4">
+                  <div class="info-compact mb-3">
+                    <p class="text-caption text-medium-emphasis mb-1">Turnaround</p>
+                    <p class="text-body-1 font-weight-medium mb-0">{{ riavlDomain.turnaround_time || '-' }}</p>
+                  </div>
+                </VCol>
+              </VRow>
+            </VCardText>
+          </VCard>
+
+          <!-- Platform & Categories Card -->
+          <VCard elevation="2" class="mb-4">
+            <VCardTitle class="pa-3 bg-secondary-lighten">
+              <div class="d-flex align-center">
+                <VIcon icon="tabler-hierarchy" size="20" class="me-2" />
+                <span class="text-subtitle-1">Platform & Categories</span>
+              </div>
+            </VCardTitle>
+            <VCardText class="pa-4">
+              <VRow dense>
+                <VCol cols="6" sm="4">
+                  <div class="info-compact mb-3">
+                    <p class="text-caption text-medium-emphasis mb-1">Platform</p>
+                    <p class="text-body-1 font-weight-medium mb-0">{{ riavlDomain.platform_type || '-' }}</p>
+                  </div>
+                </VCol>
+                <VCol cols="6" sm="2">
+                  <div class="info-compact mb-3">
+                    <p class="text-caption text-medium-emphasis mb-1">Country</p>
+                    <p class="text-body-1 font-weight-medium mb-0">{{ riavlDomain.country || '-' }}</p>
+                  </div>
+                </VCol>
+                <VCol cols="6" sm="6">
+                  <div class="info-compact">
+                    <p class="text-caption text-medium-emphasis mb-1">Categories</p>
+                    <p class="text-body-1 font-weight-medium mb-0">
+                      {{ riavlDomain.categories ? riavlDomain.categories.join(', ') : '-' }}
+                    </p>
+                  </div>
+                </VCol>
+              </VRow>
+            </VCardText>
+          </VCard>
+
+          <!-- URLs Card -->
+          <VCard elevation="2" class="mb-4">
+            <VCardTitle class="pa-3 bg-info-lighten">
+              <div class="d-flex align-center">
+                <VIcon icon="tabler-link" size="20" class="me-2" />
+                <span class="text-subtitle-1">URLs & Links</span>
+              </div>
+            </VCardTitle>
+            <VCardText class="pa-4">
+              <VRow dense>
+                <VCol cols="12" md="6">
+                  <div class="info-compact">
+                    <p class="text-caption text-medium-emphasis mb-1">Source URL</p>
+                    <a v-if="riavlDomain.source_url" :href="riavlDomain.source_url" target="_blank"
+                       class="text-primary text-body-1 text-decoration-none d-inline-flex align-center">
+                      {{ riavlDomain.source_url }}
+                      <VIcon icon="tabler-external-link" size="14" class="ml-1" />
+                    </a>
+                    <p v-else class="text-body-1 mb-0">-</p>
+                  </div>
+                </VCol>
+                <VCol cols="12" md="6">
+                  <div class="info-compact">
+                    <p class="text-caption text-medium-emphasis mb-1">Target URL</p>
+                    <a v-if="riavlDomain.target_url" :href="riavlDomain.target_url" target="_blank"
+                       class="text-success text-body-1 text-decoration-none d-inline-flex align-center">
+                      {{ riavlDomain.target_url }}
+                      <VIcon icon="tabler-external-link" size="14" class="ml-1" />
+                    </a>
+                    <p v-else class="text-body-1 mb-0">-</p>
+                  </div>
+                </VCol>
+              </VRow>
+            </VCardText>
+          </VCard>
+
+          <!-- Additional Info Card -->
+          <VCard elevation="2" class="mb-4">
+            <VCardTitle class="pa-3 bg-error-lighten">
+              <div class="d-flex align-center">
+                <VIcon icon="tabler-notes" size="20" class="me-2" />
+                <span class="text-subtitle-1">Additional Information</span>
+              </div>
+            </VCardTitle>
+            <VCardText class="pa-4">
+              <VRow dense>
+                <VCol cols="12" md="4">
+                  <div class="info-compact">
+                    <p class="text-caption text-medium-emphasis mb-1">Anchor Text</p>
+                    <p class="text-body-1 mb-0">{{ riavlDomain.anchor_text || '-' }}</p>
+                  </div>
+                </VCol>
+                <VCol cols="12" md="8">
+                  <div class="info-compact">
+                    <p class="text-caption text-medium-emphasis mb-1">Special Requirements</p>
+                    <p class="text-body-1 mb-0">{{ riavlDomain.special_requirements || '-' }}</p>
+                  </div>
+                </VCol>
+              </VRow>
             </VCardText>
           </VCard>
         </VCol>
 
-        <VCol cols="12" md="6">
-          <VCard elevation="2" class="h-100" color="warning" variant="tonal">
-            <VCardText class="pa-6">
+        <!-- Right Column -->
+        <VCol cols="12" md="4">
+          <!-- SEO Metrics Card -->
+          <VCard elevation="2" class="mb-4">
+            <VCardTitle class="pa-3 bg-warning-lighten">
               <div class="d-flex align-center">
-                <VAvatar size="56" :color="getApprovalStatusConfig(riavlDomain.approval_status).color" variant="tonal"
-                  class="me-4">
-                  <component :is="getApprovalStatusConfig(riavlDomain.approval_status).icon" size="28" />
-                </VAvatar>
-                <div>
-                  <p class="text-body-2 text-medium-emphasis mb-1">Approval Status</p>
-                  <h5 class="text-h5 font-weight-bold">
-                    {{ getApprovalStatusConfig(riavlDomain.approval_status).text }}
-                  </h5>
+                <VIcon icon="tabler-chart-line" size="20" class="me-2" />
+                <span class="text-subtitle-1">SEO Metrics</span>
+              </div>
+            </VCardTitle>
+            <VCardText class="pa-4">
+              <div class="metric-item mb-3 pb-3 border-bottom">
+                <div class="d-flex align-center justify-space-between">
+                  <p class="text-caption text-medium-emphasis mb-0">Domain Authority</p>
+                  <VChip size="small" color="primary" variant="flat">
+                    {{ riavlDomain.domain_authority || '0' }}
+                  </VChip>
                 </div>
+              </div>
+
+              <div class="metric-item mb-3 pb-3 border-bottom">
+                <div class="d-flex align-center justify-space-between">
+                  <p class="text-caption text-medium-emphasis mb-0">Domain Rating</p>
+                  <VChip size="small" color="success" variant="flat">
+                    {{ riavlDomain.domain_rating || '0' }}
+                  </VChip>
+                </div>
+              </div>
+
+              <div class="metric-item">
+                <div class="d-flex align-center justify-space-between">
+                  <p class="text-caption text-medium-emphasis mb-0">Organic Traffic</p>
+                  <VChip size="small" color="info" variant="flat">
+                    {{ formatNumber(riavlDomain.organic_traffic) }}
+                  </VChip>
+                </div>
+              </div>
+            </VCardText>
+          </VCard>
+
+          <!-- Pricing Card -->
+          <VCard elevation="2" class="mb-4">
+            <VCardTitle class="pa-3 bg-error-lighten">
+              <div class="d-flex align-center justify-space-between">
+                <div class="d-flex align-center">
+                  <VIcon icon="tabler-currency-dollar" size="20" class="me-2" />
+                  <span class="text-subtitle-1">Pricing</span>
+                </div>
+                <VChip size="small" color="error" variant="elevated">
+                  {{ formatCurrency(riavlDomain.total_price) }}
+                </VChip>
+              </div>
+            </VCardTitle>
+            <VCardText class="pa-4">
+              <div class="d-flex align-center justify-space-between mb-2 pb-2 border-bottom">
+                <span class="text-caption text-medium-emphasis">Price NE</span>
+                <span class="text-body-2 font-weight-bold text-primary">
+                  {{ formatCurrency(riavlDomain.price_ne) }}
+                </span>
+              </div>
+              <div class="d-flex align-center justify-space-between mb-2 pb-2 border-bottom">
+                <span class="text-caption text-medium-emphasis">Price GP</span>
+                <span class="text-body-2 font-weight-bold text-success">
+                  {{ formatCurrency(riavlDomain.price_gp) }}
+                </span>
+              </div>
+              <div class="d-flex align-center justify-space-between">
+                <span class="text-caption text-medium-emphasis">Base Price</span>
+                <span class="text-body-2 font-weight-bold text-info">
+                  {{ formatCurrency(riavlDomain.price) }}
+                </span>
               </div>
             </VCardText>
           </VCard>
         </VCol>
       </VRow>
-
-      <!-- Basic Information with Modern Layout -->
-      <VCard elevation="2" class="mb-8">
-        <VCardTitle class="pa-6 pb-4">
-          <div class="d-flex align-center">
-            <VAvatar color="primary" variant="tonal" class="me-3">
-              <VIcon icon="tabler-info-circle" />
-            </VAvatar>
-            <h5 class="text-h5">Basic Information</h5>
-          </div>
-        </VCardTitle>
-
-        <VDivider />
-
-        <VCardText class="pa-6">
-          <VRow>
-            <VCol cols="12" md="6">
-              <div class="info-item mb-6">
-                <div class="d-flex align-center mb-2">
-                  <VIcon icon="tabler-tag" class="me-2 text-primary" size="20" />
-                  <span class="text-body-2 font-weight-medium text-high-emphasis">Client Domain ID</span>
-                </div>
-                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.client_domain_id || 'Not specified' }}</p>
-              </div>
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <div class="info-item mb-6">
-                <div class="d-flex align-center mb-2">
-                  <VIcon icon="tabler-clock" class="me-2 text-primary" size="20" />
-                  <span class="text-body-2 font-weight-medium text-high-emphasis">Turnaround Time</span>
-                </div>
-                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.turnaround_time || 'Not specified' }}</p>
-              </div>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
-
-      <!-- Platform & Categories -->
-      <VCard elevation="2" class="mb-8">
-        <VCardTitle class="pa-6 pb-4">
-          <div class="d-flex align-center">
-            <VAvatar color="secondary" variant="tonal" class="me-3">
-              <VIcon icon="tabler-hierarchy" />
-            </VAvatar>
-            <h5 class="text-h5">Platform & Categories</h5>
-          </div>
-        </VCardTitle>
-
-        <VDivider />
-
-        <VCardText class="pa-6">
-          <VRow>
-            <VCol cols="12" md="6">
-              <div class="info-item mb-6">
-                <div class="d-flex align-center mb-2">
-                  <VIcon icon="tabler-brand-monday" class="me-2 text-primary" size="20" />
-                  <span class="text-body-2 font-weight-medium text-high-emphasis">Platform Type</span>
-                </div>
-                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.platform_type || 'Not specified' }}</p>
-              </div>
-
-              <div class="info-item mb-6">
-                <div class="d-flex align-center mb-2">
-                  <VIcon icon="tabler-map-pin" class="me-2 text-primary" size="20" />
-                  <span class="text-body-2 font-weight-medium text-high-emphasis">Country</span>
-                </div>
-                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.country || 'Not specified' }}</p>
-              </div>
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <div class="info-item mb-6">
-                <div class="d-flex align-center mb-2">
-                  <VIcon icon="tabler-category-plus" class="me-2 text-primary" size="20" />
-                  <span class="text-body-2 font-weight-medium text-high-emphasis">Categories</span>
-                </div>
-                <p class="text-h6 mb-0 ml-7">{{ riavlDomain.categories ? riavlDomain.categories.join(', ') : 'Not specified' }}</p>
-              </div>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
-
-      <!-- URLs & Links with Enhanced Design -->
-      <VCard elevation="2" class="mb-8">
-        <VCardTitle class="pa-6 pb-4">
-          <div class="d-flex align-center">
-            <VAvatar color="info" variant="tonal" class="me-3">
-              <VIcon icon="tabler-link" />
-            </VAvatar>
-            <h5 class="text-h5">URLs & Links</h5>
-          </div>
-        </VCardTitle>
-
-        <VDivider />
-
-        <VCardText class="pa-6">
-          <VRow>
-            <VCol cols="12" md="6">
-              <VCard variant="outlined" class="pa-4" color="primary" elevation="0">
-                <div class="d-flex align-center mb-3">
-                  <VIcon icon="tabler-world" class="me-2 text-primary" size="24" />
-                  <span class="text-body-1 font-weight-bold">Source URL</span>
-                </div>
-                <div v-if="riavlDomain.source_url">
-                  <a :href="riavlDomain.source_url" target="_blank"
-                    class="text-primary text-decoration-none d-flex align-center">
-                    <span class="text-body-2 me-2">{{ riavlDomain.source_url }}</span>
-                    <VIcon icon="tabler-external-link" size="16" />
-                  </a>
-                </div>
-                <p v-else class="text-body-2 text-medium-emphasis mb-0">Not specified</p>
-              </VCard>
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <VCard variant="outlined" class="pa-4" color="success" elevation="0">
-                <div class="d-flex align-center mb-3">
-                  <VIcon icon="tabler-target" class="me-2 text-success" size="24" />
-                  <span class="text-body-1 font-weight-bold">Target URL</span>
-                </div>
-                <div v-if="riavlDomain.target_url">
-                  <a :href="riavlDomain.target_url" target="_blank"
-                    class="text-success text-decoration-none d-flex align-center">
-                    <span class="text-body-2 me-2">{{ riavlDomain.target_url }}</span>
-                    <VIcon icon="tabler-external-link" size="16" />
-                  </a>
-                </div>
-                <p v-else class="text-body-2 text-medium-emphasis mb-0">Not specified</p>
-              </VCard>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
-
-      <!-- SEO Metrics with Visual Indicators -->
-      <VCard elevation="2" class="mb-8">
-        <VCardTitle class="pa-6 pb-4">
-          <div class="d-flex align-center">
-            <VAvatar color="warning" variant="tonal" class="me-3">
-              <VIcon icon="tabler-chart-line" />
-            </VAvatar>
-            <h5 class="text-h5">SEO Metrics</h5>
-          </div>
-        </VCardTitle>
-
-        <VDivider />
-
-        <VCardText class="pa-6">
-          <VRow>
-            <VCol cols="12" md="4">
-              <VCard variant="tonal" color="primary" class="pa-6 text-center h-100">
-                <VAvatar size="64" color="primary" class="mb-4 mx-auto">
-                  <VIcon icon="tabler-award" size="32" />
-                </VAvatar>
-                <p class="text-body-2 text-medium-emphasis mb-2">Domain Authority</p>
-                <h3 class="text-h3 font-weight-bold text-primary">
-                  {{ riavlDomain.domain_authority || '0' }}
-                </h3>
-                <VProgressLinear :model-value="riavlDomain.domain_authority || 0" max="100" color="primary" class="mt-3" />
-              </VCard>
-            </VCol>
-
-            <VCol cols="12" md="4">
-              <VCard variant="tonal" color="success" class="pa-6 text-center h-100">
-                <VAvatar size="64" color="success" class="mb-4 mx-auto">
-                  <VIcon icon="tabler-trending-up" size="32" />
-                </VAvatar>
-                <p class="text-body-2 text-medium-emphasis mb-2">Domain Rating</p>
-                <h3 class="text-h3 font-weight-bold text-success">
-                  {{ riavlDomain.domain_rating || '0' }}
-                </h3>
-                <VProgressLinear :model-value="riavlDomain.domain_rating || 0" max="100" color="success" class="mt-3" />
-              </VCard>
-            </VCol>
-
-            <VCol cols="12" md="4">
-              <VCard variant="tonal" color="info" class="pa-6 text-center h-100">
-                <VAvatar size="64" color="info" class="mb-4 mx-auto">
-                  <VIcon icon="tabler-users" size="32" />
-                </VAvatar>
-                <p class="text-body-2 text-medium-emphasis mb-2">Organic Traffic</p>
-                <h3 class="text-h3 font-weight-bold text-info">
-                  {{ formatNumber(riavlDomain.organic_traffic) }}
-                </h3>
-                <p class="text-body-2 text-medium-emphasis mb-0 mt-2">Monthly Visitors</p>
-              </VCard>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
-
-      <!-- Pricing with Modern Cards -->
-      <VCard elevation="2" class="mb-8">
-        <VCardTitle class="pa-6 pb-4">
-          <div class="d-flex align-center justify-space-between">
-            <div class="d-flex align-center">
-              <VAvatar color="error" variant="tonal" class="me-3">
-                <VIcon icon="tabler-currency-dollar" />
-              </VAvatar>
-              <h5 class="text-h5">Pricing Information</h5>
-            </div>
-            <VChip color="error" variant="elevated" size="large">
-              Total: {{ formatCurrency(riavlDomain.total_price) }}
-            </VChip>
-          </div>
-        </VCardTitle>
-
-        <VDivider />
-
-        <VCardText class="pa-6">
-          <VRow>
-            <VCol cols="12" md="4">
-              <VCard variant="outlined" class="pa-4 text-center" color="primary">
-                <VIcon icon="tabler-cash" size="32" color="primary" class="mb-3" />
-                <p class="text-body-2 text-medium-emphasis mb-1">Price NE</p>
-                <h4 class="text-h4 font-weight-bold text-primary">
-                  {{ formatCurrency(riavlDomain.price_ne) }}
-                </h4>
-              </VCard>
-            </VCol>
-
-            <VCol cols="12" md="4">
-              <VCard variant="outlined" class="pa-4 text-center" color="success">
-                <VIcon icon="tabler-credit-card" size="32" color="success" class="mb-3" />
-                <p class="text-body-2 text-medium-emphasis mb-1">Price GP</p>
-                <h4 class="text-h4 font-weight-bold text-success">
-                  {{ formatCurrency(riavlDomain.price_gp) }}
-                </h4>
-              </VCard>
-            </VCol>
-
-            <VCol cols="12" md="4">
-              <VCard variant="outlined" class="pa-4 text-center" color="info">
-                <VIcon icon="tabler-coins" size="32" color="info" class="mb-3" />
-                <p class="text-body-2 text-medium-emphasis mb-1">Base Price</p>
-                <h4 class="text-h4 font-weight-bold text-info">
-                  {{ formatCurrency(riavlDomain.price) }}
-                </h4>
-              </VCard>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
-
-      <!-- Additional Information -->
-      <VCard elevation="2" class="mb-8">
-        <VCardTitle class="pa-6 pb-4">
-          <div class="d-flex align-center">
-            <VAvatar color="secondary" variant="tonal" class="me-3">
-              <VIcon icon="tabler-notes" />
-            </VAvatar>
-            <h5 class="text-h5">Additional Information</h5>
-          </div>
-        </VCardTitle>
-
-        <VDivider />
-
-        <VCardText class="pa-6">
-          <VRow>
-            <VCol cols="12" md="6">
-              <div class="info-card pa-4 rounded border">
-                <div class="d-flex align-center mb-3">
-                  <VIcon icon="tabler-anchor" class="me-2 text-secondary" size="24" />
-                  <span class="text-body-1 font-weight-bold">Anchor Text</span>
-                </div>
-                <p class="text-body-1 mb-0" style="word-break: break-word;">
-                  {{ riavlDomain.anchor_text || 'No anchor text specified' }}
-                </p>
-              </div>
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <div class="info-card pa-4 rounded border">
-                <div class="d-flex align-center mb-3">
-                  <VIcon icon="tabler-list-details" class="me-2 text-secondary" size="24" />
-                  <span class="text-body-1 font-weight-bold">Special Requirements</span>
-                </div>
-                <p class="text-body-1 mb-0" style="word-break: break-word;">
-                  {{ riavlDomain.special_requirements || 'No special requirements' }}
-                </p>
-              </div>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
     </template>
 
     <!-- Enhanced Error State -->
@@ -495,7 +359,7 @@ Back
         </p>
         <VBtn color="primary" size="large" :to="{ name: 'domain-list' }">
           <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
-Back
+          Back
         </VBtn>
       </VCardText>
     </VCard>
@@ -544,32 +408,36 @@ Back
 </template>
 
 <style scoped>
-.info-card {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  transition: all 0.3s ease;
+.info-compact p {
+  line-height: 1.4;
 }
 
-.info-card:hover {
-  border-color: rgb(var(--v-theme-primary));
-  box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.15);
+.metric-item {
+  transition: all 0.2s ease;
 }
 
-.max-width-400 {
-  max-width: 400px;
+.border-bottom {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
-/* Custom gradient animation */
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
+/* Light color backgrounds */
+.bg-primary-lighten {
+  background-color: rgba(var(--v-theme-primary), 0.24) !important;
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
+.bg-info-lighten {
+  background-color: rgba(var(--v-theme-info), 0.24) !important;
+}
 
-  100% {
-    background-position: 0% 50%;
-  }
+.bg-secondary-lighten {
+  background-color: rgba(var(--v-theme-secondary), 0.24) !important;
+}
+
+.bg-warning-lighten {
+  background-color: rgba(var(--v-theme-warning), 0.24) !important;
+}
+
+.bg-error-lighten {
+  background-color: rgba(var(--v-theme-error), 0.24) !important;
 }
 </style>

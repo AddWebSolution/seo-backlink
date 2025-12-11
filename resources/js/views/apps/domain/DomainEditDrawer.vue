@@ -414,11 +414,6 @@ const formatCurrency = (value) => {
             </VCardTitle>
             <VCardText class="pa-4 pt-0">
               <VRow>
-                <VCol cols="12">
-                  <AppTextField v-model="formData.client_id" label="Client ID"
-                    placeholder="Enter unique client identifier" :rules="rules.client_id"
-                    prepend-inner-icon="tabler-user" variant="outlined" disabled />
-                </VCol>
 
                 <VCol cols="12">
                   <AppTextField v-model="formData.title" label="Domain Title"
@@ -453,10 +448,6 @@ const formatCurrency = (value) => {
                                 prepend-inner-icon="tabler-brand-monday" variant="outlined" />
                 </VCol>
 
-<!--                <VCol cols="12" md="6">-->
-<!--                  <AppTextField v-model="formData.country" label="Country" placeholder="Enter country"-->
-<!--                                :rules="rules.country" prepend-inner-icon="tabler-map-pin" variant="outlined" />-->
-<!--                </VCol>-->
                 <VCol cols="12" md="6" class="mt-6">
                   <VAutocomplete
                       v-model="formData.country"

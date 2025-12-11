@@ -544,55 +544,52 @@ onMounted(() => {
         <span v-else> - </span>
       </template>
 
-<!--      <template #item.categories="{ item }">-->
-<!--        <div class="flex flex-wrap gap-1">-->
-<!--          <span-->
-<!--              v-for="cat in item.categories"-->
-<!--              :key="cat"-->
-<!--              class="px-2 py-1 rounded bg-primary text-white text-xs"-->
-<!--          >-->
-<!--            {{ cat }}-->
-<!--          </span>-->
-<!--          <span v-if="!item.categories || !item.categories.length">-</span>-->
-<!--        </div>-->
-<!--      </template>-->
       <template #item.categories="{ item }">
-        <div class="relative flex items-center gap-1" @click.stop>
-          <!-- Show first 2 -->
-          <template v-for="cat in item.categories.slice(0, 2)" :key="cat">
-      <span class="px-2 py-1 rounded bg-primary text-white text-xs">
-        {{ cat }}
-      </span>
-          </template>
+        <div class="d-flex flex-wrap ga-1 align-center">
+          <!-- Show first 2 categories -->
+          <VChip
+              v-for="cat in (item.categories || []).slice(0, 2)"
+              :key="cat"
+              size="x-small"
+              color="primary"
+              variant="flat"
+          >
+            {{ cat }}
+          </VChip>
 
-          <!-- Toggle dropdown -->
-          <div v-if="item.categories.length > 2">
-            <button
-                @click="toggleDropdown(item.id)"
-                class="flex items-center gap-1 px-2 py-1 rounded bg-gray-300 dark:bg-gray-700 text-black dark:text-white text-xs"
-            >
-              +{{ item.categories.length - 2 }} more
-              <span :class="dropdownOpen === item.id ? 'rotate-180' : ''">
-          ▼
-        </span>
-            </button>
-
-            <!-- Dropdown -->
-            <div
-                v-if="dropdownOpen === item.id"
-                class="absolute left-0 mt-1 w-max bg-white dark:bg-gray-800 border shadow-lg rounded p-2 z-20"
-            >
-              <div
-                  v-for="cat in item.categories.slice(2)"
-                  :key="cat"
-                  class="px-2 py-1 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 rounded whitespace-nowrap"
+          <!-- Dropdown for remaining categories -->
+          <VMenu v-if="item.categories && item.categories.length > 2">
+            <template v-slot:activator="{ props: menuProps }">
+              <VChip
+                  v-bind="menuProps"
+                  size="x-small"
+                  color="grey"
+                  variant="outlined"
+                  class="cursor-pointer"
               >
-                {{ cat }}
-              </div>
-            </div>
-          </div>
+                +{{ item.categories.length - 2 }} more
+                <VIcon end size="x-small">mdi-chevron-down</VIcon>
+              </VChip>
+            </template>
 
-          <span v-if="!item.categories || !item.categories.length">-</span>
+            <VList density="compact" max-width="300">
+              <VListSubheader>All Categories ({{ item.categories.length }})</VListSubheader>
+              <VListItem
+                  v-for="cat in item.categories"
+                  :key="cat"
+                  class="px-2"
+              >
+                <VListItemTitle>
+                  <VChip size="small" color="primary" variant="tonal">
+                    {{ cat }}
+                  </VChip>
+                </VListItemTitle>
+              </VListItem>
+            </VList>
+          </VMenu>
+
+          <!-- No categories case -->
+          <span v-if="!item.categories || !item.categories.length" class="text-grey">-</span>
         </div>
       </template>
 

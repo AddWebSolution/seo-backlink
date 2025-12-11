@@ -412,11 +412,6 @@ const formatCurrency = (value) => {
             </VCardTitle>
             <VCardText class="pa-4 pt-0">
               <VRow>
-                <VCol cols="12">
-                  <AppTextField v-model="formData.client_domain_id" label="Client Domain ID"
-                    placeholder="Enter unique client identifier" :rules="rules.client_domain_id"
-                    prepend-inner-icon="tabler-user" variant="outlined" disabled />
-                </VCol>
 
                 <VCol cols="12">
                   <AppTextField v-model="formData.title" label="Domain Title"
