@@ -11,6 +11,7 @@ use App\Modules\ClientDomain\Http\Resources\ClientDomainResource;
 
 use App\Modules\ClientDomain\Http\Requests\StoreClientDomainRequest;
 use App\Modules\ClientDomain\Http\Requests\UpdateClientDomainRequest;
+use App\Modules\MasterBacklink\Models\MasterBacklink;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -265,4 +266,85 @@ class ClientDomainController extends BaseController
         return $result;
     }
 
+    public function recommendedBacklinks($id)
+    {
+        $domain = ClientDomain::findOrFail($id);
+
+        $categories = $domain->categories ?? [];
+        $platformType = strtolower(trim($domain->platform_type ?? ''));
+        $country = $domain->country;
+        $da = (int) $domain->domain_authority;
+
+        // Get all master backlinks
+        $allBacklinks = MasterBacklink::all();
+
+        // Filter and score each backlink
+        $results = $allBacklinks->map(function($mb) use ($domain, $categories, $platformType, $country, $da) {
+            $matches = [
+                'platform_type' => 0,
+                'country' => 0,
+                'da' => 0,
+                'categories' => 0,
+            ];
+
+            // 1. Check Categories (fuzzy match)
+            if (!empty($categories)) {
+                $clientCats = collect($categories)->map(fn($c) => strtolower(trim($c)));
+                $masterCats = collect($mb->categories ?? [])->map(fn($c) => strtolower(trim($c)));
+
+                foreach ($clientCats as $cc) {
+                    foreach ($masterCats as $mc) {
+                        // Check if either contains the other (handles "tech" matching "technology")
+                        if (stripos($mc, $cc) !== false || stripos($cc, $mc) !== false) {
+                            $matches['categories']++;
+                            break 2; // Found at least one match, move on
+                        }
+                    }
+                }
+            }
+
+            // 2. Check Platform Type (fuzzy match)
+            if ($platformType && $mb->platform_type) {
+                $masterPlatform = strtolower(trim($mb->platform_type));
+                if (stripos($masterPlatform, $platformType) !== false ||
+                    stripos($platformType, $masterPlatform) !== false) {
+                    $matches['platform_type'] = 1;
+                }
+            }
+
+            // 3. Check Country (exact match)
+            if ($country && $mb->country === $country) {
+                $matches['country'] = 1;
+            }
+
+            // 4. Check Domain Authority (within range)
+            if ($da > 0 && $mb->da > 0) {
+                if (abs($mb->da - $da) <= 10) {
+                    $matches['da'] = 1;
+                }
+            }
+
+            // Calculate total matches
+            $totalMatches = array_sum($matches);
+
+            // Add match data to backlink
+            $mb->match_summary = $matches;
+            $mb->total_matches = $totalMatches;
+
+            return $mb;
+        })
+            // Filter out backlinks with NO matches at all
+            ->filter(function($mb) {
+                return $mb->total_matches > 0;
+            })
+            // Sort by total matches (descending)
+            ->sortByDesc('total_matches')
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'total_recommendations' => $results->count(),
+            'data' => $results,
+        ]);
+    }
 }

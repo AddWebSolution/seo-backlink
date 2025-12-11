@@ -36,6 +36,7 @@ Route::group(['middleware' => ['api', 'auth:sanctum']], function () {
 
             Route::post('rival-backlinks/{id}', [ClientDomainController::class, 'rivalBacklinksClientwise']);
             Route::get('referring-domains/export/{id}', [ClientDomainController::class, 'referringDomainsExport']);
+            Route::post('recommended-backlinks/{id}', [ClientDomainController::class, 'recommendedBacklinks']);
         });
 	});
 });

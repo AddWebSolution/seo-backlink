@@ -3,7 +3,9 @@ import { onMounted, ref, computed, unref } from "vue";
 import { useClientApi } from "@/composables/clientApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import { useAbility } from "@casl/vue";
+import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
 
+const { confirm } = useConfirmDialog()
 const headers = [
   { title: "Name", key: "name", align: "center", width: "100px" },
   { title: "E-Mail", key: "email", align: "center", width: "80px" },
@@ -222,6 +224,18 @@ const applyFilters = async () => {
 };
 
 const handleDeleteClient = async (id) => {
+  const confirmed = await confirm({
+    title: 'Delete Client',
+    message: 'Are you sure you want to delete this client? This action cannot be undone.',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   try {
     await deleteClient(id);
     const index = selectedRows.value.findIndex((row) => row === id);
@@ -235,6 +249,18 @@ const handleDeleteClient = async (id) => {
 };
 
 const handleDeleteClientBatch = async (ids) => {
+  const confirmed = await confirm({
+    title: 'Delete Client',
+    message: `Are you sure you want to delete ${ids.length} clients?`,
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   loading.value = true;
   try {
     await Promise.all(ids.map((id) => deleteClient(id)));

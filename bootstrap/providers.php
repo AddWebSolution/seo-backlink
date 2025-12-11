@@ -16,4 +16,5 @@ return [
     App\Modules\RivalDomain\Providers\RivalDomainServiceProvider::class,
     App\Modules\Dashboard\Providers\DashboardServiceProvider::class,
     App\Modules\BacklinkHistory\Providers\BacklinkHistoryServiceProvider::class,
+    App\Modules\MasterBacklink\Providers\MasterBacklinkServiceProvider::class,
 ];

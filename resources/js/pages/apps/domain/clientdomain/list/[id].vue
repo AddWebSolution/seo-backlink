@@ -10,11 +10,14 @@ import { useAbility } from "@casl/vue";
 import UserAssignDialog from "@/components/dialogs/UserAssignDialog.vue";
 import RivalBacklinksDialog from "@/components/dialogs/RivalBacklinksDialog.vue";
 import { useUserApi} from "@/composables/userApi.js";
+import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
+import RecommendedBacklinks from "@/components/dialogs/RecommendedBacklinks.vue";
 
 const { assignableUsers, assignedUserIds, fetchAssignableUsers } = useUserApi();
 const showAssignDialog = ref(false);
 const showRivalBacklinks = ref(false);
 const currentDomainId = ref(null);
+const { confirm } = useConfirmDialog()
 
 const openDialog = (domainId) => {
   currentDomainId.value = domainId;
@@ -52,6 +55,12 @@ const headers = [
     width: "120px",
   },
   {
+    title: "Backlinks Suggestion",
+    key: "backlinks_suggestion",
+    sortable: false,
+    width: "120px",
+  },
+  {
     title: "Actions",
     key: "actions",
     sortable: false,
@@ -77,6 +86,7 @@ const {
   deleteDomain,
   assignUsersToDomain,
   exportReferringDomains,
+  recommendedBacklinks,
   showAlert,
 } = useDomainApi();
 
@@ -96,6 +106,13 @@ const onUsersAssigned = async (selectedUserIds) => {
   showAssignDialog.value = false;
 };
 
+const showRecommendationsModal = ref(false)
+const recommended = ref([])
+
+const loadRecommendedBacklinks = async (domainId) => {
+  recommended.value = await recommendedBacklinks(domainId)
+  showRecommendationsModal.value = true
+}
 
 // Filters
 const selectedStatus = ref();
@@ -208,6 +225,18 @@ const applyFilters = async () => {
 };
 
 const handleDeleteDomain = async (id) => {
+  const confirmed = await confirm({
+    title: 'Delete Domain',
+    message: 'Are you sure you want to delete this domain? This action cannot be undone.',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   try {
     await deleteDomain(id);
     await loadDomains(clientId.value);
@@ -218,6 +247,18 @@ const handleDeleteDomain = async (id) => {
 
 
 const handleDeleteDomainBatch = async (ids) => {
+  const confirmed = await confirm({
+    title: 'Delete Domain',
+    message: `Are you sure you want to delete ${ids.length} domains?`,
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   loading.value = true;
   try {
     await Promise.all(ids.map(id => deleteDomain(id)));
@@ -426,31 +467,6 @@ onMounted(async () => {
           </VBtn>
         </VCol>
       </VRow>
-
-      <!-- Advanced Filters -->
-      <!-- <VExpandTransition>
-        <div v-show="showAdvancedFilters">
-          <VDivider class="mb-4" />
-          <VRow>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Min Domain Authority" placeholder="0-100" variant="outlined" type="number"
-                hide-details prepend-inner-icon="tabler-trending-up" />
-            </VCol>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Max Price" placeholder="Enter max price" variant="outlined" type="number"
-                hide-details prepend-inner-icon="tabler-currency-dollar" />
-            </VCol>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Min Traffic" placeholder="Monthly visits" variant="outlined" type="number"
-                hide-details prepend-inner-icon="tabler-eye" />
-            </VCol>
-            <VCol cols="12" sm="6" md="3">
-              <AppTextField label="Turnaround Time" placeholder="Max days" variant="outlined" type="number" hide-details
-                prepend-inner-icon="tabler-clock" />
-            </VCol>
-          </VRow>
-        </div>
-      </VExpandTransition> -->
     </VCardText>
   </VCard>
 
@@ -685,11 +701,25 @@ onMounted(async () => {
           <VTooltip text="View Rivel Referring Domains">
         <template #activator="{ props }">
           <IconBtn v-bind="props" size="small" @click="openRivalBacklinksDialog(item.id)">
-            <VChip color="warning" variant="tonal" size="small">
+            <VChip :label="false" color="warning" variant="tonal" size="small">
             <VIcon color="warning" icon="tabler-link" size="20" />
             </VChip>
           </IconBtn>
         </template>
+          </VTooltip>
+        </div>
+      </template>
+
+      <template #item.backlinks_suggestion="{ item }">
+        <div class="d-flex align-center gap-1">
+          <VTooltip text="View Suggested Backlinks">
+            <template #activator="{ props }">
+              <IconBtn v-bind="props" size="small">
+                <VChip :label="false" color="info" variant="tonal" size="small" @click="loadRecommendedBacklinks(item.id)">
+                  <VIcon color="info" icon="tabler-git-compare" size="20" />
+                </VChip>
+              </IconBtn>
+            </template>
           </VTooltip>
         </div>
       </template>
@@ -899,6 +929,13 @@ onMounted(async () => {
       :domainId="currentDomainId"
       :loading="loading"
       @export="exportReferringDomainsHandler"
+  />
+
+  <!-- Recommended Backlinks Modal -->
+  <RecommendedBacklinks
+      v-model="showRecommendationsModal"
+      max-width="1200"
+      :items="recommended"
   />
 
 </template>

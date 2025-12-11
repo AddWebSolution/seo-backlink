@@ -2,9 +2,6 @@
 import { ref, readonly } from "vue";
 import { useApi } from "./useApi";
 import { useAlert } from "./useAlert";
-import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
-
-const { confirm } = useConfirmDialog()
 
 export function useRivalDomainApi() {
   const { showAlert } = useAlert();
@@ -237,18 +234,6 @@ export function useRivalDomainApi() {
 
   // delete domain
   const deleteRivalDomain = async (id) => {
-      const confirmed = await confirm({
-          title: 'Delete Rival Domain',
-          message: 'Are you sure you want to delete this rival domain? This action cannot be undone.',
-          confirmText: 'Delete',
-          cancelText: 'Cancel',
-          confirmColor: 'error',
-          type: 'error'
-      })
-
-      if (!confirmed) {
-          return
-      }
     loading.value = true;
     error.value = null;
 
