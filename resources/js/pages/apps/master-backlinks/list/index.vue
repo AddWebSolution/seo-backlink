@@ -372,6 +372,19 @@ const toggleDropdown = (id) => {
   dropdownOpen.value = dropdownOpen.value === id ? null : id;
 };
 
+// ---------------- date format --------
+const formatDateTime = dt => {
+  if (!dt) return '-'
+  return new Intl.DateTimeFormat('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dt))
+}
+
+
 onMounted(() => {
   loadMasterBacklinks();
   document.addEventListener("click", () => {
@@ -742,7 +755,7 @@ onMounted(() => {
       <!-- Last Active -->
       <template #item.last_active="{ item }">
     <span v-if="item.last_active" class="text-body-2">
-      {{ item.last_active }}
+      {{ formatDateTime(item.last_active) }}
     </span>
         <span v-else class="text-disabled">-</span>
       </template>

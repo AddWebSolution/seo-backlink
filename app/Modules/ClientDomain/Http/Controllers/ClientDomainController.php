@@ -275,11 +275,23 @@ class ClientDomainController extends BaseController
         $country = $domain->country;
         $da = (int) $domain->domain_authority;
 
+        // Get existing backlink URLs for this domain
+        $existingBacklinkUrls = BacklinkDatum::where('domain_id', $id)
+            ->pluck('url')
+            ->map(fn($url) => strtolower(trim($url)))
+            ->toArray();
+
         // Get all master backlinks
         $allBacklinks = MasterBacklink::all();
 
         // Filter and score each backlink
-        $results = $allBacklinks->map(function($mb) use ($domain, $categories, $platformType, $country, $da) {
+        $results = $allBacklinks->map(function($mb) use ($domain, $categories, $platformType, $country, $da, $existingBacklinkUrls) {
+            // Check if this master backlink's profile_url already exists
+            $mbProfileUrl = strtolower(trim($mb->profile_url ?? ''));
+            if (in_array($mbProfileUrl, $existingBacklinkUrls, true)) {
+                return null;
+            }
+
             $matches = [
                 'platform_type' => 0,
                 'country' => 0,
@@ -294,10 +306,9 @@ class ClientDomainController extends BaseController
 
                 foreach ($clientCats as $cc) {
                     foreach ($masterCats as $mc) {
-                        // Check if either contains the other (handles "tech" matching "technology")
                         if (stripos($mc, $cc) !== false || stripos($cc, $mc) !== false) {
                             $matches['categories']++;
-                            break 2; // Found at least one match, move on
+                            break 2;
                         }
                     }
                 }
@@ -333,6 +344,11 @@ class ClientDomainController extends BaseController
 
             return $mb;
         })
+            // Remove null values (already existing backlinks)
+            ->filter(function($mb) {
+                return $mb !== null;
+            })
+
             // Filter out backlinks with NO matches at all
             ->filter(function($mb) {
                 return $mb->total_matches > 0;
