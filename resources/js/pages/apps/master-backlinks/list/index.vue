@@ -5,17 +5,26 @@ import {computed, ref, onMounted} from "vue";
 import { useMasterBacklinksApi } from "@/composables/masterBacklinks.js";
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue";
 import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
+import { getCodes } from 'country-list';
+import {CATEGORIES, PLATFORM_TYPES} from "@/utils/backlinkOptions.js";
 
 // Reactive variables
 const showImportResult = ref(false);
 const importing = ref(false);
+const downloading = ref(false);
 const selectedFile = ref(null);
 const importDialog = ref(false);
 const fileError = ref("");
 const isDragOver = ref(false);
 const selectedRows = ref([]);
 const searchQuery = ref("");
+const selectedPlateform = ref(null)
+const selectedCountry = ref(null)
+const selectedCategory = ref(null)
+const selectedDoFollow = ref(null)
+const selectedIndexed = ref(null)
 const { confirm } = useConfirmDialog()
+const countryCodes = getCodes();
 
 const {
   masterBacklinks,
@@ -32,6 +41,7 @@ const {
 const closeImportDialog = () => {
   importDialog.value = false;
   importing.value = false;
+  downloading.value = false;
   selectedFile.value = null;
   fileError.value = "";
 };
@@ -53,6 +63,7 @@ const formatFileSize = (bytes) => {
 -------------------------------------------- */
 const templateDownload = async () => {
   try {
+    downloading.value = true;
     const blob = await downloadTemplate();
 
     const url = URL.createObjectURL(blob);
@@ -64,6 +75,7 @@ const templateDownload = async () => {
     a.remove();
     URL.revokeObjectURL(url);
 
+    downloading.value = false;
     showAlert("Template downloaded successfully!", "success");
   } catch (err) {
     showAlert("Failed to download template", "error");
@@ -76,6 +88,13 @@ const templateDownload = async () => {
 
 const buildFilters = () => {
   const filters = {};
+
+  if (selectedPlateform.value) filters.platform_type = selectedPlateform.value;
+  if (selectedCountry.value) filters.country = selectedCountry.value;
+  if (selectedCategory.value) filters.categories = selectedCategory.value;
+  if (selectedDoFollow.value !== null) filters.dofollow = selectedDoFollow.value;
+  if (selectedIndexed.value !== null) filters.indexed = selectedIndexed.value;
+
   const params = {
     pageNumber: pagination.value.page,
     perPage: pagination.value.itemsPerPage,
@@ -91,6 +110,11 @@ const buildFilters = () => {
 };
 
 const clearAllFilters = async () => {
+  selectedPlateform.value = null;
+  selectedCountry.value = null;
+  selectedCategory.value = null;
+  selectedDoFollow.value = null;
+  selectedIndexed.value = null;
   sortBy.value = null;
   orderBy.value = null;
   searchQuery.value = "";
@@ -103,6 +127,11 @@ const hasActiveFilters = computed(() => {
   return (
       sortBy.value ||
       orderBy.value ||
+      selectedPlateform.value ||
+      selectedCountry.value ||
+      selectedCategory.value ||
+      selectedDoFollow.value !== null ||
+      selectedIndexed.value !== null ||
       searchQuery.value
   );
 });
@@ -119,14 +148,19 @@ const sortBy = ref("");
 const orderBy = ref("");
 
 const headers = [
-  { title: "Website", key: "website_name", align: "center"},
-  { title: "Domain URL", key: "domain_url", align: "center"},
-  { title: "DA", key: "da", align: "center"},
-  { title: "Profile URL", key: "profile_url", align: "center", width: "50px"},
-  { title: "Platform Type", key: "platform_type", align: "center"},
-  { title: "Country", key: "country", align: "center"},
-  { title: "Categories", key: "categories", align: "center"},
-  { title: "Actions", key: "actions", align  : "center", sortable: false},
+  { title: "Website", key: "website_name", align: "start", minWidth: "150px" },
+  { title: "Domain URL", key: "domain_url", align: "start", minWidth: "180px" },
+  { title: "DA", key: "da", align: "center", width: "70px" },
+  { title: "Profile", key: "profile_url", align: "start", minWidth: "180px" },
+  { title: "Platform", key: "platform_type", align: "center", width: "100px" },
+  { title: "Country", key: "country", align: "center", width: "90px" },
+  { title: "Categories", key: "categories", align: "start", minWidth: "200px" },
+  { title: "Follow", key: "dofollow", align: "center", width: "70px" },
+  { title: "Index", key: "indexed", align: "center", width: "70px" },
+  { title: "Active", key: "last_active", align: "center", width: "100px" },
+  { title: "Traffic", key: "avg_traffic", align: "center", width: "90px" },
+  { title: "Age", key: "domain_age", align: "center", width: "80px" },
+  { title: "Actions", key: "actions", align: "center", width: "60px", sortable: false },
 ];
 
 const totalMasterBacklinks = computed(() => pagination.value.total ?? 0);
@@ -247,6 +281,17 @@ const handleFileChange = (files) => {
   selectedFile.value = file;
 };
 
+const DOFOLLOW_OPTIONS = [
+  { text: 'Yes', value: 1 },
+  { text: 'No', value: 0 },
+]
+
+const INDEXED_OPTIONS = [
+  { text: 'Yes', value: 1 },
+  { text: 'No', value: 0 },
+]
+
+
 /* --------------------------------------------
    DRAG & DROP FUNCTIONS
 -------------------------------------------- */
@@ -327,6 +372,19 @@ const toggleDropdown = (id) => {
   dropdownOpen.value = dropdownOpen.value === id ? null : id;
 };
 
+// ---------------- date format --------
+const formatDateTime = dt => {
+  if (!dt) return '-'
+  return new Intl.DateTimeFormat('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dt))
+}
+
+
 onMounted(() => {
   loadMasterBacklinks();
   document.addEventListener("click", () => {
@@ -374,15 +432,41 @@ onMounted(() => {
 
     <VCardText class="pt-0">
       <!-- Primary Search Bar -->
-      <VRow align="end">
-        <VCol cols="12" md="6">
+      <VRow class="mb-4 g-3">
+        <VCol cols="12" sm="6"  md="12" class="d-flex align-center">
           <AppTextField v-model="searchQuery" placeholder="Search by Website, Domain URL"
                         prepend-inner-icon="tabler-search" variant="outlined" hide-details clearable class="search-field" />
         </VCol>
-        <VCol cols="12" sm="6" md="3" class="d-flex align-end">
+
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center">
+          <AppSelect v-model="selectedPlateform" :items="PLATFORM_TYPES" item-value="value" placeholder="Plateform" variant="outlined"
+                     clearable prepend-inner-icon="tabler-brand-monday" class="flex-grow-1" />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center">
+          <AppSelect v-model="selectedCountry" :items="countryCodes" item-value="value" placeholder="Country" variant="outlined"
+                     clearable prepend-inner-icon="tabler-map-pin" class="flex-grow-1" />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center">
+          <AppSelect v-model="selectedCategory" :items="CATEGORIES" item-value="value" placeholder="Category" variant="outlined"
+                     clearable prepend-inner-icon="tabler-category-plus" class="flex-grow-1" />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center">
+          <AppSelect v-model="selectedDoFollow" :items="DOFOLLOW_OPTIONS"
+                     item-title="text" item-value="value" placeholder="Do Follow" variant="outlined"
+                     clearable prepend-inner-icon="tabler-arrow-bar-both" class="flex-grow-1" />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center">
+          <AppSelect v-model="selectedIndexed" :items="INDEXED_OPTIONS" item-title="text" item-value="value" placeholder="Indexed" variant="outlined"
+                     clearable prepend-inner-icon="tabler-sitemap" class="flex-grow-1" />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="2" class="d-flex">
           <VBtn color="primary" variant="flat" block @click="loadMasterBacklinks">
-            <VIcon icon="tabler-search" class="me-2" />
-            Search
+            Search & Filter
           </VBtn>
         </VCol>
       </VRow>
@@ -497,125 +581,236 @@ onMounted(() => {
     <VDivider class="mt-5 mb-2" />
 
     <!-- Enhanced Data Table -->
-    <VDataTableServer :page="pagination.page" :items-per-page="pagination.itemsPerPage"
-                      v-model:model-value="selectedRows" :headers="headers" show-select :items="masterBacklinks" :loading="loading"
-                      :items-length="pagination.total" loading-text="Fetching master backlinks, please wait..." class="domain-table" hover
-                      @update:options="updateOptions">
+    <VDataTableServer
+        v-model="selectedRows"
+        :page="pagination.page"
+        :items-per-page="pagination.itemsPerPage"
+        :headers="headers"
+        :items="masterBacklinks"
+        :loading="loading"
+        :items-length="pagination.total"
+        show-select
+        density="compact"
+        hover
+        loading-text="Loading backlinks..."
+        class="compact-domain-table"
+        @update:options="updateOptions"
+    >
+      <!-- Website Name -->
+      <template #item.website_name="{ item }">
+        <div class="text-truncate font-weight-medium" style="max-width: 150px">
+          {{ item.website_name || '-' }}
+        </div>
+      </template>
 
+      <!-- Domain URL -->
       <template #item.domain_url="{ item }">
-        <a :href="item.domain_url" target="_blank" class="text-success text-decoration-none text-body-1"
-           :title="item.domain_url">
-          <span class="text-truncate" style="max-width: 200px">
-            {{ item.domain_url }}
-          </span>
-          <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
+        <a
+            :href="item.domain_url"
+            target="_blank"
+            class="text-primary text-decoration-none d-inline-flex align-center gap-1"
+            :title="item.domain_url"
+        >
+      <span class="text-truncate" style="max-width: 160px">
+        {{ item.domain_url }}
+      </span>
+          <VIcon icon="tabler-external-link" size="14" />
         </a>
       </template>
 
+      <!-- DA Score -->
       <template #item.da="{ item }">
-        <VProgressCircular :model-value="item.da" size="30" width="4" :color="
-            item.da > 70
-              ? 'success'
-              : item.da > 40
-              ? 'warning'
-              : 'error'
-          ">
-          <small class="font-weight-medium">{{ item.da ?? 0 }}</small>
+        <VProgressCircular
+            :model-value="item.da || 0"
+            size="36"
+            width="3"
+            :color="item.da > 70 ? 'success' : item.da > 40 ? 'warning' : 'error'"
+        >
+          <span class="text-caption font-weight-bold">{{ item.da || 0 }}</span>
         </VProgressCircular>
       </template>
 
+      <!-- Profile URL -->
       <template #item.profile_url="{ item }">
-        <a :href="item.profile_url" target="_blank" class="text-success text-decoration-none text-body-1"
-           :title="item.profile_url">
-          <span class="text-truncate" style="max-width: 200px">
-            {{ item.profile_url }}
-          </span>
-          <VIcon icon="tabler-external-link" size="12" class="flex-shrink-0 ms-1" />
+        <a
+            v-if="item.profile_url"
+            :href="item.profile_url"
+            target="_blank"
+            class="text-primary text-decoration-none d-inline-flex align-center gap-1"
+            :title="item.profile_url"
+        >
+      <span class="text-truncate" style="max-width: 160px">
+        {{ item.profile_url }}
+      </span>
+          <VIcon icon="tabler-external-link" size="14" />
         </a>
+        <span v-else class="text-disabled">-</span>
       </template>
 
+      <!-- Platform Type -->
       <template #item.platform_type="{ item }">
-        <span v-if="item.platform_type"> {{ item.platform_type }} </span>
-        <span v-else> - </span>
+        <VChip
+            v-if="item.platform_type"
+            size="small"
+            variant="tonal"
+            color="primary"
+            label
+        >
+          {{ item.platform_type }}
+        </VChip>
+        <span v-else class="text-disabled">-</span>
       </template>
 
+      <!-- Country -->
       <template #item.country="{ item }">
-        <span v-if="item.country"> {{ item.country }} </span>
-        <span v-else> - </span>
+        <VChip
+            v-if="item.country"
+            size="small"
+            variant="outlined"
+            prepend-icon="tabler-map-pin"
+        >
+          {{ item.country }}
+        </VChip>
+        <span v-else class="text-disabled">-</span>
       </template>
 
+      <!-- Categories -->
       <template #item.categories="{ item }">
-        <div class="d-flex flex-wrap ga-1 align-center">
-          <!-- Show first 2 categories -->
+        <div class="d-flex flex-wrap gap-1 align-center">
           <VChip
               v-for="cat in (item.categories || []).slice(0, 2)"
               :key="cat"
               size="x-small"
-              color="primary"
+              color="info"
               variant="flat"
+              label
           >
             {{ cat }}
           </VChip>
 
-          <!-- Dropdown for remaining categories -->
-          <VMenu v-if="item.categories && item.categories.length > 2">
-            <template v-slot:activator="{ props: menuProps }">
+          <VMenu v-if="item.categories && item.categories.length > 2" location="bottom">
+            <template #activator="{ props: menuProps }">
               <VChip
                   v-bind="menuProps"
                   size="x-small"
-                  color="grey"
-                  variant="outlined"
-                  class="cursor-pointer"
+                  variant="tonal"
+                  color="secondary"
+                  label
               >
-                +{{ item.categories.length - 2 }} more
-                <VIcon end size="x-small">mdi-chevron-down</VIcon>
+                +{{ item.categories.length - 2 }}
               </VChip>
             </template>
 
-            <VList density="compact" max-width="300">
-              <VListSubheader>All Categories ({{ item.categories.length }})</VListSubheader>
-              <VListItem
-                  v-for="cat in item.categories"
-                  :key="cat"
-                  class="px-2"
-              >
-                <VListItemTitle>
-                  <VChip size="small" color="primary" variant="tonal">
-                    {{ cat }}
-                  </VChip>
-                </VListItemTitle>
+            <VList density="compact" max-width="250">
+              <VListSubheader class="text-caption">
+                All Categories ({{ item.categories.length }})
+              </VListSubheader>
+              <VDivider />
+              <VListItem v-for="cat in item.categories" :key="cat" class="px-3 py-1">
+                <VChip size="small" color="info" variant="tonal" label>
+                  {{ cat }}
+                </VChip>
               </VListItem>
             </VList>
           </VMenu>
 
-          <!-- No categories case -->
-          <span v-if="!item.categories || !item.categories.length" class="text-grey">-</span>
+          <span v-if="!item.categories || !item.categories.length" class="text-disabled">-</span>
         </div>
       </template>
 
+      <!-- Do Follow -->
+      <template #item.dofollow="{ item }">
+        <VIcon
+            v-if="item.dofollow === true"
+            icon="tabler-circle-check-filled"
+            color="success"
+            size="20"
+        />
+        <VIcon
+            v-else-if="item.dofollow === false"
+            icon="tabler-circle-x-filled"
+            color="error"
+            size="20"
+        />
+        <span v-else class="text-disabled">-</span>
+      </template>
+
+      <!-- Indexed -->
+      <template #item.indexed="{ item }">
+        <VIcon
+            v-if="item.indexed === true"
+            icon="tabler-circle-check-filled"
+            color="success"
+            size="20"
+        />
+        <VIcon
+            v-else-if="item.indexed === false"
+            icon="tabler-circle-x-filled"
+            color="error"
+            size="20"
+        />
+        <span v-else class="text-disabled">-</span>
+      </template>
+
+      <!-- Last Active -->
+      <template #item.last_active="{ item }">
+    <span v-if="item.last_active" class="text-body-2">
+      {{ formatDateTime(item.last_active) }}
+    </span>
+        <span v-else class="text-disabled">-</span>
+      </template>
+
+      <!-- Average Traffic -->
+      <template #item.avg_traffic="{ item }">
+    <span v-if="item.avg_traffic" class="text-body-2 font-weight-medium">
+      {{ item.avg_traffic.toLocaleString() }}
+    </span>
+        <span v-else class="text-disabled">-</span>
+      </template>
+
+      <!-- Domain Age -->
+      <template #item.domain_age="{ item }">
+    <span v-if="item.domain_age" class="text-body-2">
+      {{ item.domain_age }}
+    </span>
+        <span v-else class="text-disabled">-</span>
+      </template>
+
+      <!-- Actions -->
       <template #item.actions="{ item }">
-        <div class="d-flex">
-          <VTooltip text="Delete">
-            <template #activator="{ props }">
-              <IconBtn v-bind="props" color="error" icon="tabler-trash" size="small"
-                       @click="handleDeleteBacklinks(item.id)" />
-            </template>
-          </VTooltip>
-        </div>
+        <VTooltip text="Delete" location="top">
+          <template #activator="{ props }">
+            <VBtn
+                v-bind="props"
+                icon="tabler-trash"
+                variant="text"
+                color="error"
+                size="x-small"
+                @click="handleDeleteBacklinks(item.id)"
+            />
+          </template>
+        </VTooltip>
       </template>
 
+      <!-- Empty State -->
       <template #no-data>
-        <div class="text-center pa-8">
-          <VIcon icon="tabler-file-excel" size="48" class="text-medium-emphasis mb-4" />
-          <h3 class="text-h6 mb-2">No master backlink found</h3>
+        <div class="text-center py-12">
+          <VIcon icon="tabler-database-off" size="64" class="text-disabled mb-4" />
+          <div class="text-h6 text-medium-emphasis mb-2">No Backlinks Found</div>
+          <div class="text-body-2 text-disabled">
+            Try adjusting your search filters
+          </div>
         </div>
       </template>
 
+      <!-- Pagination -->
       <template #bottom>
-        <TablePagination v-model:page="pagination.page" :items-per-page="pagination.itemsPerPage"
-                         :total-items="totalMasterBacklinks" />
+        <TablePagination
+            v-model:page="pagination.page"
+            :items-per-page="pagination.itemsPerPage"
+            :total-items="totalMasterBacklinks"
+        />
       </template>
-
     </VDataTableServer>
   </VCard>
 
@@ -719,6 +914,7 @@ onMounted(() => {
                   variant="outlined"
                   size="small"
                   prepend-icon="tabler-download"
+                  :loading="downloading"
                   @click="templateDownload"
               >
                 Download Template
@@ -749,3 +945,20 @@ onMounted(() => {
     </VCard>
   </VDialog>
 </template>
+<style scoped>
+.compact-domain-table :deep(.v-data-table__td) {
+  padding-block: 8px !important;
+  padding-inline: 12px !important;
+}
+
+.compact-domain-table :deep(.v-data-table__th) {
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  padding-block: 12px !important;
+  padding-inline: 12px !important;
+}
+
+.compact-domain-table :deep(.v-table__wrapper) {
+  border-radius: 8px;
+}
+</style>

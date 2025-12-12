@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { IconWorldWww, IconDevicesCog, IconWorldMinus, IconUnlink, IconSeo, IconTag, IconHierarchy } from '@tabler/icons-vue';
 import { ref, reactive, watch, onMounted } from 'vue'
 import { getCodes } from 'country-list';
+import {CATEGORIES, PLATFORM_TYPES} from "@/utils/backlinkOptions.js";
 
 const router = useRouter()
 const route =  useRoute()
@@ -38,7 +39,6 @@ const form = ref({
   country: '',
   platform_type: '',
   categories: [],
-  categories_input: '',
   anchor_text: '',
   special_requirements: '',
   price: null,
@@ -201,10 +201,6 @@ const submitForm = async () => {
   }
 
   try {
-    form.value.categories = form.value.categories_input
-        .split(',')
-        .map(c => c.trim())
-        .filter(c => c.length > 0)
     const payload = { ...form.value }
 
     const numericFields = ['domain_authority', 'domain_rating', 'organic_traffic', 'price_ne', 'price_gp', 'price', 'total_price']
@@ -319,31 +315,11 @@ const scrollToSection = (sectionId) => {
                 params: { clientId: clientId, domainId: clientDomainId }
               })">
                 <VIcon icon="tabler-arrow-autofit-left" size= "x-large" class="me-1"/>
-Back    
+                Back
               </VBtn>
             </div>
           </VCol>
         </VRow>
-
-        <!-- Quick Navigation -->
-        <!-- <VCard variant="tonal" color="primary" class="mt-6">
-          <VCardText class="pa-3">
-            <div class="d-flex align-center flex-wrap gap-2">
-              <span class="text-body-2 font-weight-medium me-2">Quick Navigation:</span>
-              <VChip
-                v-for="(section, index) in ['Basic Info', 'Status', 'URLs', 'SEO Metrics', 'Pricing']"
-                :key="index"
-                size="small"
-                variant="elevated"
-                color="white"
-                @click="scrollToSection(`section-${index + 1}`)"
-                class="cursor-pointer"
-              >
-                {{ section }}
-              </VChip>
-            </div>
-          </VCardText>
-        </VCard> -->
       </VContainer>
     </VCard>
 
@@ -406,20 +382,6 @@ Back
                     hint="Primary identifier for this domain" persistent-hint required @input="markFormTouched" />
                 </VCol>
 
-                <!-- <VCol cols="12" md="6">
-                    <VAutocomplete
-                      v-model="form.country"
-                      label="Country"
-                      :items="countryOptions"
-                      prepend-inner-icon="mdi-flag"
-                      variant="outlined"
-                      hint="Target country for this domain"
-                      persistent-hint
-                      clearable
-                      @update:model-value="markFormTouched"
-                    />
-                  </VCol> -->
-
                 <VCol cols="12" md="6">
                   <AppTextField v-model="form.turnaround_time" label="Turnaround Time"
                     placeholder="e.g., 5-7 business days" variant="outlined" hint="Expected delivery timeframe"
@@ -462,20 +424,18 @@ Back
               <VRow>
 
                 <!-- Platform Type -->
-                <VCol cols="12" md="4">
-                  <AppTextField
-                      v-model="form.platform_type"
+                <VCol cols="12" md="3">
+                  <VSelect
                       label="Platform Type"
-                      placeholder="e.g., Blog"
-                      variant="outlined"
-                      hint="Specify the platform type"
+                      :items="PLATFORM_TYPES"
+                      v-model="form.platform_type"
+                      hint="Target Platform Type for this domain"
                       persistent-hint
-                      @input="markFormTouched"
                   />
                 </VCol>
 
                 <!-- Country -->
-                <VCol cols="12" md="4" class="mt-6">
+                <VCol cols="12" md="3">
                   <VAutocomplete
                       v-model="form.country"
                       label="Country"
@@ -489,15 +449,14 @@ Back
                 </VCol>
 
                 <!-- Categories -->
-                <VCol cols="12" md="4">
-                  <AppTextField
-                      v-model="form.categories_input"
+                <VCol cols="12" md="6">
+                  <VSelect
                       label="Categories"
-                      placeholder="e.g., Business, Technology, Health"
-                      variant="outlined"
-                      hint="Add multiple categories separated by commas"
+                      :items="CATEGORIES"
+                      multiple
+                      v-model="form.categories"
+                      hint="Target Categories for this domain"
                       persistent-hint
-                      @input="markFormTouched"
                   />
                 </VCol>
 

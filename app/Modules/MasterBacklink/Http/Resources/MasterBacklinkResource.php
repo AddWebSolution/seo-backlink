@@ -23,6 +23,11 @@ class MasterBacklinkResource extends JsonResource
             'platform_type' => $this->platform_type,
             'country'       => $this->country,
             'categories'    => $this->categories ?? [],
+            'dofollow' => is_null($this->dofollow) ? null : (bool) $this->dofollow,
+            'indexed' => is_null($this->indexed) ? null : (bool) $this->indexed,
+            'last_active'       => $this->last_active,
+            'avg_traffic'       => $this->avg_traffic,
+            'domain_age'       => $this->domain_age,
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
             ];

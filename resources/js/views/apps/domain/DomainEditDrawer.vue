@@ -2,6 +2,7 @@
 import { useDomainApi } from '@/composables/domainApi'
 import { ref } from 'vue'
 import {getCodes} from "country-list";
+import {CATEGORIES, PLATFORM_TYPES} from "@/utils/backlinkOptions.js";
 
 const { 
   currentDomain, 
@@ -45,14 +46,9 @@ const formData = ref({
   country: '',
   platform_type: '',
   categories: [],
-  categories_input: '',
   anchor_text: '',
   special_requirements: '',
 })
-
-formData.value.categories_input = Array.isArray(formData.value.categories)
-    ? formData.value.categories.join(', ')
-    : '';
 
 // Form state
 const isSubmitting = ref(false)
@@ -193,7 +189,6 @@ const resetForm = () => {
     country: '',
     platform_type: '',
     categories: [],
-    categories_input: '',
     anchor_text: '',
     special_requirements: '',
   }
@@ -210,12 +205,6 @@ const populateForm = () => {
         formData.value[key] = props.domain[key]
       }
     })
-
-    if (Array.isArray(formData.value.categories)) {
-      formData.value.categories_input = formData.value.categories.join(', ')
-    } else {
-      formData.value.categories_input = ''
-    }
   }
 }
 
@@ -259,10 +248,6 @@ const onSubmit = async () => {
   errorMessage.value = ''
 
   try {
-    formData.value.categories = (formData.value.categories_input || '')
-        .split(',')
-        .map(c => c.trim())
-        .filter(c => c.length > 0)
     // Prepare payload
     const payload = { ...formData.value }
 
@@ -443,12 +428,16 @@ const formatCurrency = (value) => {
             <VCardText class="pa-4 pt-0">
               <VRow>
                 <VCol cols="12" md="6">
-                  <AppTextField v-model="formData.platform_type" label="Platform Type"
-                                placeholder="Enter platform type"
-                                prepend-inner-icon="tabler-brand-monday" variant="outlined" />
+                  <VSelect
+                      label="Platform Type"
+                      :items="PLATFORM_TYPES"
+                      v-model="formData.platform_type"
+                      hint="Target Platform Type for this domain"
+                      persistent-hint
+                  />
                 </VCol>
 
-                <VCol cols="12" md="6" class="mt-6">
+                <VCol cols="12" md="6">
                   <VAutocomplete
                       v-model="formData.country"
                       label="Country"
@@ -462,10 +451,15 @@ const formatCurrency = (value) => {
                   />
                 </VCol>
 
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="formData.categories_input" label="Categories"
-                                placeholder="e.g., Business, Technology"  hint="Add multiple categories separated by commas"
-                                prepend-inner-icon="tabler-category-plus" variant="outlined" />
+                <VCol cols="12" md="12">
+                  <VSelect
+                      label="Categories"
+                      :items="CATEGORIES"
+                      multiple
+                      v-model="formData.categories"
+                      hint="Target Categories for this domain"
+                      persistent-hint
+                  />
                 </VCol>
               </VRow>
             </VCardText>
