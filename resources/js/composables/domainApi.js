@@ -2,9 +2,6 @@
 import { ref, readonly } from "vue";
 import { useApi } from "./useApi";
 import { useAlert } from "./useAlert";
-import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
-
-const { confirm } = useConfirmDialog()
 
 export function useDomainApi() {
   const { showAlert } = useAlert();
@@ -304,18 +301,6 @@ export function useDomainApi() {
 
   // delete domain
   const deleteDomain = async (id) => {
-      const confirmed = await confirm({
-          title: 'Delete Domain',
-          message: 'Are you sure you want to delete this domain? This action cannot be undone.',
-          confirmText: 'Delete',
-          cancelText: 'Cancel',
-          confirmColor: 'error',
-          type: 'error'
-      })
-
-      if (!confirmed) {
-          return
-      }
     loading.value = true;
     error.value = null;
 
@@ -420,6 +405,22 @@ export function useDomainApi() {
         }
     };
 
+    const recommendedBacklinks = async (domainId) => {
+        loading.value = true
+        try {
+            const res = await useApi(`api/clientdomain/recommended-backlinks/${domainId}`, {
+                method: "POST",
+            });
+            return res.data.value.data
+        } catch (err) {
+            error.value = err.response?.data?.message || 'Failed to load recommended backlinks'
+            return []
+        } finally {
+            loading.value = false
+        }
+    }
+
+
     return {
     domains: readonly(domains),
     backlinkhistory: readonly(backlinkhistory),
@@ -442,6 +443,7 @@ export function useDomainApi() {
     createDomain,
     updateDomain,
     deleteDomain,
+    recommendedBacklinks,
     exportReferringDomains,
 
     assignUsersToDomain,

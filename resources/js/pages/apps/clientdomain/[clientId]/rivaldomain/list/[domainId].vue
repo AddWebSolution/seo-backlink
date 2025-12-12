@@ -6,6 +6,7 @@ import { useRivalDomainApi } from "@/composables/rivalDomainApi";
 import { IconWorldWww } from "@tabler/icons-vue";
 import useAuthStore from "@/router/store/auth";
 import { flat } from "@/views/demos/components/button/demoCodeButton";
+import {useConfirmDialog} from "@/composables/useConfirmDialog.js";
 
 const {domainList,fetchDomainList} = useDomainApi();
 const { ClientList, fetchClientList } = useClientApi();
@@ -13,6 +14,7 @@ const { ClientList, fetchClientList } = useClientApi();
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { confirm } = useConfirmDialog()
 
 const clientId = computed(() => authStore.isClient ? authStore.user.id : route.params.clientId)
 const clientDomainId =  computed(() => route.params.domainId)
@@ -185,6 +187,18 @@ const applyFilters = async () => {
 };
 
 const handleDeleteDomain = async (id) => {
+  const confirmed = await confirm({
+    title: 'Delete Rival Domain',
+    message: 'Are you sure you want to delete this domain? This action cannot be undone.',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   try {
     await deleteRivalDomain(id);
     const index = selectedRows.value.findIndex((row) => row === id);
@@ -197,6 +211,18 @@ const handleDeleteDomain = async (id) => {
 
 
 const handleDeleteDomainBatch = async (ids) => {
+  const confirmed = await confirm({
+    title: 'Delete Rival Domain',
+    message: `Are you sure you want to delete ${ids.length} rival domains?`,
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    confirmColor: 'error',
+    type: 'error'
+  })
+
+  if (!confirmed) {
+    return
+  }
   loading.value = true;
   try {
     await Promise.all(ids.map(id => deleteRivalDomain(id)));

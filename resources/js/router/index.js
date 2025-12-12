@@ -8,7 +8,8 @@ import { rivalDomainRoutes } from './modules/rivalDomains';
 import { keywordRoutes } from './modules/keywords';
 import { reportRoutes } from './modules/reports';
 import { dashboardRoutes } from './modules/dashboards';
-import { roleRoutes } from './modules/role'
+import { roleRoutes } from './modules/role';
+import { masterBacklinksRoutes } from './modules/masterBacklinks';
 import { clientDomainRoutes } from './modules/clientDomains';
 
 export const redirects = [
@@ -43,6 +44,7 @@ const router = createRouter({
       ...keywordRoutes,
       ...clientDomainRoutes,
       ...roleRoutes,
+      ...masterBacklinksRoutes,
       ...reportRoutes,
       ...dashboardRoutes
     ].map(route => recursiveLayouts(route)),
